@@ -47,9 +47,6 @@ jobs:
             high-margin-products \
             viral-tiktok-products \
             low-competition-products \
-            best-dropshipping-products-2026 \
-            best-tiktok-products-to-sell \
-            high-margin-dropshipping-products \
             sitemap.xml \
             robots.txt
           git diff --staged --quiet || git commit -m "Update monthly SEO pages"
