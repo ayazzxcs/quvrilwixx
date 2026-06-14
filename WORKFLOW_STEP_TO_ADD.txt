@@ -1,0 +1,3 @@
+# Add this step after products.json is available and before deploying Cloudflare Pages:
+- name: Generate static product pages and sitemap
+  run: node generate-static-product-pages.js
