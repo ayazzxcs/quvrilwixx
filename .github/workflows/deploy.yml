@@ -3,7 +3,7 @@ name: Build DropTrend
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "0 3 1 * *"
 
 jobs:
   build:
@@ -38,7 +38,19 @@ jobs:
           git config user.email "github-actions@github.com"
 
           git add products.json
-          git add product category blog top-trending-products trending-this-month sitemap.xml robots.txt
-
+          git add \
+            product \
+            category \
+            blog \
+            top-trending-products \
+            trending-this-month \
+            high-margin-products \
+            viral-tiktok-products \
+            low-competition-products \
+            best-dropshipping-products-2026 \
+            best-tiktok-products-to-sell \
+            high-margin-dropshipping-products \
+            sitemap.xml \
+            robots.txt
           git diff --staged --quiet || git commit -m "Update monthly SEO pages"
           git push
