@@ -31,7 +31,9 @@ function initProductBackgroundSlideshow() {
     "/assets/bg-logistics-1.svg",
     "/assets/bg-logistics-2.svg",
     "/assets/bg-logistics-3.svg",
-    "/assets/bg-logistics-4.svg"
+    "/assets/bg-logistics-4.svg",
+    "/assets/bg-logistics-5.svg",
+    "/assets/bg-logistics-6.svg"
   ];
   for (let i = imgs.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
