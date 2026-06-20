@@ -39,6 +39,10 @@ jobs:
         run: |
           node generate-static-product-pages.js
 
+      - name: Patch homepage product background
+        run: |
+          node patch-home-background.js
+
       - name: Commit generated pages
         run: |
           git config user.name "github-actions"
