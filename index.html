@@ -600,18 +600,15 @@
 @media(max-width:700px){.signalPanel,.visualSummary{grid-template-columns:1fr 1fr}.signalRow{grid-template-columns:72px 1fr 35px}.scoreRing{width:52px;height:52px}}
 
 
-/* Full-screen uploaded logistics background slideshow */
+/* Full-screen uploaded logistics background slideshow - clean no dots/circles */
 .dynamicBg{position:fixed;inset:0;z-index:-5;overflow:hidden;background:#0b1020;pointer-events:none}
-.dynamicBg .bgSlide{position:absolute;inset:-4%;background-size:contain;background-position:center;background-repeat:no-repeat;opacity:0;transform:translateX(100%) scale(.88);transition:transform 1.25s ease,opacity 1.25s ease;filter:blur(9px) saturate(1.1) brightness(1.03);}
-.dynamicBg .bgSlide.active{opacity:.55;transform:translateX(0) scale(.88)}
+.dynamicBg .bgSlide{position:absolute;inset:-4%;background-size:contain;background-position:center;background-repeat:no-repeat;opacity:0;transform:translateX(100%) scale(.88);transition:transform 1.25s ease,opacity 1.25s ease;filter:blur(9px) saturate(1.1) brightness(1.04);}
+.dynamicBg .bgSlide.active{opacity:.56;transform:translateX(0) scale(.88)}
 .dynamicBg .bgSlide.prev{opacity:0;transform:translateX(-100%) scale(.88)}
-.dynamicBg::before{content:"";position:absolute;inset:0;z-index:2;background:linear-gradient(120deg,rgba(34,197,94,.12),rgba(59,130,246,.10),rgba(20,184,166,.10));mix-blend-mode:screen}
-.dynamicBg::after{content:"";position:absolute;inset:0;z-index:3;background:rgba(7,12,28,.06);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
-.bgSpark{position:fixed;inset:0;z-index:-3;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.12) 1px,transparent 1.4px);background-size:70px 70px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.65),transparent 82%);animation:sparkDrift 26s linear infinite;opacity:.12}
+.dynamicBg::before,.dynamicBg::after,.bgSpark,.bg-orb,.orb1,.orb2,.orb3,body::before,body::after,.wrap::before{display:none!important;content:none!important;background:none!important;animation:none!important}
 .hero,.panel,.toolbar,.premiumTrending,.winningPanel,.topNav,.card{backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-@keyframes sparkDrift{from{background-position:0 0}to{background-position:70px 140px}}
-@media(max-width:600px){.dynamicBg .bgSlide{inset:-2%;background-size:88% auto;filter:blur(7px) saturate(1.08) brightness(1.04)}.dynamicBg .bgSlide.active{opacity:.46}.dynamicBg::after{background:rgba(7,12,28,.10)}}
-@media (prefers-reduced-motion: reduce){.dynamicBg .bgSlide{transition:none}.bgSpark{animation:none!important}}
+@media(max-width:600px){.dynamicBg .bgSlide{inset:-2%;background-size:88% auto;filter:blur(7px) saturate(1.08) brightness(1.04)}.dynamicBg .bgSlide.active{opacity:.48}}
+@media (prefers-reduced-motion: reduce){.dynamicBg .bgSlide{transition:none}}
 
 
 
