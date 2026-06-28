@@ -677,6 +677,7 @@
 
 
 
+
 /* Quvirl GitHub homepage inspired upgrade */
 :root{--gh-bg:#010409;--gh-card:#0d1117;--gh-card2:#070b12;--gh-border:#30363d;--gh-text:#f0f6fc;--gh-muted:#8b949e;--gh-green:#2ea043;--gh-green2:#7ee787;--gh-blue:#58a6ff;--gh-purple:#bc8cff;--gh-violet:#8957e5}
 html{scroll-behavior:smooth}body{background:#010409!important;color:var(--gh-text)!important;overflow-x:hidden}
@@ -823,6 +824,39 @@ button,.currencyBtn.active{background:linear-gradient(180deg,#238636,#1f6f30)!im
 .card .winBadge,
 .card .visualChip{
   color:#bfffe8!important;
+}
+
+
+/* Remove grey text across site */
+:root{--muted:#ffffff!important;--gh-muted:#ffffff!important}
+.muted,.small,.rateText,.lead,
+.premiumTrending p,.winningHead p,
+.card .muted,.card .small,.card p,.card span,
+.metric span,.m span,.stat span,
+.signalRow>span:first-child,.signalRow>span:last-child,
+.trendLink small,.siteChip small,.menuItem span,.chev,.menuSubTitle,
+.footer,.footer *,.table th,.table td,
+.brandText span,.sectionTitle p,.winningPanel p,
+.visualSummary span,.money span,.row span,
+.productMeta,.productMeta *{
+  color:#ffffff!important;
+  -webkit-text-fill-color:#ffffff!important;
+  opacity:.96!important;
+}
+.card .title,.card b,.card strong,
+h1,h2,h3,.sectionTitle h2,.winningHead h2,
+.signalCard b,.stat b,.m b,.metric b{
+  color:#ffffff!important;
+  -webkit-text-fill-color:#ffffff!important;
+  opacity:1!important;
+}
+.profit,.result,.scoreRing b,.signalCard span{
+  color:#6ee7b7!important;
+  -webkit-text-fill-color:#6ee7b7!important;
+}
+.pill,.visualChip,.winBadge,.navPill,.badge{
+  color:#ffffff!important;
+  -webkit-text-fill-color:#ffffff!important;
 }
 
 </style>
@@ -1669,6 +1703,7 @@ initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
+initProductBackgroundSlideshow();
 
 </script>
 
@@ -1746,6 +1781,7 @@ initProductBackgroundSlideshow();
   window.addEventListener('load', forceQuvirlBackground);
 })();
 </script>
+
 
 
 
