@@ -678,6 +678,7 @@
 
 
 
+
 /* Quvirl GitHub homepage inspired upgrade */
 :root{--gh-bg:#010409;--gh-card:#0d1117;--gh-card2:#070b12;--gh-border:#30363d;--gh-text:#f0f6fc;--gh-muted:#8b949e;--gh-green:#2ea043;--gh-green2:#7ee787;--gh-blue:#58a6ff;--gh-purple:#bc8cff;--gh-violet:#8957e5}
 html{scroll-behavior:smooth}body{background:#010409!important;color:var(--gh-text)!important;overflow-x:hidden}
@@ -771,13 +772,22 @@ button,.currencyBtn.active{background:linear-gradient(180deg,#238636,#1f6f30)!im
 }
 
 
-/* Quvirl pink brand name */
-.brandText b,.miniBrand,.miniBrand span,.sideBrand,.sideBrand span,.brandTrend,.brandWord{
+/* Quvirl split brand name: Qu white, virl pink */
+.brandText b,.miniBrand,.sideBrand,.brandTrend,.brandWord{
+  color:#ffffff!important;
+  -webkit-text-fill-color:#ffffff!important;
+}
+.brandQu{
+  color:#ffffff!important;
+  -webkit-text-fill-color:#ffffff!important;
+}
+.brandVirl{
   color:#ff4fd8!important;
   -webkit-text-fill-color:#ff4fd8!important;
+  text-shadow:0 0 18px rgba(255,79,216,.38)!important;
 }
 .brandText b{
-  text-shadow:0 0 18px rgba(255,79,216,.35)!important;
+  text-shadow:none!important;
 }
 
 
@@ -902,7 +912,7 @@ h1,h2,h3,.sectionTitle h2,.winningHead h2,
 <rect width="64" height="64" rx="14" fill="#0C447C"/>
 <path d="M16 44 L30 30 L40 38 L52 18" stroke="#378ADD" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 <rect x="10" y="34" width="13" height="13" rx="3" fill="#B5D4F4"/>
-</svg></div><div><span>Quvirl</span></div></div>
+</svg></div><div><span><span class="brandQu">Qu</span><span class="brandVirl">virl</span></span></div></div>
     <label class="closeMenuLabel" for="menuToggle">×</label>
   </div>
 
@@ -946,7 +956,7 @@ h1,h2,h3,.sectionTitle h2,.winningHead h2,
 <rect width="64" height="64" rx="14" fill="#0C447C"/>
 <path d="M16 44 L30 30 L40 38 L52 18" stroke="#378ADD" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 <rect x="10" y="34" width="13" height="13" rx="3" fill="#B5D4F4"/>
-</svg></div><span>Quvirl</span></div>
+</svg></div><span><span class="brandQu">Qu</span><span class="brandVirl">virl</span></span></div>
   </div>
   <div class="navPill">🔥 Winning product finder</div>
 </nav>
@@ -960,7 +970,7 @@ h1,h2,h3,.sectionTitle h2,.winningHead h2,
 <path d="M16 44 L30 30 L40 38 L52 18" stroke="#378ADD" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 <rect x="10" y="34" width="13" height="13" rx="3" fill="#B5D4F4"/>
 </svg></div>
-  <div class="brandText"><b>Quvirl</b><span>Discover Winning Products Before Everyone Else</span></div>
+  <div class="brandText"><b><span class="brandQu">Qu</span><span class="brandVirl">virl</span></b><span>Discover Winning Products Before Everyone Else</span></div>
 </div>
 
 <div class="badge">Google Trends + Amazon Market Demand + Supplier Data</div>
@@ -1704,6 +1714,7 @@ initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
+initProductBackgroundSlideshow();
 
 </script>
 
@@ -1781,6 +1792,7 @@ initProductBackgroundSlideshow();
   window.addEventListener('load', forceQuvirlBackground);
 })();
 </script>
+
 
 
 
