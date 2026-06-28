@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7252235831334562"
      crossorigin="anonymous"></script>
-<title>DropTrend Product Details</title>
+<title>Quvirl Product Details</title>
 <meta name="robots" content="index,follow,max-image-preview:large">
-<meta name="description" content="DropTrend product research page with Google Trends, Amazon demand and CJ supplier data.">
+<meta name="description" content="Quvirl product research page with Google Trends, Amazon demand and CJ supplier data.">
 <link rel="canonical" id="canonicalLink" href="https://droptrend.pages.dev/product.html">
 <style>
 
@@ -210,14 +210,14 @@
 <body>
 <div class="bg-orb orb1"></div><div class="bg-orb orb2"></div><div class="bg-orb orb3"></div>
 <div class="productPage">
-  <a class="backLink" href="./">← Back to DropTrend products</a>
+  <a class="backLink" href="./">← Back to Quvirl products</a>
   <div id="productRoot" class="detailPanel">Loading product...</div>
 </div>
 <script>
 const PRODUCTS_URLS = [
   "./products.json",
-  "https://raw.githubusercontent.com/ayazzxcs/Droptrendv2-backend/main/products.json",
-  "https://cdn.jsdelivr.net/gh/ayazzxcs/Droptrendv2-backend@main/products.json"
+  "https://raw.githubusercontent.com/ayazzxcs/Quvirlv2-backend/main/products.json",
+  "https://cdn.jsdelivr.net/gh/ayazzxcs/Quvirlv2-backend@main/products.json"
 ];
 let currentCurrency = localStorage.getItem('displayCurrency') || 'INR';
 let usdToInr = 83.5;
@@ -255,8 +255,8 @@ async function init(){
   const root=document.getElementById("productRoot"); const items=await loadProducts(); const p=findProduct(items);
   if(!p){ root.innerHTML="<h1>Product not found</h1><p class='muted'>Go back to the homepage and open the product again.</p>"; return; }
   const amazon=proof(p).amazon||{}; const bestRating=first(amazon.bestRating,p.bestRating,""); const ratingsTotal=num(first(amazon.bestRatingsTotal,p.bestRatingsTotal,0)); const canonical=productUrl(p);
-  document.title=`${p.name} | DropTrend Product Research`; document.getElementById("canonicalLink").setAttribute("href",canonical);
-  document.querySelector("meta[name='description']").setAttribute("content",`${p.name} trending dropshipping product research with DropTrend score ${p.trend}/100, Amazon demand and CJ supplier data.`);
+  document.title=`${p.name} | Quvirl Product Research`; document.getElementById("canonicalLink").setAttribute("href",canonical);
+  document.querySelector("meta[name='description']").setAttribute("content",`${p.name} trending dropshipping product research with Quvirl score ${p.trend}/100, Amazon demand and CJ supplier data.`);
   root.innerHTML=`
     <div class="productShell">
       <main>
@@ -270,7 +270,7 @@ async function init(){
             <p class="muted">${safe(p.category)} • ${safe(p.market)} • ${safe(p.supplier)}</p>
 
             <div class="detailMetrics">
-              <div class="metric"><span>DropTrend score</span><b>${p.trend}/100</b></div>
+              <div class="metric"><span>Quvirl score</span><b>${p.trend}/100</b></div>
               <div class="metric"><span>Google Trends</span><b>${formatGrowth(p.googleGrowth,p.trendDirection)}</b></div>
               <div class="metric"><span>Amazon demand</span><b>${p.amazonScore?p.amazonScore+"/100":"—"}</b></div>
               <div class="metric"><span>CJ supplier</span><b>${p.cjScore||"—"}/100</b></div>
@@ -306,11 +306,11 @@ async function init(){
         <div class="summaryGrid">
           <section class="panel">
             <h2>Product research summary</h2>
-            <p class="small">${safe(p.name)} is tracked by DropTrend using Google Trends, Amazon demand and CJdropshipping supplier data.</p>
+            <p class="small">${safe(p.name)} is tracked by Quvirl using Google Trends, Amazon demand and CJdropshipping supplier data.</p>
           </section>
           <section class="panel">
             <h2>Testing notes</h2>
-            <p class="small">Use the DropTrend score, review/rating count, supplier score, margin and product image quality before testing this product in ads.</p>
+            <p class="small">Use the Quvirl score, review/rating count, supplier score, margin and product image quality before testing this product in ads.</p>
           </section>
         </div>
       </main>
@@ -321,7 +321,7 @@ async function init(){
       </aside>
     </div>
   `;
-  const schema={"@context":"https://schema.org","@type":"Product","name":p.name,"image":p.image,"description":`${p.name} DropTrend product research page.`,"brand":{"@type":"Brand","name":"DropTrend"},"offers":{"@type":"Offer","price":String(p.sell||0),"priceCurrency":"USD","availability":"https://schema.org/InStock","url":canonical}};
+  const schema={"@context":"https://schema.org","@type":"Product","name":p.name,"image":p.image,"description":`${p.name} Quvirl product research page.`,"brand":{"@type":"Brand","name":"Quvirl"},"offers":{"@type":"Offer","price":String(p.sell||0),"priceCurrency":"USD","availability":"https://schema.org/InStock","url":canonical}};
   if(bestRating) schema.aggregateRating={"@type":"AggregateRating","ratingValue":String(bestRating),"reviewCount":String(ratingsTotal||1)};
   const s=document.createElement("script"); s.type="application/ld+json"; s.textContent=JSON.stringify(schema); document.head.appendChild(s);
 }
@@ -335,14 +335,14 @@ init();
     <a href="/contact.html">Contact</a>
     <a href="/terms.html">Terms</a>
   </div>
-  <div>DropTrend is independent and is not affiliated with, endorsed by, or sponsored by Amazon, Google, CJdropshipping, AliExpress, or any other third-party platform.</div>
+  <div>Quvirl is independent and is not affiliated with, endorsed by, or sponsored by Amazon, Google, CJdropshipping, AliExpress, or any other third-party platform.</div>
 </footer>
 
 <div id="dtDisclaimer" style="position:fixed;left:18px;right:18px;bottom:18px;z-index:9999;background:#ffffff;color:#111827;padding:18px;border-radius:16px;box-shadow:0 14px 45px rgba(0,0,0,.28);border:1px solid rgba(15,23,42,.08);max-width:980px;margin:0 auto;display:none;">
   <div style="display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;">
     <div style="flex:1;min-width:260px;">
       <b style="display:block;font-size:16px;margin-bottom:6px;">Disclaimer</b>
-      <p style="margin:0;color:#4b5563;font-size:13px;line-height:1.55;">DropTrend is an independent product research platform. We analyze sources such as Google Trends, Amazon market demand signals, and supplier data. DropTrend is not affiliated with, endorsed by, or sponsored by Google, Amazon, CJdropshipping, AliExpress, or any other third-party platform.</p>
+      <p style="margin:0;color:#4b5563;font-size:13px;line-height:1.55;">Quvirl is an independent product research platform. We analyze sources such as Google Trends, Amazon market demand signals, and supplier data. Quvirl is not affiliated with, endorsed by, or sponsored by Google, Amazon, CJdropshipping, AliExpress, or any other third-party platform.</p>
     </div>
     <div style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap;">
       <button type="button" onclick="droptrendDisclaimerChoice('declined')" style="background:#ffffff;color:#111827;border:1px solid #d1d5db;border-radius:10px;padding:10px 16px;font-weight:800;">Decline</button>
