@@ -684,6 +684,7 @@ button,.currencyBtn,.siteChip,.menuItem{transition:transform .2s,filter .2s,bord
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.wrap::after,.hero::before,.hero::after,.motion-ready .topNav,.motion-ready .hero,.motion-ready .premiumTrending,.motion-ready .winningPanel,.motion-ready .sectionTitle,.motion-ready .panel,.motion-ready .dt-in,.score,.navPill,.scoreRing,#menuToggle:checked ~ .sideMenu .menuItem,.signalBar::after,.signalBar i,.stat::after{animation:none!important}.motion-ready .stat,.motion-ready .trendLink,.motion-ready .signalCard,.motion-ready .card,.menuItem{opacity:1!important;transform:none!important}.card:hover,.card:hover .img img,button:hover,.currencyBtn:hover,.siteChip:hover,.menuItem:hover,.stat:hover,.signalCard:hover{transform:none!important}}
 
 
+
 /* Quvirl blue-only brand cleanup */
 :root{--accent:#58a6ff!important;--gh-green:#58a6ff!important;--gh-green2:#79c0ff!important;--gh-blue:#58a6ff!important;--gh-purple:#1f6feb!important}
 .brandTrend,.brandWord,.miniBrand span,.sideBrand span{color:#58a6ff!important}
@@ -1584,6 +1585,40 @@ autoLoadProducts();
 
 
 
+
+<script>
+(function(){
+  function initQuvirlMotion(){
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.documentElement.classList.add('motion-ready');
+    const targets = '.stat,.trendLink,.signalCard,.card,.sectionTitle,.panel';
+    const reveal = (el, index) => {
+      if (el.dataset.dtMotion) return;
+      el.dataset.dtMotion = '1';
+      el.style.animationDelay = Math.min(index * 45, 360) + 'ms';
+      el.classList.add('dt-in');
+    };
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const items = Array.from(document.querySelectorAll(targets));
+            reveal(entry.target, items.indexOf(entry.target));
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+      document.querySelectorAll(targets).forEach(el => observer.observe(el));
+      const mo = new MutationObserver(() => document.querySelectorAll(targets).forEach(el => {
+        if (!el.dataset.dtMotion) observer.observe(el);
+      }));
+      mo.observe(document.body, { childList: true, subtree: true });
+    } else document.querySelectorAll(targets).forEach(reveal);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initQuvirlMotion);
+  else initQuvirlMotion();
+})();
+</script>
 
 <script>
 (function(){
