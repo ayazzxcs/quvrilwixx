@@ -692,6 +692,7 @@ button,.currencyBtn,.siteChip,.menuItem{transition:transform .2s,filter .2s,bord
 
 
 
+
 /* Quvirl brand: blue name, green theme, no background override */
 .brandTrend,.brandWord,.miniBrand span,.sideBrand span,.brandText b,.miniBrand,.sideBrand{color:#58a6ff!important}
 .brandText b{font-size:28px!important;letter-spacing:-.5px!important}
@@ -1536,6 +1537,7 @@ calcMargin();
 autoLoadProducts();
 initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
+initProductBackgroundSlideshow();
 
 </script>
 
@@ -1849,6 +1851,40 @@ initProductBackgroundSlideshow();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', forceQuvirlBackground);
   else forceQuvirlBackground();
   window.addEventListener('load', forceQuvirlBackground);
+})();
+</script>
+
+<script>
+(function(){
+  function initQuvirlMotion(){
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.documentElement.classList.add('motion-ready');
+    const targets = '.stat,.trendLink,.signalCard,.card,.sectionTitle,.panel';
+    const reveal = (el, index) => {
+      if (el.dataset.dtMotion) return;
+      el.dataset.dtMotion = '1';
+      el.style.animationDelay = Math.min(index * 45, 360) + 'ms';
+      el.classList.add('dt-in');
+    };
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const items = Array.from(document.querySelectorAll(targets));
+            reveal(entry.target, items.indexOf(entry.target));
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+      document.querySelectorAll(targets).forEach(el => observer.observe(el));
+      const mo = new MutationObserver(() => document.querySelectorAll(targets).forEach(el => {
+        if (!el.dataset.dtMotion) observer.observe(el);
+      }));
+      mo.observe(document.body, { childList: true, subtree: true });
+    } else document.querySelectorAll(targets).forEach(reveal);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initQuvirlMotion);
+  else initQuvirlMotion();
 })();
 </script>
 
