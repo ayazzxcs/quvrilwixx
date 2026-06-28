@@ -659,6 +659,7 @@
 .motion-ready .topNav,.motion-ready .hero,.motion-ready .premiumTrending,.motion-ready .winningPanel,.motion-ready .sectionTitle,.motion-ready .panel,.motion-ready .dt-in,.score,.winBadge,.navPill,.scoreRing,#menuToggle:checked ~ .sideMenu .menuItem{animation:none!important}.motion-ready .stat,.motion-ready .trendLink,.motion-ready .signalCard,.motion-ready .card,.menuItem{opacity:1!important;transform:none!important}.card:hover,.card:hover .img img,button:hover,.currencyBtn:hover,.siteChip:hover,.menuItem:hover{transform:none!important}}
 
 
+
 /* DropTrend premium motion upgrade */
 html{scroll-behavior:smooth}
 .motion-ready .topNav,
@@ -674,8 +675,8 @@ html{scroll-behavior:smooth}
 .motion-ready .stat,.motion-ready .trendLink,.motion-ready .signalCard,.motion-ready .card{opacity:0;transform:translateY(18px) scale(.98)}
 .motion-ready .dt-in{animation:dtFadeUp .62s cubic-bezier(.22,1,.36,1) forwards}
 .card{will-change:transform,box-shadow,border-color}
-.card::after,.trendLink::after,.premiumTrending::after,.winningPanel::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 0%,rgba(255,255,255,.12) 45%,transparent 60%);transform:translateX(-120%);opacity:0;pointer-events:none}
-.card:hover::after,.trendLink:hover::after,.premiumTrending:hover::after,.winningPanel:hover::after{animation:dtShine .8s ease both;opacity:1}
+.card::after,.trendLink::after,.premiumTrending::after,.winningPanel::after,.signalCard::before,.stat::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 0%,rgba(255,255,255,.14) 45%,transparent 60%);transform:translateX(-125%);opacity:0;pointer-events:none}
+.card:hover::after,.trendLink:hover::after,.premiumTrending:hover::after,.winningPanel:hover::after,.signalCard:hover::before,.stat:hover::before{animation:dtShine .85s ease both;opacity:1}
 .card:hover{transform:translateY(-7px) scale(1.012);box-shadow:0 22px 55px rgba(0,0,0,.34);border-color:rgba(110,231,183,.52)}
 .img img{transition:transform .75s ease,filter .75s ease}
 .card:hover .img img{transform:scale(1.07);filter:saturate(1.1) contrast(1.05)}
@@ -690,13 +691,40 @@ button:hover,.currencyBtn:hover,.siteChip:hover,.menuItem:hover{transform:transl
 #menuToggle:checked ~ .sideMenu .menuItem:nth-child(2){animation-delay:.08s}
 #menuToggle:checked ~ .sideMenu .menuItem:nth-child(3){animation-delay:.12s}
 #menuToggle:checked ~ .sideMenu .menuItem:nth-child(4){animation-delay:.16s}
+
+/* Monthly Signal Engine + upper stats modern glass upgrade */
+.stats{perspective:900px}
+.stat{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(15,25,55,.82),rgba(255,255,255,.075))!important;border:1px solid rgba(181,212,244,.22)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 18px 42px rgba(0,0,0,.22);transition:transform .32s cubic-bezier(.22,1,.36,1),box-shadow .32s,border-color .32s}
+.stat::after{content:"";position:absolute;width:120px;height:120px;right:-55px;top:-55px;border-radius:50%;background:radial-gradient(circle,rgba(110,231,183,.26),transparent 65%);filter:blur(2px);animation:dtOrbBreathe 4.2s ease-in-out infinite}
+.stat:hover{transform:translateY(-5px) rotateX(3deg);box-shadow:0 25px 55px rgba(0,0,0,.32),0 0 30px rgba(110,231,183,.10);border-color:rgba(110,231,183,.45)!important}
+.stat b{background:linear-gradient(90deg,#fff,#b7ffe8,#b5d4f4);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 18px rgba(110,231,183,.10)}
+.signalPanel{position:relative}
+.signalCard{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(7,17,39,.88),rgba(18,33,68,.72))!important;border:1px solid rgba(181,212,244,.22)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 20px 50px rgba(0,0,0,.25);transition:transform .32s cubic-bezier(.22,1,.36,1),box-shadow .32s,border-color .32s}
+.signalCard:hover{transform:translateY(-5px);box-shadow:0 28px 62px rgba(0,0,0,.34),0 0 34px rgba(34,197,94,.12);border-color:rgba(110,231,183,.44)!important}
+.signalCard span{color:#b5d4f4!important;text-shadow:0 0 12px rgba(181,212,244,.18)}
+.signalCard b{letter-spacing:.1px}
+.signalBars{gap:10px!important;margin:14px 0!important}
+.signalRow{grid-template-columns:82px 1fr 46px!important;gap:10px!important;position:relative;z-index:2}
+.signalRow > span:first-child{font-weight:900;text-transform:uppercase;letter-spacing:.45px;color:#aab7da}
+.signalRow > span:last-child{font-weight:900;color:#dffcf4;text-align:right}
+.signalBar{height:10px!important;background:rgba(3,9,24,.78)!important;border:1px solid rgba(181,212,244,.16)!important;box-shadow:inset 0 2px 8px rgba(0,0,0,.38);position:relative;overflow:hidden}
+.signalBar::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);transform:translateX(-120%);animation:dtBarSweep 2.4s ease-in-out infinite}
+.signalBar i{position:relative;background:linear-gradient(90deg,#22c55e,#6ee7b7,#38bdf8)!important;background-size:220% 100%!important;box-shadow:0 0 18px rgba(110,231,183,.48),0 0 4px rgba(56,189,248,.55);transform-origin:left;animation:dtBarGrow 1.25s cubic-bezier(.22,1,.36,1) both,dtBarFlow 2.3s linear infinite!important}
+.signalBar i::after{content:"";position:absolute;right:-5px;top:50%;width:10px;height:10px;border-radius:50%;background:#eafff8;box-shadow:0 0 16px #6ee7b7;transform:translateY(-50%)}
+.visualChips .visualChip{transition:transform .22s ease,box-shadow .22s ease;border-color:rgba(110,231,183,.30)!important;background:rgba(110,231,183,.12)!important}
+.visualChip:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.22),0 0 16px rgba(110,231,183,.14)}
+
 @keyframes dtFadeUp{from{opacity:0;transform:translateY(22px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes dtShine{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
+@keyframes dtShine{from{transform:translateX(-125%)}to{transform:translateX(125%)}}
 @keyframes dtSoftPulse{0%,100%{box-shadow:0 0 0 rgba(110,231,183,0)}50%{box-shadow:0 0 22px rgba(110,231,183,.18)}}
 @keyframes dtRingPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
 @keyframes dtMenuSlide{to{opacity:1;transform:translateX(0)}}
-@media(max-width:600px){.card:hover{transform:translateY(-3px) scale(1.004)}.motion-ready .card{transform:translateY(12px) scale(.99)}}
-@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.motion-ready .topNav,.motion-ready .hero,.motion-ready .premiumTrending,.motion-ready .winningPanel,.motion-ready .sectionTitle,.motion-ready .panel,.motion-ready .dt-in,.score,.winBadge,.navPill,.scoreRing,#menuToggle:checked ~ .sideMenu .menuItem{animation:none!important}.motion-ready .stat,.motion-ready .trendLink,.motion-ready .signalCard,.motion-ready .card,.menuItem{opacity:1!important;transform:none!important}.card:hover,.card:hover .img img,button:hover,.currencyBtn:hover,.siteChip:hover,.menuItem:hover{transform:none!important}}
+@keyframes dtBarGrow{from{transform:scaleX(0);filter:blur(2px)}to{transform:scaleX(1);filter:blur(0)}}
+@keyframes dtBarFlow{from{background-position:0% 50%}to{background-position:220% 50%}}
+@keyframes dtBarSweep{0%,35%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+@keyframes dtOrbBreathe{0%,100%{transform:scale(.85);opacity:.45}50%{transform:scale(1.2);opacity:.85}}
+@media(max-width:600px){.card:hover{transform:translateY(-3px) scale(1.004)}.motion-ready .card{transform:translateY(12px) scale(.99)}.signalRow{grid-template-columns:64px 1fr 32px!important;gap:7px!important}.signalBar{height:8px!important}.stat:hover,.signalCard:hover{transform:translateY(-2px)}}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.motion-ready .topNav,.motion-ready .hero,.motion-ready .premiumTrending,.motion-ready .winningPanel,.motion-ready .sectionTitle,.motion-ready .panel,.motion-ready .dt-in,.score,.winBadge,.navPill,.scoreRing,#menuToggle:checked ~ .sideMenu .menuItem,.signalBar::after,.signalBar i,.stat::after{animation:none!important}.motion-ready .stat,.motion-ready .trendLink,.motion-ready .signalCard,.motion-ready .card,.menuItem{opacity:1!important;transform:none!important}.card:hover,.card:hover .img img,button:hover,.currencyBtn:hover,.siteChip:hover,.menuItem:hover,.stat:hover,.signalCard:hover{transform:none!important}}
 
 </style>
     }
@@ -1570,6 +1598,7 @@ autoLoadProducts();
   });
 })();
 </script>
+
 
 
 <script>
