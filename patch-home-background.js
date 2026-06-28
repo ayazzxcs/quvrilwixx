@@ -2,15 +2,15 @@ const fs = require('fs');
 const file = 'index.html';
 let html = fs.readFileSync(file, 'utf8');
 
-const css = `/* Full-screen uploaded logistics background slideshow - visible */
+const css = `/* Full-screen uploaded logistics background slideshow - visible no crop */
 .dynamicBg{position:fixed!important;inset:0!important;z-index:0!important;overflow:hidden!important;background:#010409!important;pointer-events:none!important;display:block!important}
-.dynamicBg .bgSlide{position:absolute!important;inset:-6%!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;opacity:0;transform:translateX(100%) scale(1.1);transition:transform 1.1s ease,opacity 1.1s ease;filter:blur(2px) saturate(1.2) brightness(.95)!important;display:block!important}
-.dynamicBg .bgSlide.active{opacity:.72!important;transform:translateX(0) scale(1.1)!important}
-.dynamicBg .bgSlide.prev{opacity:0!important;transform:translateX(-100%) scale(1.1)!important}
-.dynamicBg::after{content:""!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,rgba(1,4,9,.22),rgba(1,4,9,.58) 45%,rgba(1,4,9,.88))!important;pointer-events:none!important}
+.dynamicBg .bgSlide{position:absolute!important;inset:0!important;background-size:contain!important;background-position:center!important;background-repeat:no-repeat!important;opacity:0;transform:translateX(100%) scale(.96);transition:transform 1.25s ease,opacity 1.25s ease;filter:blur(.7px) saturate(1.08) brightness(1.02)!important;display:block!important}
+.dynamicBg .bgSlide.active{opacity:.60!important;transform:translateX(0) scale(.96)!important}
+.dynamicBg .bgSlide.prev{opacity:0!important;transform:translateX(-100%) scale(.96)!important}
+.dynamicBg::after{content:""!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,rgba(1,4,9,.20),rgba(1,4,9,.42) 45%,rgba(1,4,9,.82))!important;pointer-events:none!important}
 .wrap{position:relative!important;z-index:2!important}
 .hero,.panel,.toolbar,.premiumTrending,.winningPanel,.topNav,.card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-@media(max-width:600px){.dynamicBg .bgSlide{inset:-4%!important;background-size:cover!important;filter:blur(2px) saturate(1.15) brightness(.92)!important}.dynamicBg .bgSlide.active{opacity:.68!important}}
+@media(max-width:600px){.dynamicBg .bgSlide{inset:0!important;background-size:92% auto!important;background-position:center top!important;filter:blur(.5px) saturate(1.06) brightness(1.02)!important}.dynamicBg .bgSlide.active{opacity:.58!important}}
 @media (prefers-reduced-motion: reduce){.dynamicBg .bgSlide{transition:none}}`;
 
 html = html.replace(/\/\* Full-screen uploaded logistics background slideshow[\s\S]*?@media \(prefers-reduced-motion: reduce\)\{\.dynamicBg \.bgSlide\{transition:none\}\}/g, css);
@@ -49,8 +49,8 @@ function initProductBackgroundSlideshow() {
     const old = current;
     current = next;
     next = old;
-    setTimeout(() => next.classList.remove('prev'), 1200);
-  }, 3200);
+    setTimeout(() => next.classList.remove('prev'), 1300);
+  }, 5200);
 }
 `;
 
@@ -61,4 +61,4 @@ if (!html.includes('function initProductBackgroundSlideshow()')) {
 html = html.replace(/autoLoadProducts\(\);/, 'autoLoadProducts();\ninitProductBackgroundSlideshow();');
 
 fs.writeFileSync(file, html, 'utf8');
-console.log('Patched homepage with visible sliding logistics background images.');
+console.log('Patched homepage with non-cropped higher-quality sliding logistics background images.');
