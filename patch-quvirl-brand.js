@@ -49,7 +49,17 @@ button,.currencyBtn.active{background:linear-gradient(180deg,#238636,#1f6f30)!im
   .lead{max-width:100%!important;font-size:14px!important}
   .stats{grid-template-columns:1fr!important;width:100%!important;max-width:100%!important}
   .currencyBox{justify-content:center!important;width:100%!important}
-  .signalPanel{grid-template-columns:1fr!important;width:100%!important;max-width:100%!important}
+  .signalPanel{grid-template-columns:1fr 1fr!important;width:100%!important;max-width:100%!important;gap:10px!important}
+  .signalCard{padding:12px!important;min-width:0!important;overflow:hidden!important}
+  .signalCard b{font-size:14px!important;line-height:1.2!important}
+  .signalCard span{font-size:9px!important}
+  .signalCard p.small{font-size:9px!important;line-height:1.35!important}
+  .signalRow{grid-template-columns:46px 1fr 24px!important;gap:5px!important}
+  .signalRow>span:first-child{font-size:8px!important}
+  .signalRow>b{font-size:10px!important}
+  .signalBar{height:7px!important}
+  .visualChips{gap:5px!important}
+  .visualChip{font-size:8px!important;padding:5px 6px!important}
   .toolbar{grid-template-columns:1fr!important;width:100%!important;margin-left:0!important;margin-right:0!important}
   .premiumTrending,.winningPanel{width:100%!important;margin-left:0!important;margin-right:0!important}
   .trendLinks{grid-template-columns:1fr!important}
@@ -64,4 +74,4 @@ html = html.replace(/\/\* Quvirl blue-only brand cleanup \*\/[\s\S]*?(?=<\/style
 html = html.replace('</style>', css + '\n</style>');
 
 fs.writeFileSync(file, html, 'utf8');
-console.log('Applied Quvirl brand, mobile width fix, and restored Product Intelligence box.');
+console.log('Applied Quvirl brand, mobile width fix, and side-by-side Product Intelligence box.');
