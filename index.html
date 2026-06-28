@@ -660,71 +660,64 @@
 
 
 
-/* DropTrend premium motion upgrade */
+
+/* DropTrend GitHub-dark motion upgrade */
+:root{--dt-black:#010409;--dt-card:#0d1117;--dt-card2:#090d13;--dt-border:#30363d;--dt-border2:#1f6feb;--dt-text:#f0f6fc;--dt-muted:#8b949e;--dt-green:#3fb950;--dt-green2:#56d364;--dt-blue:#58a6ff;--dt-purple:#bc8cff}
 html{scroll-behavior:smooth}
-.motion-ready .topNav,
-.motion-ready .hero,
-.motion-ready .premiumTrending,
-.motion-ready .winningPanel,
-.motion-ready .sectionTitle,
-.motion-ready .panel{animation:dtFadeUp .7s cubic-bezier(.22,1,.36,1) both}
-.motion-ready .topNav{animation-delay:.04s}
-.motion-ready .hero{animation-delay:.10s}
-.motion-ready .premiumTrending{animation-delay:.16s}
-.motion-ready .winningPanel{animation-delay:.22s}
-.motion-ready .stat,.motion-ready .trendLink,.motion-ready .signalCard,.motion-ready .card{opacity:0;transform:translateY(18px) scale(.98)}
+body{background:#010409!important;color:var(--dt-text)!important}
+body::before,body::after,.bg-orb,.orb1,.orb2,.orb3,.bgSpark{display:none!important;animation:none!important;background:none!important}
+.dynamicBg{background:#010409!important;z-index:-5!important}
+.dynamicBg .bgSlide{opacity:0!important;background-image:none!important}
+.wrap::before{display:none!important}
+.wrap::after{content:"";position:fixed;inset:-25%;z-index:-4;pointer-events:none;background:radial-gradient(circle at 50% 0%,rgba(31,111,235,.30),transparent 28%),radial-gradient(circle at 18% 42%,rgba(63,185,80,.16),transparent 24%),radial-gradient(circle at 88% 55%,rgba(188,140,255,.16),transparent 25%);filter:blur(18px);animation:dtGitHubGlow 12s ease-in-out infinite alternate}
+.topNav,.heroCard,.panel,.toolbar,.premiumTrending,.winningPanel,.stat,.signalCard,.card,.trendLink,.m,.metric,.siteChip{background:linear-gradient(180deg,#0d1117,#090d13)!important;border:1px solid var(--dt-border)!important;box-shadow:0 16px 44px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.035)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.premiumTrending,.winningPanel,.signalCard,.stat,.card,.trendLink,.toolbar{position:relative;overflow:hidden}
+.premiumTrending::before,.winningPanel::before,.signalCard::before,.stat::before,.card::before,.trendLink::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(115deg,rgba(88,166,255,.55),rgba(63,185,80,.46),rgba(188,140,255,.36),rgba(48,54,61,.25));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.22;pointer-events:none;transition:opacity .3s ease}
+.premiumTrending:hover::before,.winningPanel:hover::before,.signalCard:hover::before,.stat:hover::before,.card:hover::before,.trendLink:hover::before{opacity:.85}
+h1,.sectionTitle h2,.winningHead h2,.premiumTrending h2{color:#f0f6fc!important;text-shadow:0 0 26px rgba(88,166,255,.16)}
+.lead,.muted,.small,.premiumTrending p,.winningHead p,.rateText{color:var(--dt-muted)!important}
+.badge,.navPill,.winBadge,.visualChip,.pill{background:rgba(35,134,54,.14)!important;border:1px solid rgba(63,185,80,.34)!important;color:#7ee787!important;box-shadow:none!important}
+input,select,button,.currencyBtn{background:#0d1117!important;border:1px solid var(--dt-border)!important;color:#f0f6fc!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)!important}
+button,.currencyBtn.active{background:linear-gradient(180deg,#238636,#1f6f30)!important;border-color:rgba(63,185,80,.55)!important;color:#fff!important}
+.currencyBtn:not(.active){background:#0d1117!important;color:#f0f6fc!important}
+.motion-ready .topNav,.motion-ready .hero,.motion-ready .premiumTrending,.motion-ready .winningPanel,.motion-ready .sectionTitle,.motion-ready .panel{animation:dtFadeUp .7s cubic-bezier(.22,1,.36,1) both}
+.motion-ready .stat,.motion-ready .trendLink,.motion-ready .signalCard,.motion-ready .card{opacity:0;transform:translateY(18px) scale(.985)}
 .motion-ready .dt-in{animation:dtFadeUp .62s cubic-bezier(.22,1,.36,1) forwards}
-.card{will-change:transform,box-shadow,border-color}
-.card::after,.trendLink::after,.premiumTrending::after,.winningPanel::after,.signalCard::before,.stat::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 0%,rgba(255,255,255,.14) 45%,transparent 60%);transform:translateX(-125%);opacity:0;pointer-events:none}
-.card:hover::after,.trendLink:hover::after,.premiumTrending:hover::after,.winningPanel:hover::after,.signalCard:hover::before,.stat:hover::before{animation:dtShine .85s ease both;opacity:1}
-.card:hover{transform:translateY(-7px) scale(1.012);box-shadow:0 22px 55px rgba(0,0,0,.34);border-color:rgba(110,231,183,.52)}
-.img img{transition:transform .75s ease,filter .75s ease}
-.card:hover .img img{transform:scale(1.07);filter:saturate(1.1) contrast(1.05)}
-.score,.winBadge,.navPill{animation:dtSoftPulse 2.8s ease-in-out infinite}
-button,.currencyBtn,.siteChip,.menuItem{transition:transform .2s ease,filter .2s ease,background .2s ease,border-color .2s ease}
-button:hover,.currencyBtn:hover,.siteChip:hover,.menuItem:hover{transform:translateY(-2px);filter:brightness(1.06)}
-.scoreRing{animation:dtRingPulse 2.6s ease-in-out infinite}
-.sideMenu{transition:transform .32s cubic-bezier(.22,1,.36,1)!important}
-.menuItem{opacity:0;transform:translateX(-14px)}
-#menuToggle:checked ~ .sideMenu .menuItem{animation:dtMenuSlide .42s ease forwards}
-#menuToggle:checked ~ .sideMenu .menuItem:nth-child(1){animation-delay:.04s}
-#menuToggle:checked ~ .sideMenu .menuItem:nth-child(2){animation-delay:.08s}
-#menuToggle:checked ~ .sideMenu .menuItem:nth-child(3){animation-delay:.12s}
-#menuToggle:checked ~ .sideMenu .menuItem:nth-child(4){animation-delay:.16s}
-
-/* Monthly Signal Engine + upper stats modern glass upgrade */
-.stats{perspective:900px}
-.stat{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(15,25,55,.82),rgba(255,255,255,.075))!important;border:1px solid rgba(181,212,244,.22)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 18px 42px rgba(0,0,0,.22);transition:transform .32s cubic-bezier(.22,1,.36,1),box-shadow .32s,border-color .32s}
-.stat::after{content:"";position:absolute;width:120px;height:120px;right:-55px;top:-55px;border-radius:50%;background:radial-gradient(circle,rgba(110,231,183,.26),transparent 65%);filter:blur(2px);animation:dtOrbBreathe 4.2s ease-in-out infinite}
-.stat:hover{transform:translateY(-5px) rotateX(3deg);box-shadow:0 25px 55px rgba(0,0,0,.32),0 0 30px rgba(110,231,183,.10);border-color:rgba(110,231,183,.45)!important}
-.stat b{background:linear-gradient(90deg,#fff,#b7ffe8,#b5d4f4);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 18px rgba(110,231,183,.10)}
+.stat{transition:transform .28s cubic-bezier(.22,1,.36,1),border-color .28s,box-shadow .28s!important}
+.stat b{color:#f0f6fc!important;background:none!important;-webkit-text-fill-color:#f0f6fc;text-shadow:0 0 20px rgba(88,166,255,.18)}
+.stat::after{content:"";position:absolute;width:110px;height:110px;right:-55px;top:-55px;border-radius:50%;background:radial-gradient(circle,rgba(88,166,255,.20),transparent 66%);animation:dtOrbBreathe 4s ease-in-out infinite;pointer-events:none}
+.stat:hover,.signalCard:hover,.trendLink:hover{transform:translateY(-4px);border-color:#58a6ff!important;box-shadow:0 24px 60px rgba(0,0,0,.48),0 0 0 1px rgba(88,166,255,.18)!important}
 .signalPanel{position:relative}
-.signalCard{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(7,17,39,.88),rgba(18,33,68,.72))!important;border:1px solid rgba(181,212,244,.22)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 20px 50px rgba(0,0,0,.25);transition:transform .32s cubic-bezier(.22,1,.36,1),box-shadow .32s,border-color .32s}
-.signalCard:hover{transform:translateY(-5px);box-shadow:0 28px 62px rgba(0,0,0,.34),0 0 34px rgba(34,197,94,.12);border-color:rgba(110,231,183,.44)!important}
-.signalCard span{color:#b5d4f4!important;text-shadow:0 0 12px rgba(181,212,244,.18)}
-.signalCard b{letter-spacing:.1px}
-.signalBars{gap:10px!important;margin:14px 0!important}
-.signalRow{grid-template-columns:82px 1fr 46px!important;gap:10px!important;position:relative;z-index:2}
-.signalRow > span:first-child{font-weight:900;text-transform:uppercase;letter-spacing:.45px;color:#aab7da}
-.signalRow > span:last-child{font-weight:900;color:#dffcf4;text-align:right}
-.signalBar{height:10px!important;background:rgba(3,9,24,.78)!important;border:1px solid rgba(181,212,244,.16)!important;box-shadow:inset 0 2px 8px rgba(0,0,0,.38);position:relative;overflow:hidden}
-.signalBar::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);transform:translateX(-120%);animation:dtBarSweep 2.4s ease-in-out infinite}
-.signalBar i{position:relative;background:linear-gradient(90deg,#22c55e,#6ee7b7,#38bdf8)!important;background-size:220% 100%!important;box-shadow:0 0 18px rgba(110,231,183,.48),0 0 4px rgba(56,189,248,.55);transform-origin:left;animation:dtBarGrow 1.25s cubic-bezier(.22,1,.36,1) both,dtBarFlow 2.3s linear infinite!important}
-.signalBar i::after{content:"";position:absolute;right:-5px;top:50%;width:10px;height:10px;border-radius:50%;background:#eafff8;box-shadow:0 0 16px #6ee7b7;transform:translateY(-50%)}
-.visualChips .visualChip{transition:transform .22s ease,box-shadow .22s ease;border-color:rgba(110,231,183,.30)!important;background:rgba(110,231,183,.12)!important}
-.visualChip:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.22),0 0 16px rgba(110,231,183,.14)}
-
+.signalCard span{color:#7ee787!important;font-weight:900!important;letter-spacing:.55px!important}
+.signalCard b{color:#f0f6fc!important}
+.signalBars{gap:12px!important;margin:16px 0!important}
+.signalRow{grid-template-columns:82px 1fr 45px!important;gap:10px!important;align-items:center!important;position:relative;z-index:2}
+.signalRow>span:first-child{color:#8b949e!important;font-weight:900!important;text-transform:uppercase;letter-spacing:.45px!important}
+.signalRow>span:last-child{color:#f0f6fc!important;font-weight:900!important;text-align:right!important}
+.signalBar{height:9px!important;background:#010409!important;border:1px solid #30363d!important;border-radius:999px!important;overflow:hidden!important;box-shadow:inset 0 1px 6px rgba(0,0,0,.65)!important;position:relative!important}
+.signalBar::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(240,246,252,.16),transparent);transform:translateX(-120%);animation:dtBarSweep 2.2s ease-in-out infinite}
+.signalBar i{height:100%!important;border-radius:999px!important;background:linear-gradient(90deg,#238636,#3fb950,#7ee787)!important;background-size:220% 100%!important;box-shadow:0 0 15px rgba(63,185,80,.55)!important;transform-origin:left;animation:dtBarGrow 1.1s cubic-bezier(.22,1,.36,1) both,dtBarFlow 2.4s linear infinite!important;position:relative!important}
+.signalBar i::after{content:"";position:absolute;right:-4px;top:50%;width:8px;height:8px;border-radius:50%;background:#f0fff4;box-shadow:0 0 12px #7ee787;transform:translateY(-50%)}
+.card{transition:transform .28s cubic-bezier(.22,1,.36,1),border-color .28s,box-shadow .28s!important;will-change:transform}
+.card:hover{transform:translateY(-6px);border-color:#58a6ff!important;box-shadow:0 28px 72px rgba(0,0,0,.55),0 0 0 1px rgba(88,166,255,.20)!important}
+.card::after,.trendLink::after,.signalCard::after,.stat .dt-shine{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent,rgba(88,166,255,.10),transparent);transform:translateX(-130%);pointer-events:none}
+.card:hover::after,.trendLink:hover::after,.signalCard:hover::after{animation:dtShine .8s ease both}
+.img img{transition:transform .65s ease,filter .65s ease}.card:hover .img img{transform:scale(1.045);filter:saturate(1.06) contrast(1.04)}
+.scoreRing{animation:dtRingPulse 2.8s ease-in-out infinite}.score,.navPill{animation:dtSoftPulse 3s ease-in-out infinite}
+button,.currencyBtn,.siteChip,.menuItem{transition:transform .2s ease,filter .2s ease,border-color .2s ease!important}button:hover,.currencyBtn:hover,.siteChip:hover,.menuItem:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.sideMenu{background:#0d1117!important;border-right:1px solid #30363d!important;transition:transform .32s cubic-bezier(.22,1,.36,1)!important}.menuItem{opacity:0;transform:translateX(-14px);background:#0d1117!important;border-bottom:1px solid #21262d!important}#menuToggle:checked ~ .sideMenu .menuItem{animation:dtMenuSlide .42s ease forwards}
 @keyframes dtFadeUp{from{opacity:0;transform:translateY(22px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes dtShine{from{transform:translateX(-125%)}to{transform:translateX(125%)}}
-@keyframes dtSoftPulse{0%,100%{box-shadow:0 0 0 rgba(110,231,183,0)}50%{box-shadow:0 0 22px rgba(110,231,183,.18)}}
-@keyframes dtRingPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+@keyframes dtShine{from{transform:translateX(-130%)}to{transform:translateX(130%)}}
+@keyframes dtSoftPulse{0%,100%{box-shadow:0 0 0 rgba(63,185,80,0)}50%{box-shadow:0 0 22px rgba(63,185,80,.20)}}
+@keyframes dtRingPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
 @keyframes dtMenuSlide{to{opacity:1;transform:translateX(0)}}
-@keyframes dtBarGrow{from{transform:scaleX(0);filter:blur(2px)}to{transform:scaleX(1);filter:blur(0)}}
+@keyframes dtBarGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes dtBarFlow{from{background-position:0% 50%}to{background-position:220% 50%}}
 @keyframes dtBarSweep{0%,35%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
-@keyframes dtOrbBreathe{0%,100%{transform:scale(.85);opacity:.45}50%{transform:scale(1.2);opacity:.85}}
-@media(max-width:600px){.card:hover{transform:translateY(-3px) scale(1.004)}.motion-ready .card{transform:translateY(12px) scale(.99)}.signalRow{grid-template-columns:64px 1fr 32px!important;gap:7px!important}.signalBar{height:8px!important}.stat:hover,.signalCard:hover{transform:translateY(-2px)}}
-@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.motion-ready .topNav,.motion-ready .hero,.motion-ready .premiumTrending,.motion-ready .winningPanel,.motion-ready .sectionTitle,.motion-ready .panel,.motion-ready .dt-in,.score,.winBadge,.navPill,.scoreRing,#menuToggle:checked ~ .sideMenu .menuItem,.signalBar::after,.signalBar i,.stat::after{animation:none!important}.motion-ready .stat,.motion-ready .trendLink,.motion-ready .signalCard,.motion-ready .card,.menuItem{opacity:1!important;transform:none!important}.card:hover,.card:hover .img img,button:hover,.currencyBtn:hover,.siteChip:hover,.menuItem:hover,.stat:hover,.signalCard:hover{transform:none!important}}
+@keyframes dtOrbBreathe{0%,100%{transform:scale(.85);opacity:.35}50%{transform:scale(1.18);opacity:.75}}
+@keyframes dtGitHubGlow{0%{transform:translate3d(-1%,0,0) scale(1)}100%{transform:translate3d(2%,-2%,0) scale(1.04)}}
+@media(max-width:600px){.signalRow{grid-template-columns:64px 1fr 32px!important;gap:7px!important}.signalBar{height:8px!important}.card:hover,.stat:hover,.signalCard:hover{transform:translateY(-2px)}}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.wrap::after,.motion-ready .topNav,.motion-ready .hero,.motion-ready .premiumTrending,.motion-ready .winningPanel,.motion-ready .sectionTitle,.motion-ready .panel,.motion-ready .dt-in,.score,.navPill,.scoreRing,#menuToggle:checked ~ .sideMenu .menuItem,.signalBar::after,.signalBar i,.stat::after{animation:none!important}.motion-ready .stat,.motion-ready .trendLink,.motion-ready .signalCard,.motion-ready .card,.menuItem{opacity:1!important;transform:none!important}.card:hover,.card:hover .img img,button:hover,.currencyBtn:hover,.siteChip:hover,.menuItem:hover,.stat:hover,.signalCard:hover{transform:none!important}}
 
 </style>
     }
@@ -1226,9 +1219,8 @@ function updateCurrencyButtons() {
   });
   const fx = document.getElementById("fxStatus");
   if (fx) {
-    if (currentCurrency === "USD") {
-      fx.textContent = "Showing original CJ USD prices";
-    } else {
+    if (currentCurrency === "USD") fx.textContent = "Showing original CJ USD prices";
+    else {
       const rate = currencyRates[currentCurrency] || 1;
       const symbol = currencySymbols[currentCurrency] || "";
       fx.textContent = (fxIsLive ? "Live FX" : "Fallback FX") + ": 1 USD ≈ " + symbol + rate.toFixed(2);
@@ -1601,6 +1593,7 @@ autoLoadProducts();
 
 
 
+
 <script>
 (function(){
   function initDropTrendMotion(){
@@ -1628,9 +1621,7 @@ autoLoadProducts();
         if (!el.dataset.dtMotion) observer.observe(el);
       }));
       mo.observe(document.body, { childList: true, subtree: true });
-    } else {
-      document.querySelectorAll(targets).forEach(reveal);
-    }
+    } else document.querySelectorAll(targets).forEach(reveal);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initDropTrendMotion);
   else initDropTrendMotion();
