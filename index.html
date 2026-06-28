@@ -600,14 +600,15 @@
 @media(max-width:700px){.signalPanel,.visualSummary{grid-template-columns:1fr 1fr}.signalRow{grid-template-columns:72px 1fr 35px}.scoreRing{width:52px;height:52px}}
 
 
-/* Full-screen uploaded logistics background slideshow - clean no dots/circles */
-.dynamicBg{position:fixed;inset:0;z-index:-5;overflow:hidden;background:#0b1020;pointer-events:none}
-.dynamicBg .bgSlide{position:absolute;inset:-4%;background-size:contain;background-position:center;background-repeat:no-repeat;opacity:0;transform:translateX(100%) scale(.88);transition:transform 1.25s ease,opacity 1.25s ease;filter:blur(9px) saturate(1.1) brightness(1.04);}
-.dynamicBg .bgSlide.active{opacity:.56;transform:translateX(0) scale(.88)}
-.dynamicBg .bgSlide.prev{opacity:0;transform:translateX(-100%) scale(.88)}
-.dynamicBg::before,.dynamicBg::after,.bgSpark,.bg-orb,.orb1,.orb2,.orb3,body::before,body::after,.wrap::before{display:none!important;content:none!important;background:none!important;animation:none!important}
-.hero,.panel,.toolbar,.premiumTrending,.winningPanel,.topNav,.card{backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-@media(max-width:600px){.dynamicBg .bgSlide{inset:-2%;background-size:88% auto;filter:blur(7px) saturate(1.08) brightness(1.04)}.dynamicBg .bgSlide.active{opacity:.48}}
+/* Full-screen uploaded logistics background slideshow - visible */
+.dynamicBg{position:fixed!important;inset:0!important;z-index:0!important;overflow:hidden!important;background:#010409!important;pointer-events:none!important;display:block!important}
+.dynamicBg .bgSlide{position:absolute!important;inset:-6%!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;opacity:0;transform:translateX(100%) scale(1.1);transition:transform 1.1s ease,opacity 1.1s ease;filter:blur(2px) saturate(1.2) brightness(.95)!important;display:block!important}
+.dynamicBg .bgSlide.active{opacity:.72!important;transform:translateX(0) scale(1.1)!important}
+.dynamicBg .bgSlide.prev{opacity:0!important;transform:translateX(-100%) scale(1.1)!important}
+.dynamicBg::after{content:""!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,rgba(1,4,9,.22),rgba(1,4,9,.58) 45%,rgba(1,4,9,.88))!important;pointer-events:none!important}
+.wrap{position:relative!important;z-index:2!important}
+.hero,.panel,.toolbar,.premiumTrending,.winningPanel,.topNav,.card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+@media(max-width:600px){.dynamicBg .bgSlide{inset:-4%!important;background-size:cover!important;filter:blur(2px) saturate(1.15) brightness(.92)!important}.dynamicBg .bgSlide.active{opacity:.68!important}}
 @media (prefers-reduced-motion: reduce){.dynamicBg .bgSlide{transition:none}}
 
 
@@ -682,6 +683,7 @@ button,.currencyBtn,.siteChip,.menuItem{transition:transform .2s,filter .2s,bord
 @keyframes dtFadeUp{from{opacity:0;transform:translateY(22px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes dtShine{from{transform:translateX(-130%)}to{transform:translateX(130%)}}@keyframes dtSoftPulse{0%,100%{box-shadow:0 0 0 rgba(63,185,80,0)}50%{box-shadow:0 0 22px rgba(63,185,80,.20)}}@keyframes dtRingPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}@keyframes dtMenuSlide{to{opacity:1;transform:translateX(0)}}@keyframes dtBarGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}@keyframes dtBarFlow{from{background-position:0% 50%}to{background-position:220% 50%}}@keyframes dtBarSweep{0%,35%{transform:translateX(-120%)}100%{transform:translateX(120%)}}@keyframes dtOrbBreathe{0%,100%{transform:scale(.85);opacity:.35}50%{transform:scale(1.18);opacity:.75}}@keyframes dtSpaceGlow{0%{transform:translateY(0) scale(1)}100%{transform:translateY(-18px) scale(1.04)}}@keyframes dtLaptopFloat{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-12px)}}@keyframes dtCodePulse{0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 0 0 rgba(88,166,255,0)}50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 0 34px rgba(88,166,255,.18)}}
 @media(max-width:700px){.hero{padding-top:34px!important;padding-bottom:235px!important;min-height:660px}.hero::before{height:210px;bottom:18px;width:94vw}.hero::after{height:130px;bottom:52px;width:80vw;font-size:9px;padding:14px}h1{font-size:clamp(36px,10vw,56px)!important;letter-spacing:-1.8px!important}.lead{font-size:15px!important}.toolbar{margin-top:-190px!important}.signalRow{grid-template-columns:64px 1fr 32px!important;gap:7px!important}.signalBar{height:8px!important}.card:hover,.stat:hover,.signalCard:hover{transform:translateY(-2px)}}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.wrap::after,.hero::before,.hero::after,.motion-ready .topNav,.motion-ready .hero,.motion-ready .premiumTrending,.motion-ready .winningPanel,.motion-ready .sectionTitle,.motion-ready .panel,.motion-ready .dt-in,.score,.navPill,.scoreRing,#menuToggle:checked ~ .sideMenu .menuItem,.signalBar::after,.signalBar i,.stat::after{animation:none!important}.motion-ready .stat,.motion-ready .trendLink,.motion-ready .signalCard,.motion-ready .card,.menuItem{opacity:1!important;transform:none!important}.card:hover,.card:hover .img img,button:hover,.currencyBtn:hover,.siteChip:hover,.menuItem:hover,.stat:hover,.signalCard:hover{transform:none!important}}
+
 
 
 
@@ -1498,16 +1500,16 @@ function initProductBackgroundSlideshow() {
     "/assets/bg-logistics-5.svg",
     "/assets/bg-logistics-6.svg"
   ];
-  for (let i = imgs.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [imgs[i], imgs[j]] = [imgs[j], imgs[i]];
-  }
+  imgs.forEach(src => { const im = new Image(); im.src = src; });
   let index = 0;
   let current = a;
   let next = b;
-  current.style.backgroundImage = 'url("' + imgs[index % imgs.length] + '")';
-  next.style.backgroundImage = 'url("' + imgs[(index + 1) % imgs.length] + '")';
+  current.style.backgroundImage = 'url("' + imgs[0] + '")';
+  next.style.backgroundImage = 'url("' + imgs[1] + '")';
+  current.classList.add('active');
+  next.classList.remove('active','prev');
   if (window.droptrendBgTimer) clearInterval(window.droptrendBgTimer);
+  if (window.quvirlBgTimer) clearInterval(window.quvirlBgTimer);
   window.droptrendBgTimer = setInterval(() => {
     index++;
     next.style.backgroundImage = 'url("' + imgs[index % imgs.length] + '")';
@@ -1518,8 +1520,8 @@ function initProductBackgroundSlideshow() {
     const old = current;
     current = next;
     next = old;
-    setTimeout(() => next.classList.remove('prev'), 1300);
-  }, 5200);
+    setTimeout(() => next.classList.remove('prev'), 1200);
+  }, 3200);
 }
 
 function exportCSV() {
@@ -1539,6 +1541,7 @@ updateCurrencyButtons();
 loadExchangeRate();
 calcMargin();
 autoLoadProducts();
+initProductBackgroundSlideshow();
 
 </script>
 
@@ -1583,6 +1586,40 @@ autoLoadProducts();
 
 
 
+
+<script>
+(function(){
+  function initQuvirlMotion(){
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.documentElement.classList.add('motion-ready');
+    const targets = '.stat,.trendLink,.signalCard,.card,.sectionTitle,.panel';
+    const reveal = (el, index) => {
+      if (el.dataset.dtMotion) return;
+      el.dataset.dtMotion = '1';
+      el.style.animationDelay = Math.min(index * 45, 360) + 'ms';
+      el.classList.add('dt-in');
+    };
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const items = Array.from(document.querySelectorAll(targets));
+            reveal(entry.target, items.indexOf(entry.target));
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+      document.querySelectorAll(targets).forEach(el => observer.observe(el));
+      const mo = new MutationObserver(() => document.querySelectorAll(targets).forEach(el => {
+        if (!el.dataset.dtMotion) observer.observe(el);
+      }));
+      mo.observe(document.body, { childList: true, subtree: true });
+    } else document.querySelectorAll(targets).forEach(reveal);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initQuvirlMotion);
+  else initQuvirlMotion();
+})();
+</script>
 
 <script>
 (function(){
