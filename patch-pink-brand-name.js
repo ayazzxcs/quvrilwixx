@@ -12,6 +12,14 @@ const css = `
   color:#ffffff!important;
   -webkit-text-fill-color:#ffffff!important;
 }
+.brandQu,.brandVirl{
+  display:inline!important;
+  white-space:nowrap!important;
+  line-height:inherit!important;
+}
+.brandText b .brandQu,.brandText b .brandVirl,.miniBrand .brandQu,.miniBrand .brandVirl,.sideBrand .brandQu,.sideBrand .brandVirl{
+  display:inline!important;
+}
 .brandQu{
   color:#ffffff!important;
   -webkit-text-fill-color:#ffffff!important;
@@ -23,6 +31,7 @@ const css = `
 }
 .brandText b{
   text-shadow:none!important;
+  white-space:nowrap!important;
 }
 `;
 
@@ -31,4 +40,4 @@ html = html.replace(/\/\* Quvirl split brand name: Qu white, virl pink \*\/[\s\S
 html = html.replace('</style>', css + '\n</style>');
 
 fs.writeFileSync(file, html, 'utf8');
-console.log('Applied split Quvirl brand name: Qu white, virl pink.');
+console.log('Applied split Quvirl brand name: Qu white, virl pink, inline fixed.');
