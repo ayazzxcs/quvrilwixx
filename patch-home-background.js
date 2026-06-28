@@ -2,16 +2,16 @@ const fs = require('fs');
 const file = 'index.html';
 let html = fs.readFileSync(file, 'utf8');
 
-const css = `/* Full-screen uploaded logistics background slideshow - soft pixel blur no crop */
+const css = `/* Full-screen uploaded logistics background slideshow - smooth blur no crop */
 .dynamicBg{position:fixed!important;inset:0!important;z-index:0!important;overflow:hidden!important;background:#010409!important;pointer-events:none!important;display:block!important}
-.dynamicBg .bgSlide{position:absolute!important;inset:-3%!important;background-size:contain!important;background-position:center top!important;background-repeat:no-repeat!important;opacity:0;transform:translateX(100%) scale(1.03);transition:transform 1.25s ease,opacity 1.25s ease;filter:blur(7px) saturate(1.16) brightness(1.08) contrast(1.04)!important;display:block!important;image-rendering:auto!important}
-.dynamicBg .bgSlide.active{opacity:.76!important;transform:translateX(0) scale(1.03)!important}
-.dynamicBg .bgSlide.prev{opacity:0!important;transform:translateX(-100%) scale(1.03)!important}
-.dynamicBg::after{content:""!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,rgba(1,4,9,.06),rgba(1,4,9,.16) 48%,rgba(1,4,9,.46))!important;pointer-events:none!important}
+.dynamicBg .bgSlide{position:absolute!important;inset:-6%!important;background-size:contain!important;background-position:center top!important;background-repeat:no-repeat!important;opacity:0;transform:translateX(100%) scale(1.04);transition:transform 1.25s ease,opacity 1.25s ease;filter:blur(10px) saturate(1.14) brightness(1.10) contrast(1.02)!important;display:block!important;image-rendering:auto!important}
+.dynamicBg .bgSlide.active{opacity:.78!important;transform:translateX(0) scale(1.04)!important}
+.dynamicBg .bgSlide.prev{opacity:0!important;transform:translateX(-100%) scale(1.04)!important}
+.dynamicBg::after{content:""!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,rgba(1,4,9,.04),rgba(1,4,9,.12) 48%,rgba(1,4,9,.40))!important;pointer-events:none!important}
 .wrap{position:relative!important;z-index:2!important}
 .wrap::after{display:none!important;content:none!important;background:none!important;animation:none!important}
 .hero,.panel,.toolbar,.premiumTrending,.winningPanel,.topNav,.card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-@media(max-width:600px){.dynamicBg .bgSlide{inset:-3%!important;background-size:96% auto!important;background-position:center top!important;filter:blur(6px) saturate(1.14) brightness(1.08) contrast(1.04)!important}.dynamicBg .bgSlide.active{opacity:.74!important}.dynamicBg::after{background:linear-gradient(180deg,rgba(1,4,9,.04),rgba(1,4,9,.13) 48%,rgba(1,4,9,.42))!important}}
+@media(max-width:600px){.dynamicBg .bgSlide{inset:-8%!important;background-size:100% auto!important;background-position:center top!important;filter:blur(9px) saturate(1.12) brightness(1.10) contrast(1.02)!important}.dynamicBg .bgSlide.active{opacity:.76!important}.dynamicBg::after{background:linear-gradient(180deg,rgba(1,4,9,.04),rgba(1,4,9,.12) 48%,rgba(1,4,9,.38))!important}}
 @media (prefers-reduced-motion: reduce){.dynamicBg .bgSlide{transition:none}}`;
 
 html = html.replace(/\/\* Full-screen uploaded logistics background slideshow[\s\S]*?@media \(prefers-reduced-motion: reduce\)\{\.dynamicBg \.bgSlide\{transition:none\}\}/g, css);
@@ -62,4 +62,4 @@ if (!html.includes('function initProductBackgroundSlideshow()')) {
 html = html.replace(/autoLoadProducts\(\);/, 'autoLoadProducts();\ninitProductBackgroundSlideshow();');
 
 fs.writeFileSync(file, html, 'utf8');
-console.log('Patched homepage with soft pixel-blur background and removed dark overlay strip.');
+console.log('Patched homepage with smooth blurred background and removed dark overlay strip.');
