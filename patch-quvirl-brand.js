@@ -34,13 +34,20 @@ const quvirlCss = `
 .brandText b{font-size:28px!important;letter-spacing:-.5px!important}
 .brandText .brandWord{display:none!important}
 
-/* Make the uploaded logistics/product background images visible again */
-.dynamicBg{display:block!important;position:fixed!important;inset:0!important;z-index:-5!important;overflow:hidden!important;background:#010409!important;pointer-events:none!important}
-.dynamicBg .bgSlide{display:block!important;position:absolute!important;inset:-8%!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;filter:blur(5px) saturate(1.15) brightness(.72)!important;transition:transform 1.25s ease,opacity 1.25s ease!important;opacity:0!important;transform:translateX(100%) scale(1.08)!important}
-.dynamicBg .bgSlide.active{opacity:.46!important;transform:translateX(0) scale(1.08)!important}
-.dynamicBg .bgSlide.prev{opacity:0!important;transform:translateX(-100%) scale(1.08)!important}
-.dynamicBg::after{content:""!important;display:block!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,rgba(1,4,9,.54),rgba(1,4,9,.78) 45%,rgba(1,4,9,.94))!important;pointer-events:none!important}
-.wrap::after{background:radial-gradient(circle at 50% 38%,rgba(35,134,54,.25),transparent 18%),radial-gradient(circle at 28% 48%,rgba(88,166,255,.18),transparent 22%),radial-gradient(circle at 75% 52%,rgba(46,160,67,.18),transparent 24%),linear-gradient(180deg,rgba(0,27,58,.58) 0%,rgba(3,8,39,.62) 38%,rgba(1,4,9,.88) 78%)!important}
+/* Visible background images: put slideshow ABOVE the page background, BEHIND all content */
+body{background:#010409!important}
+.dynamicBg{display:block!important;position:fixed!important;inset:0!important;z-index:0!important;overflow:hidden!important;background:#010409!important;pointer-events:none!important}
+.dynamicBg .bgSlide{display:block!important;position:absolute!important;inset:-6%!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;filter:blur(2px) saturate(1.22) brightness(.95)!important;transition:transform 1.25s ease,opacity 1.25s ease!important;opacity:0!important;transform:translateX(100%) scale(1.12)!important}
+.dynamicBg .bgSlide.active{opacity:.72!important;transform:translateX(0) scale(1.12)!important}
+.dynamicBg .bgSlide.prev{opacity:0!important;transform:translateX(-100%) scale(1.12)!important}
+.dynamicBg::after{content:""!important;display:block!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,rgba(1,4,9,.28),rgba(1,4,9,.58) 42%,rgba(1,4,9,.88))!important;pointer-events:none!important}
+.wrap{position:relative!important;z-index:1!important}
+.wrap::after{background:radial-gradient(circle at 50% 38%,rgba(35,134,54,.18),transparent 18%),radial-gradient(circle at 28% 48%,rgba(88,166,255,.14),transparent 22%),radial-gradient(circle at 75% 52%,rgba(46,160,67,.14),transparent 24%),linear-gradient(180deg,rgba(0,27,58,.30) 0%,rgba(3,8,39,.36) 38%,rgba(1,4,9,.68) 78%)!important;z-index:0!important}
+.topNav,.hero,.toolbar,.premiumTrending,.winningPanel,.panel{position:relative!important;z-index:2!important}
+
+/* Extra fixed visible image layer so it works even if slideshow JS is delayed */
+body::before{content:""!important;display:block!important;position:fixed!important;inset:0!important;z-index:0!important;pointer-events:none!important;background-image:linear-gradient(180deg,rgba(1,4,9,.20),rgba(1,4,9,.82)),url('/assets/bg-logistics-1.svg')!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;opacity:.55!important;filter:blur(1px) saturate(1.15)!important;animation:dtBgBreath 8s ease-in-out infinite alternate!important}
+@keyframes dtBgBreath{from{transform:scale(1.04);opacity:.42}to{transform:scale(1.10);opacity:.64}}
 
 /* Back to green accents */
 .badge,.navPill,.winBadge,.visualChip,.pill,.currencyBtn.active,button{
@@ -61,7 +68,7 @@ button,.currencyBtn.active{background:linear-gradient(180deg,#238636,#1f6f30)!im
 .premiumTrending::before,.winningPanel::before,.signalCard::before,.stat::before,.card::before,.trendLink::before,.toolbar::before{background:linear-gradient(120deg,rgba(126,231,135,.68),rgba(46,160,67,.48),rgba(88,166,255,.35),rgba(48,54,61,.28))!important}
 .hero::before{border-color:rgba(126,231,135,.34)!important;box-shadow:0 0 0 1px rgba(255,255,255,.05) inset,0 0 80px rgba(63,185,80,.20),0 28px 90px rgba(0,0,0,.65)!important}
 @keyframes dtSoftPulse{0%,100%{box-shadow:0 0 0 rgba(63,185,80,0)}50%{box-shadow:0 0 22px rgba(63,185,80,.22)}}
-@media(max-width:600px){.dynamicBg .bgSlide{background-size:cover!important;filter:blur(4px) saturate(1.1) brightness(.70)!important}.dynamicBg .bgSlide.active{opacity:.38!important}.brandText b{font-size:26px!important}}
+@media(max-width:600px){.dynamicBg .bgSlide{background-size:cover!important;filter:blur(2px) saturate(1.18) brightness(.95)!important}.dynamicBg .bgSlide.active{opacity:.65!important}.brandText b{font-size:26px!important}body::before{opacity:.50!important}}
 `;
 
 html = html.replace(/\/\* Quvirl brand cleanup: green theme \+ blue brand \+ visible background images \*\/[\s\S]*?(?=<\/style>)/g, '');
@@ -103,4 +110,4 @@ html = html.replace(/<script>\s*\(function\(\)\{\s*function forceQuvirlBackgroun
 html = html.replace('</body>', bgScript + '\n</body>');
 
 fs.writeFileSync(file, html, 'utf8');
-console.log('Patched Quvirl branding: fixed hero name, restored green accents, forced background image slideshow.');
+console.log('Patched Quvirl branding: fixed hero name, restored green accents, forced visible background image layer.');
