@@ -673,6 +673,7 @@
 
 
 
+
 /* Quvirl GitHub homepage inspired upgrade */
 :root{--gh-bg:#010409;--gh-card:#0d1117;--gh-card2:#070b12;--gh-border:#30363d;--gh-text:#f0f6fc;--gh-muted:#8b949e;--gh-green:#2ea043;--gh-green2:#7ee787;--gh-blue:#58a6ff;--gh-purple:#bc8cff;--gh-violet:#8957e5}
 html{scroll-behavior:smooth}body{background:#010409!important;color:var(--gh-text)!important;overflow-x:hidden}
@@ -737,6 +738,15 @@ button,.currencyBtn.active{background:linear-gradient(180deg,#238636,#1f6f30)!im
   .winnerGrid,.grid{grid-template-columns:1fr!important;width:100%!important}
   .card{width:100%!important;max-width:100%!important}
 }
+
+
+/* Old mint green theme override */
+:root{--accent:#6ee7b7!important;--gh-green:#22c55e!important;--gh-green2:#6ee7b7!important}
+.badge,.navPill,.winBadge,.visualChip,.pill{background:rgba(110,231,183,.14)!important;border-color:rgba(110,231,183,.34)!important;color:#6ee7b7!important}
+.currencyBtn.active,button{background:linear-gradient(135deg,#22c55e,#14b8a6)!important;border-color:rgba(110,231,183,.45)!important;color:#04110c!important}
+.signalCard span{color:#6ee7b7!important}.signalBar i{background:linear-gradient(90deg,#22c55e,#14b8a6,#6ee7b7)!important;box-shadow:0 0 16px rgba(110,231,183,.48)!important}
+.scoreRing{background:conic-gradient(#6ee7b7 calc(var(--score)*1%),rgba(255,255,255,.10) 0)!important}.scoreRing b,.profit,.result{color:#6ee7b7!important}
+.card:hover,.signalCard:hover,.trendLink:hover,.stat:hover{border-color:#6ee7b7!important;box-shadow:0 28px 80px rgba(0,0,0,.60),0 0 0 1px rgba(110,231,183,.24)!important}
 
 </style>
     }
@@ -1578,6 +1588,7 @@ initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
+initProductBackgroundSlideshow();
 
 </script>
 
@@ -1655,6 +1666,7 @@ initProductBackgroundSlideshow();
   window.addEventListener('load', forceQuvirlBackground);
 })();
 </script>
+
 
 
 
