@@ -600,16 +600,16 @@
 @media(max-width:700px){.signalPanel,.visualSummary{grid-template-columns:1fr 1fr}.signalRow{grid-template-columns:72px 1fr 35px}.scoreRing{width:52px;height:52px}}
 
 
-/* Full-screen uploaded logistics background slideshow - smooth blur no crop */
+/* Full-screen uploaded logistics background slideshow - smooth blur full fit */
 .dynamicBg{position:fixed!important;inset:0!important;z-index:0!important;overflow:hidden!important;background:#010409!important;pointer-events:none!important;display:block!important}
-.dynamicBg .bgSlide{position:absolute!important;inset:-6%!important;background-size:contain!important;background-position:center top!important;background-repeat:no-repeat!important;opacity:0;transform:translateX(100%) scale(1.04);transition:transform 1.25s ease,opacity 1.25s ease;filter:blur(10px) saturate(1.14) brightness(1.10) contrast(1.02)!important;display:block!important;image-rendering:auto!important}
-.dynamicBg .bgSlide.active{opacity:.78!important;transform:translateX(0) scale(1.04)!important}
-.dynamicBg .bgSlide.prev{opacity:0!important;transform:translateX(-100%) scale(1.04)!important}
+.dynamicBg .bgSlide{position:absolute!important;inset:0!important;background-size:88% auto!important;background-position:center center!important;background-repeat:no-repeat!important;opacity:0;transform:translateX(100%) scale(1);transition:transform 1.25s ease,opacity 1.25s ease;filter:blur(10px) saturate(1.14) brightness(1.10) contrast(1.02)!important;display:block!important;image-rendering:auto!important}
+.dynamicBg .bgSlide.active{opacity:.78!important;transform:translateX(0) scale(1)!important}
+.dynamicBg .bgSlide.prev{opacity:0!important;transform:translateX(-100%) scale(1)!important}
 .dynamicBg::after{content:""!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,rgba(1,4,9,.04),rgba(1,4,9,.12) 48%,rgba(1,4,9,.40))!important;pointer-events:none!important}
 .wrap{position:relative!important;z-index:2!important}
 .wrap::after{display:none!important;content:none!important;background:none!important;animation:none!important}
 .hero,.panel,.toolbar,.premiumTrending,.winningPanel,.topNav,.card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-@media(max-width:600px){.dynamicBg .bgSlide{inset:-8%!important;background-size:100% auto!important;background-position:center top!important;filter:blur(9px) saturate(1.12) brightness(1.10) contrast(1.02)!important}.dynamicBg .bgSlide.active{opacity:.76!important}.dynamicBg::after{background:linear-gradient(180deg,rgba(1,4,9,.04),rgba(1,4,9,.12) 48%,rgba(1,4,9,.38))!important}}
+@media(max-width:600px){.dynamicBg .bgSlide{inset:0!important;background-size:86% auto!important;background-position:center center!important;transform:translateX(100%) scale(1)!important;filter:blur(9px) saturate(1.12) brightness(1.10) contrast(1.02)!important}.dynamicBg .bgSlide.active{opacity:.76!important;transform:translateX(0) scale(1)!important}.dynamicBg .bgSlide.prev{transform:translateX(-100%) scale(1)!important}.dynamicBg::after{background:linear-gradient(180deg,rgba(1,4,9,.04),rgba(1,4,9,.12) 48%,rgba(1,4,9,.38))!important}}
 @media (prefers-reduced-motion: reduce){.dynamicBg .bgSlide{transition:none}}
 
 
@@ -659,6 +659,7 @@
            }
 
 .motion-ready .topNav,.motion-ready .hero,.motion-ready .premiumTrending,.motion-ready .winningPanel,.motion-ready .sectionTitle,.motion-ready .panel,.motion-ready .dt-in,.score,.winBadge,.navPill,.scoreRing,#menuToggle:checked ~ .sideMenu .menuItem{animation:none!important}.motion-ready .stat,.motion-ready .trendLink,.motion-ready .signalCard,.motion-ready .card,.menuItem{opacity:1!important;transform:none!important}.card:hover,.card:hover .img img,button:hover,.currencyBtn:hover,.siteChip:hover,.menuItem:hover{transform:none!important}}
+
 
 
 
@@ -1584,6 +1585,7 @@ initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
+initProductBackgroundSlideshow();
 
 </script>
 
@@ -1661,6 +1663,7 @@ initProductBackgroundSlideshow();
   window.addEventListener('load', forceQuvirlBackground);
 })();
 </script>
+
 
 
 
