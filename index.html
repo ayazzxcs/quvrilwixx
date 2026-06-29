@@ -700,6 +700,7 @@
 
 
 
+
 /* Quvirl GitHub homepage inspired upgrade */
 :root{--gh-bg:#010409;--gh-card:#0d1117;--gh-card2:#070b12;--gh-border:#30363d;--gh-text:#f0f6fc;--gh-muted:#8b949e;--gh-green:#2ea043;--gh-green2:#7ee787;--gh-blue:#58a6ff;--gh-purple:#bc8cff;--gh-violet:#8957e5}
 html{scroll-behavior:smooth}body{background:#010409!important;color:var(--gh-text)!important;overflow-x:hidden}
@@ -744,10 +745,15 @@ html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!import
 .quvirlSignalHub .hubDetailList b{color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:14px!important}
 .quvirlSignalHub .hubDetailList small{display:block!important;color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:.78!important;font-size:12px!important;margin-top:2px!important}
 .quvirlSignalHub .hubCore{left:44%!important;top:54%!important;transform:translate(-50%,-50%)!important;width:160px!important;height:104px!important;border-radius:22px!important}
-.quvirlSignalHub .hubCore b{font-size:28px!important}
-.quvirlSignalHub .hubCore small{font-size:12px!important}
-.quvirlSignalHub .hubNode{width:108px!important;min-height:66px!important;border-radius:18px!important;font-size:13px!important;line-height:1.1!important}
-.quvirlSignalHub .hubNode small{font-size:10px!important}
+.quvirlSignalHub .hubCore b{font-size:36px!important;line-height:1!important}
+.quvirlSignalHub .hubCore small{display:none!important}
+.quvirlSignalHub .hubNode{width:112px!important;min-height:82px!important;border-radius:20px!important;font-size:13px!important;line-height:1.1!important;display:grid!important;place-items:center!important;align-content:center!important;gap:3px!important;padding:8px!important}
+.quvirlSignalHub .hubNode i{width:28px!important;height:28px!important;border-radius:9px!important;display:grid!important;place-items:center!important;font-style:normal!important;font-weight:950!important;font-size:15px!important;margin-bottom:2px!important}
+.quvirlSignalHub .hubNode b{color:#05070b!important;-webkit-text-fill-color:#05070b!important;font-size:13px!important;line-height:1!important}
+.quvirlSignalHub .hubNode small{font-size:10px!important;color:#23272f!important;-webkit-text-fill-color:#23272f!important;font-weight:800!important}
+.logoGoogle{background:linear-gradient(135deg,#4285f4,#34a853,#fbbc05,#ea4335)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+.logoAmazon{background:#ff9900!important;color:#111!important;-webkit-text-fill-color:#111!important;font-family:Arial,sans-serif!important;font-size:19px!important}
+.logoCJ{background:#111827!important;color:#6ee7b7!important;-webkit-text-fill-color:#6ee7b7!important;border:1px solid rgba(110,231,183,.45)!important}
 .quvirlSignalHub .nGoogle{left:0!important;top:43%!important;transform:none!important}
 .quvirlSignalHub .nAmazon{right:0!important;top:33%!important;transform:none!important}
 .quvirlSignalHub .nCJ{right:0!important;top:61%!important;transform:none!important}
@@ -765,12 +771,14 @@ html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!import
   .quvirlSignalHub .hubDetails p{font-size:13px!important;line-height:1.45!important}
   .quvirlSignalHub .hubDetailList{grid-template-columns:1fr!important;background:rgba(255,255,255,.04)!important;border:1px solid rgba(110,231,183,.18)!important;border-radius:18px!important;padding:10px!important}
   .quvirlSignalHub .hubCore{left:42%!important;top:52%!important;width:126px!important;height:86px!important;border-radius:20px!important}
-  .quvirlSignalHub .hubCore b{font-size:24px!important}
-  .quvirlSignalHub .hubNode{width:88px!important;min-height:58px!important;border-radius:16px!important;font-size:11px!important}
+  .quvirlSignalHub .hubCore b{font-size:30px!important}
+  .quvirlSignalHub .hubNode{width:90px!important;min-height:68px!important;border-radius:16px!important;font-size:11px!important;padding:6px!important}
+  .quvirlSignalHub .hubNode i{width:24px!important;height:24px!important;border-radius:8px!important;font-size:12px!important}
+  .quvirlSignalHub .hubNode b{font-size:11px!important}
   .quvirlSignalHub .hubNode small{font-size:9px!important}
-  .quvirlSignalHub .nGoogle{left:0!important;top:42%!important}
-  .quvirlSignalHub .nAmazon{right:0!important;top:32%!important}
-  .quvirlSignalHub .nCJ{right:0!important;top:58%!important}
+  .quvirlSignalHub .nGoogle{left:0!important;top:41%!important}
+  .quvirlSignalHub .nAmazon{right:0!important;top:31%!important}
+  .quvirlSignalHub .nCJ{right:0!important;top:59%!important}
   .quvirlSignalHub .hubWire{left:42%!important;top:52%!important}
   .quvirlSignalHub .wGoogle{width:112px!important;transform:rotate(180deg)!important}
   .quvirlSignalHub .wAmazon{width:132px!important;transform:rotate(-23deg)!important}
@@ -922,10 +930,10 @@ Powered by Real Market Signals
   </div>
   <div class="hubMap" aria-hidden="true">
     <div class="hubWire wGoogle"></div><div class="hubWire wAmazon"></div><div class="hubWire wCJ"></div>
-    <div class="hubCore"><b><span class="brandQu">Qu</span><span class="brandVirl">virl</span></b><small>Signal Hub</small></div>
-    <div class="hubNode nGoogle">Google<br><small>Trends</small></div>
-    <div class="hubNode nAmazon">Amazon<br><small>Demand</small></div>
-    <div class="hubNode nCJ">CJ<br><small>Supplier</small></div>
+    <div class="hubCore"><b><span class="brandQu">Qu</span><span class="brandVirl">virl</span></b></div>
+    <div class="hubNode nGoogle"><i class="logoGoogle">G</i><b>Google</b><small>Trends</small></div>
+    <div class="hubNode nAmazon"><i class="logoAmazon">a</i><b>Amazon</b><small>Demand</small></div>
+    <div class="hubNode nCJ"><i class="logoCJ">CJ</i><b>CJ</b><small>Supplier</small></div>
   </div>
 </section>
 <p class="small" id="apiStatus" style="margin-top:12px">Loading live products...</p>
@@ -1663,6 +1671,7 @@ initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
 initProductBackgroundSlideshow();
+initProductBackgroundSlideshow();
 
 </script>
 
@@ -1740,6 +1749,7 @@ initProductBackgroundSlideshow();
   window.addEventListener('load', forceQuvirlBackground);
 })();
 </script>
+
 
 
 
