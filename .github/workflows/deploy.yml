@@ -44,7 +44,9 @@ jobs:
         run: |
           node patch-cj-links.js
 
-      - name: Generate static product pages
+      - name: Generate static product pages and sitemap
+        env:
+          SITE_URL: https://quvirl.com
         run: |
           node generate-static-product-pages.js
 
