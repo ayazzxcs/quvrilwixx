@@ -6,7 +6,7 @@ on:
     branches:
       - main
   schedule:
-    # Runs every 1 hour to pull latest backend products.json and rebuild Quvirl pages
+    # Rebuild every 1 hour to pull latest backend products.json
     - cron: "0 * * * *"
 
 permissions:
@@ -38,7 +38,7 @@ jobs:
           set -euo pipefail
 
           if [ -z "${GH_TOKEN:-}" ]; then
-            echo "Missing GH_TOKEN secret. Add a GitHub token with access to the backend repo."
+            echo "Missing GH_TOKEN secret. Add GH_TOKEN in frontend repo secrets."
             exit 1
           fi
 
@@ -52,7 +52,7 @@ jobs:
 
       - name: Patch CJ supplier links
         run: |
-          node patch-cj-links.js
+          if [ -f patch-cj-links.js ]; then node patch-cj-links.js; else echo "patch-cj-links.js not found, skipping"; fi
 
       - name: Generate static product pages and sitemap
         env:
@@ -63,33 +63,37 @@ jobs:
 
       - name: Patch homepage copy
         run: |
-          node patch-home-copy.js
+          if [ -f patch-home-copy.js ]; then node patch-home-copy.js; else echo "patch-home-copy.js not found, skipping"; fi
 
       - name: Patch homepage UI
         run: |
-          node patch-home-ui.js
+          if [ -f patch-home-ui.js ]; then node patch-home-ui.js; else echo "patch-home-ui.js not found, skipping"; fi
 
       - name: Apply Quvirl branding and final fixes
         run: |
-          node patch-quvirl-brand.js
+          if [ -f patch-quvirl-brand.js ]; then node patch-quvirl-brand.js; else echo "patch-quvirl-brand.js not found, skipping"; fi
 
       - name: Fix signal hub layout
         run: |
-          node patch-signal-hub-layout.js
+          if [ -f patch-signal-hub-layout.js ]; then node patch-signal-hub-layout.js; else echo "patch-signal-hub-layout.js not found, skipping"; fi
 
       - name: Patch homepage product background
         run: |
-          node patch-home-background.js
+          if [ -f patch-home-background.js ]; then node patch-home-background.js; else echo "patch-home-background.js not found, skipping"; fi
 
       - name: Patch product card links
         run: |
-          node patch-product-links.js
+          if [ -f patch-product-links.js ]; then node patch-product-links.js; else echo "patch-product-links.js not found, skipping"; fi
 
       - name: Apply Vercel SEO canonical fixes
         run: |
           node patch-seo-vercel.js
 
-      - name: Validate SEO output
+      - name: Apply slot access gate
+        run: |
+          node patch-slot-access.js
+
+      - name: Validate Quvirl output
         run: |
           set -euo pipefail
 
@@ -99,16 +103,29 @@ jobs:
           echo "Checking sitemap domain..."
           grep -q 'https://quvirl.com' sitemap.xml
 
-          echo "Checking old domain is removed..."
+          echo "Checking slot access script..."
+          grep -q 'slot-access.js' index.html
+
+          echo "Checking product template slot access..."
+          grep -q 'slot-access.js' product.html
+
+          echo "Checking required API files..."
+          test -f api/access-status.js
+          test -f api/reserve-slot.js
+          test -f lib/slot-utils.js
+          test -f slot-access.js
+
+          echo "Checking old Cloudflare domain in public pages..."
           if grep -R "droptrend.pages.dev" . \
             --exclude-dir=.git \
             --exclude-dir=node_modules \
-            --exclude="deploy.yml"; then
+            --exclude="deploy.yml" \
+            --exclude="*.zip"; then
             echo "Old droptrend.pages.dev URL still exists. Fix before deploy."
             exit 1
           fi
 
-          echo "SEO validation passed."
+          echo "Validation passed."
 
       - name: Commit generated Quvirl pages
         run: |
@@ -122,7 +139,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No generated changes to commit"
           else
-            git commit -m "Update Quvirl pages and SEO canonicals"
+            git commit -m "Update Quvirl products, SEO, and slot access"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
