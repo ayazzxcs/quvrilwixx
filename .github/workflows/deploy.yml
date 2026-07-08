@@ -6,6 +6,7 @@ on:
     branches:
       - main
   schedule:
+    # Runs every 1 hour to pull latest backend products.json and rebuild Quvirl pages
     - cron: "0 * * * *"
 
 permissions:
@@ -20,25 +21,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout frontend repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Download latest products.json
+      - name: Download latest products.json from backend repo
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
+          set -euo pipefail
+
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "Missing GH_TOKEN secret. Add a GitHub token with access to the backend repo."
+            exit 1
+          fi
+
           curl -fL \
-            -H "Authorization: token $GH_TOKEN" \
-            -H "Accept: application/vnd.github.v3.raw" \
-            https://raw.githubusercontent.com/ayazzxcs/Droptrendv2-backend/main/products.json \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github.raw" \
+            "https://api.github.com/repos/ayazzxcs/Droptrendv2-backend/contents/products.json?ref=main" \
             -o products.json
+
+          node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('products.json','utf8')); if(!Array.isArray(data)){throw new Error('products.json is not an array')} console.log('Downloaded products:', data.length)"
 
       - name: Patch CJ supplier links
         run: |
@@ -47,6 +57,7 @@ jobs:
       - name: Generate static product pages and sitemap
         env:
           SITE_URL: https://quvirl.com
+          MAX_PRODUCT_PAGES: 1500
         run: |
           node generate-static-product-pages.js
 
@@ -74,15 +85,44 @@ jobs:
         run: |
           node patch-product-links.js
 
-      - name: Commit generated pages
+      - name: Apply Vercel SEO canonical fixes
         run: |
+          node patch-seo-vercel.js
+
+      - name: Validate SEO output
+        run: |
+          set -euo pipefail
+
+          echo "Checking homepage canonical..."
+          grep -q 'rel="canonical" href="https://quvirl.com/"' index.html
+
+          echo "Checking sitemap domain..."
+          grep -q 'https://quvirl.com' sitemap.xml
+
+          echo "Checking old domain is removed..."
+          if grep -R "droptrend.pages.dev" . \
+            --exclude-dir=.git \
+            --exclude-dir=node_modules \
+            --exclude="deploy.yml"; then
+            echo "Old droptrend.pages.dev URL still exists. Fix before deploy."
+            exit 1
+          fi
+
+          echo "SEO validation passed."
+
+      - name: Commit generated Quvirl pages
+        run: |
+          set -euo pipefail
+
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+
           git add .
+
           if git diff --staged --quiet; then
             echo "No generated changes to commit"
           else
-            git commit -m "Update Quvirl pages"
+            git commit -m "Update Quvirl pages and SEO canonicals"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
