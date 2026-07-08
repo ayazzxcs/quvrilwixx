@@ -246,7 +246,7 @@ ${extraHead}
 </style>
 ${schemas.map(s => `<script type="application/ld+json">${JSON.stringify(s).replace(/</g, '\\u003c')}</script>`).join('\n')}
 </head>
-<body><div class="wrap"><p><a href="/">← Quvirl</a></p>${body}<footer class="muted" style="text-align:center;margin:34px 0 10px;border-top:1px solid var(--line);padding-top:20px">Quvirl is independent and is not affiliated with Amazon, Google, CJdropshipping or AliExpress.</footer></div></body>
+<body><div class="wrap"><p><a href="/">← Quvirl</a></p>${body}<footer class="muted" style="text-align:center;margin:34px 0 10px;border-top:1px solid var(--line);padding-top:20px">Quvirl is independent and is not affiliated with Amazon, Google, CJdropshipping or AliExpress.</footer></div><script src="/slot-access.js" defer></script></body>
 </html>`;
 }
 function productCard(p) {
