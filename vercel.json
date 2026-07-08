@@ -1,0 +1,26 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    { "source": "/product.html", "destination": "/", "permanent": true },
+    { "source": "/trending-products", "destination": "/top-trending-products/", "permanent": true },
+    { "source": "/winning-products", "destination": "/top-trending-products/", "permanent": true },
+    { "source": "/product-research", "destination": "/", "permanent": true },
+    { "source": "/trending-today", "destination": "/top-trending-products/", "permanent": true },
+    { "source": "/trending-today/", "destination": "/top-trending-products/", "permanent": true },
+    { "source": "/trending-this-week", "destination": "/trending-this-month/", "permanent": true },
+    { "source": "/trending-this-week/", "destination": "/trending-this-month/", "permanent": true },
+    { "source": "/tiktok-products", "destination": "/viral-tiktok-products/", "permanent": true },
+    { "source": "/tiktok-products/", "destination": "/viral-tiktok-products/", "permanent": true }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}
