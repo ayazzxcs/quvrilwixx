@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Verify Quvirl Slot</title>
+  <style>
+    :root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#0f172a;background:#f8fafc}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at top,#e0f2fe,#f8fafc 48%,#eef2ff)}
+    .card{width:min(560px,100%);background:#fff;border:1px solid #dbeafe;border-radius:26px;box-shadow:0 24px 90px rgba(15,23,42,.16);padding:26px;text-align:left}
+    .logo{display:flex;align-items:center;gap:10px;font-weight:950;color:#0C447C;font-size:20px;margin-bottom:18px}.logo img{width:36px;height:36px;border-radius:10px}
+    h1{font-size:30px;line-height:1.12;margin:0 0 10px}.muted{color:#475569;line-height:1.6}.status{margin-top:16px;border-radius:16px;padding:13px 14px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;line-height:1.5}.status.ok{background:#ecfdf5;border-color:#a7f3d0;color:#065f46}.status.err{background:#fef2f2;border-color:#fecaca;color:#991b1b}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.btn{border:0;border-radius:13px;padding:12px 16px;font-weight:900;text-decoration:none;background:#0C447C;color:#fff;display:inline-flex}.btn.secondary{background:#fff;color:#0f172a;border:1px solid #cbd5e1}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo"><img src="/logo.png" alt="Quvirl"> Quvirl</div>
+    <h1 id="title">Verifying your research slot…</h1>
+    <p class="muted" id="text">Please wait while Quvirl confirms your email and saves your monthly access slot on this device.</p>
+    <div class="status" id="status">Checking verification link…</div>
+    <div class="actions">
+      <a class="btn" href="/">Go to Quvirl</a>
+      <a class="btn secondary" href="/blog/">Read public guides</a>
+    </div>
+  </main>
+  <script>
+    (function(){
+      const PREFIX='quvirl_slot_';
+      const $=id=>document.getElementById(id);
+      function store(k,v){try{localStorage.setItem(PREFIX+k,v)}catch(_){}}
+      function read(k){try{return localStorage.getItem(PREFIX+k)||''}catch(_){return''}}
+      function getDeviceId(){let id=read('device_id');if(!id){id=(crypto&&crypto.randomUUID)?crypto.randomUUID():'qv_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2);store('device_id',id)}return id}
+      function params(){const out={};new URLSearchParams(location.search).forEach((v,k)=>out[k]=v);new URLSearchParams(location.hash.replace(/^#/, '')).forEach((v,k)=>out[k]=v);return out}
+      async function postJson(url,body){const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(body)});const data=await res.json().catch(()=>({}));if(!res.ok){throw new Error(data.message||'Request failed')}return data}
+      function setStatus(msg,type){$('status').textContent=msg;$('status').className='status '+(type||'')}
+      async function run(){
+        const p=params();
+        if(p.error||p.error_description){$('title').textContent='Verification failed';$('text').textContent='The verification link could not be used.';setStatus(decodeURIComponent(p.error_description||p.error),'err');return}
+        const accessToken=p.access_token;
+        if(!accessToken){$('title').textContent='Verification link missing token';$('text').textContent='Please request a fresh verification link from Quvirl.';setStatus('No verification token was found in this link.','err');return}
+        try{
+          const data=await postJson('/api/confirm-slot',{accessToken,deviceId:getDeviceId(),source:'slot-verify'});
+          if(data.accessToken) store('access_token',data.accessToken);
+          if(data.slot&&data.slot.month) store('slot_month',data.slot.month);
+          if(data.slot&&data.slot.status) store('slot_status',data.slot.status);
+          store('verified_at',String(Date.now()));
+          try{localStorage.removeItem(PREFIX+'pending_email');localStorage.removeItem(PREFIX+'pending_slot_month');}catch(_){}
+          $('title').textContent='Your Quvirl slot is verified';
+          $('text').textContent='Your verified monthly research access slot is saved on this device.';
+          setStatus(data.message||'Slot verified successfully.','ok');
+          if(history.replaceState) history.replaceState({},document.title,'/slot-verify.html');
+        }catch(err){$('title').textContent='Could not verify slot';$('text').textContent='Please request a new verification link and try again.';setStatus(err.message||'Verification failed.','err')}
+      }
+      run();
+    })();
+  </script>
+</body>
+</html>
