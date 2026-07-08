@@ -89,7 +89,7 @@ jobs:
         run: |
           node patch-seo-vercel.js
 
-      - name: Apply slot access gate
+      - name: Apply email verified slot access gate
         run: |
           node patch-slot-access.js
 
@@ -103,19 +103,26 @@ jobs:
           echo "Checking sitemap domain..."
           grep -q 'https://quvirl.com' sitemap.xml
 
-          echo "Checking slot access script..."
+          echo "Checking slot access script on homepage..."
           grep -q 'slot-access.js' index.html
 
-          echo "Checking product template slot access..."
+          echo "Checking slot access script on product template..."
           grep -q 'slot-access.js' product.html
+
+          echo "Checking verification page..."
+          test -f slot-verify.html
 
           echo "Checking required API files..."
           test -f api/access-status.js
           test -f api/reserve-slot.js
+          test -f api/confirm-slot.js
           test -f lib/slot-utils.js
           test -f slot-access.js
 
-          echo "Checking old Cloudflare domain in public pages..."
+          echo "Checking required SQL schema file..."
+          test -f slot-access-schema.sql
+
+          echo "Checking old Cloudflare domain in public files..."
           if grep -R "droptrend.pages.dev" . \
             --exclude-dir=.git \
             --exclude-dir=node_modules \
@@ -139,7 +146,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No generated changes to commit"
           else
-            git commit -m "Update Quvirl products, SEO, and slot access"
+            git commit -m "Update Quvirl products, SEO, and verified slot access"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
