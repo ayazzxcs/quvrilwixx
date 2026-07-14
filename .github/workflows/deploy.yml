@@ -112,6 +112,8 @@ jobs:
             </script>
             <!-- End Google Analytics -->`;
 
+          const GA_BLOCK_REGEX = /\n?\s*<!-- Google Analytics -->[\s\S]*?<!-- End Google Analytics -->\s*/gi;
+
           function walk(dir, files = []) {
             if (!fs.existsSync(dir)) return files;
 
@@ -140,21 +142,24 @@ jobs:
 
           function injectIntoHtml(filePath) {
             let html = fs.readFileSync(filePath, 'utf8');
-
-            if (
-              html.includes(`gtag/js?id=${GA_ID}`) ||
-              html.includes(`gtag('config', '${GA_ID}')`)
-            ) {
-              return false;
-            }
+            const original = html;
 
             if (!/<\/head>/i.test(html)) {
               return false;
             }
 
+            // Remove any old/broken Google Analytics block first.
+            html = html.replace(GA_BLOCK_REGEX, '\n');
+
+            // Add clean GA4 tag before closing head.
             html = html.replace(/<\/head>/i, `${GA_TAG}\n</head>`);
-            fs.writeFileSync(filePath, html);
-            return true;
+
+            if (html !== original) {
+              fs.writeFileSync(filePath, html);
+              return true;
+            }
+
+            return false;
           }
 
           let changed = 0;
@@ -162,7 +167,7 @@ jobs:
           for (const filePath of walk(process.cwd())) {
             if (injectIntoHtml(filePath)) {
               changed++;
-              console.log('Added GA:', path.relative(process.cwd(), filePath));
+              console.log('Updated GA:', path.relative(process.cwd(), filePath));
             }
           }
 
@@ -184,6 +189,17 @@ jobs:
 
           echo "Checking Google Analytics on homepage..."
           grep -q 'G-Y5QM3GGPPWE' index.html
+          grep -q 'https://www.googletagmanager.com/gtag/js?id=G-Y5QM3GGPPWEscript>' index.html
+          grep -q "gtag('config', 'G-Y5QM3GGPPWE')" index.html
+
+          echo "Checking broken Google Analytics tag..."
+          if grep -R "googletagmanager.com/gtag/js?id=G-Y5QM3GGPPWEscript>" . \
+            --include="*.html" \
+            --exclude-dir=.git \
+            --exclude-dir=node_modules; then
+            echo "Broken Google Analytics script tag found."
+            exit 1
+          fi
 
           echo "Checking slot access script on homepage..."
           grep -q 'slot-access.js' index.html
