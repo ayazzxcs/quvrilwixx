@@ -93,6 +93,85 @@ jobs:
         run: |
           node patch-slot-access.js
 
+      - name: Add Google Analytics to all HTML pages
+        run: |
+          cat > patch-google-analytics.js <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const GA_ID = 'G-Y5QM3GGPPWE';
+
+          const GA_TAG = `
+            <!-- Google Analytics -->
+            https://www.googletagmanager.com/gtag/js?id=${GA_ID}script>
+            <script>
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_ID}');
+            </script>
+            <!-- End Google Analytics -->`;
+
+          function walk(dir, files = []) {
+            if (!fs.existsSync(dir)) return files;
+
+            for (const name of fs.readdirSync(dir)) {
+              const fullPath = path.join(dir, name);
+              const stat = fs.statSync(fullPath);
+
+              if (stat.isDirectory()) {
+                if (
+                  name === '.git' ||
+                  name === 'node_modules' ||
+                  name === '.vercel' ||
+                  name === '.wrangler'
+                ) {
+                  continue;
+                }
+
+                walk(fullPath, files);
+              } else if (name.endsWith('.html')) {
+                files.push(fullPath);
+              }
+            }
+
+            return files;
+          }
+
+          function injectIntoHtml(filePath) {
+            let html = fs.readFileSync(filePath, 'utf8');
+
+            if (
+              html.includes(`gtag/js?id=${GA_ID}`) ||
+              html.includes(`gtag('config', '${GA_ID}')`)
+            ) {
+              return false;
+            }
+
+            if (!/<\/head>/i.test(html)) {
+              return false;
+            }
+
+            html = html.replace(/<\/head>/i, `${GA_TAG}\n</head>`);
+            fs.writeFileSync(filePath, html);
+            return true;
+          }
+
+          let changed = 0;
+
+          for (const filePath of walk(process.cwd())) {
+            if (injectIntoHtml(filePath)) {
+              changed++;
+              console.log('Added GA:', path.relative(process.cwd(), filePath));
+            }
+          }
+
+          console.log(`Google Analytics patch complete. HTML files changed: ${changed}`);
+          NODE
+
+          node patch-google-analytics.js
+          rm patch-google-analytics.js
+
       - name: Validate Quvirl output
         run: |
           set -euo pipefail
@@ -102,6 +181,9 @@ jobs:
 
           echo "Checking sitemap domain..."
           grep -q 'https://quvirl.com' sitemap.xml
+
+          echo "Checking Google Analytics on homepage..."
+          grep -q 'G-Y5QM3GGPPWE' index.html
 
           echo "Checking slot access script on homepage..."
           grep -q 'slot-access.js' index.html
@@ -146,7 +228,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No generated changes to commit"
           else
-            git commit -m "Update Quvirl products, SEO, and verified slot access"
+            git commit -m "Update Quvirl products, SEO, slot access, and analytics"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
