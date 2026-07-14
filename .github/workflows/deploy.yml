@@ -101,18 +101,20 @@ jobs:
 
           const GA_ID = 'G-Y5QM3GGPPWE';
 
-          const GA_TAG = `
-            <!-- Google Analytics -->
-            https://www.googletagmanager.com/gtag/js?id=${GA_ID}script>
-            <script>
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${GA_ID}');
-            </script>
-            <!-- End Google Analytics -->`;
+          const GA_TAG = [
+            '  <!-- Google Analytics -->',
+            '  <' + 'script async src="https://www.googletagmanager.com/gtag/js?id=' + GA_ID + '"><' + '/script>',
+            '  <' + 'script>',
+            '    window.dataLayer = window.dataLayer || [];',
+            '    function gtag(){dataLayer.push(arguments);}',
+            "    gtag('js', new Date());",
+            "    gtag('config', '" + GA_ID + "');",
+            '  <' + '/script>',
+            '  <!-- End Google Analytics -->'
+          ].join('\n');
 
           const GA_BLOCK_REGEX = /\n?\s*<!-- Google Analytics -->[\s\S]*?<!-- End Google Analytics -->\s*/gi;
+          const BROKEN_GA_REGEX = /https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=G-Y5QM3GGPPWEscript>/g;
 
           function walk(dir, files = []) {
             if (!fs.existsSync(dir)) return files;
@@ -148,8 +150,11 @@ jobs:
               return false;
             }
 
-            // Remove any old/broken Google Analytics block first.
+            // Remove old or broken Google Analytics block.
             html = html.replace(GA_BLOCK_REGEX, '\n');
+
+            // Remove broken leftover tag if it exists outside comments.
+            html = html.replace(BROKEN_GA_REGEX, '');
 
             // Add clean GA4 tag before closing head.
             html = html.replace(/<\/head>/i, `${GA_TAG}\n</head>`);
@@ -189,7 +194,7 @@ jobs:
 
           echo "Checking Google Analytics on homepage..."
           grep -q 'G-Y5QM3GGPPWE' index.html
-          grep -q 'https://www.googletagmanager.com/gtag/js?id=G-Y5QM3GGPPWEscript>' index.html
+          grep -q 'https://www.googletagmanager.com/gtag/js?id=G-Y5QM3GGPPWE' index.html
           grep -q "gtag('config', 'G-Y5QM3GGPPWE')" index.html
 
           echo "Checking broken Google Analytics tag..."
