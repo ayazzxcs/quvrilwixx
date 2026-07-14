@@ -101,15 +101,18 @@ jobs:
 
           const GA_ID = 'G-Y5QM3GGPPWE';
 
+          const openScript = '<' + 'script';
+          const closeScript = '<' + '/script>';
+
           const GA_TAG = [
             '  <!-- Google Analytics -->',
-            '  <' + 'script async src="https://www.googletagmanager.com/gtag/js?id=' + GA_ID + '"><' + '/script>',
-            '  <' + 'script>',
+            '  ' + openScript + ' async src="https://www.googletagmanager.com/gtag/js?id=' + GA_ID + '">' + closeScript,
+            '  ' + openScript + '>',
             '    window.dataLayer = window.dataLayer || [];',
             '    function gtag(){dataLayer.push(arguments);}',
             "    gtag('js', new Date());",
             "    gtag('config', '" + GA_ID + "');",
-            '  <' + '/script>',
+            '  ' + closeScript,
             '  <!-- End Google Analytics -->'
           ].join('\n');
 
@@ -153,7 +156,7 @@ jobs:
             // Remove old or broken Google Analytics block.
             html = html.replace(GA_BLOCK_REGEX, '\n');
 
-            // Remove broken leftover tag if it exists outside comments.
+            // Remove broken leftover malformed tag if it exists.
             html = html.replace(BROKEN_GA_REGEX, '');
 
             // Add clean GA4 tag before closing head.
@@ -194,11 +197,11 @@ jobs:
 
           echo "Checking Google Analytics on homepage..."
           grep -q 'G-Y5QM3GGPPWE' index.html
-          grep -q 'https://www.googletagmanager.com/gtag/js?id=G-Y5QM3GGPPWE' index.html
+          grep -q 'googletagmanager.com/gtag/js?id=G-Y5QM3GGPPWE' index.html
           grep -q "gtag('config', 'G-Y5QM3GGPPWE')" index.html
 
           echo "Checking broken Google Analytics tag..."
-          if grep -R "googletagmanager.com/gtag/js?id=G-Y5QM3GGPPWEscript>" . \
+          if grep -R "G-Y5QM3GGPPWEscript>" . \
             --include="*.html" \
             --exclude-dir=.git \
             --exclude-dir=node_modules; then
