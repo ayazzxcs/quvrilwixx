@@ -93,13 +93,14 @@ jobs:
         run: |
           node patch-slot-access.js
 
-      - name: Add Google Analytics to all HTML pages
+      - name: Add correct Google Analytics tag to all HTML pages
         run: |
           cat > patch-google-analytics.js <<'NODE'
           const fs = require('fs');
           const path = require('path');
 
-          const GA_ID = 'G-Y5QM3GGPPWE';
+          const GA_ID = 'G-Y5QM3GGPWE';
+          const OLD_GA_ID = 'G-Y5QM3GGPPWE';
 
           const openScript = '<' + 'script';
           const closeScript = '<' + '/script>';
@@ -117,7 +118,9 @@ jobs:
           ].join('\n');
 
           const GA_BLOCK_REGEX = /\n?\s*<!-- Google Analytics -->[\s\S]*?<!-- End Google Analytics -->\s*/gi;
-          const BROKEN_GA_REGEX = /https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=G-Y5QM3GGPPWEscript>/g;
+          const OLD_ID_REGEX = new RegExp(OLD_GA_ID, 'g');
+          const BROKEN_OLD_GA_REGEX = /https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=G-Y5QM3GGPPWEscript>/g;
+          const BROKEN_NEW_GA_REGEX = /https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=G-Y5QM3GGPWEscript>/g;
 
           function walk(dir, files = []) {
             if (!fs.existsSync(dir)) return files;
@@ -153,11 +156,15 @@ jobs:
               return false;
             }
 
-            // Remove old or broken Google Analytics block.
+            // Remove any existing GA block, including the old wrong ID block.
             html = html.replace(GA_BLOCK_REGEX, '\n');
 
-            // Remove broken leftover malformed tag if it exists.
-            html = html.replace(BROKEN_GA_REGEX, '');
+            // Remove broken leftovers if they exist.
+            html = html.replace(BROKEN_OLD_GA_REGEX, '');
+            html = html.replace(BROKEN_NEW_GA_REGEX, '');
+
+            // Replace wrong ID if it exists anywhere else.
+            html = html.replace(OLD_ID_REGEX, GA_ID);
 
             // Add clean GA4 tag before closing head.
             html = html.replace(/<\/head>/i, `${GA_TAG}\n</head>`);
@@ -195,13 +202,22 @@ jobs:
           echo "Checking sitemap domain..."
           grep -q 'https://quvirl.com' sitemap.xml
 
-          echo "Checking Google Analytics on homepage..."
-          grep -q 'G-Y5QM3GGPPWE' index.html
-          grep -q 'googletagmanager.com/gtag/js?id=G-Y5QM3GGPPWE' index.html
-          grep -q "gtag('config', 'G-Y5QM3GGPPWE')" index.html
+          echo "Checking correct Google Analytics ID on homepage..."
+          grep -q 'G-Y5QM3GGPWE' index.html
+          grep -q 'googletagmanager.com/gtag/js?id=G-Y5QM3GGPWE' index.html
+          grep -q "gtag('config', 'G-Y5QM3GGPWE')" index.html
+
+          echo "Checking old wrong Google Analytics ID is gone..."
+          if grep -R "G-Y5QM3GGPPWE" . \
+            --include="*.html" \
+            --exclude-dir=.git \
+            --exclude-dir=node_modules; then
+            echo "Old wrong Google Analytics ID still exists."
+            exit 1
+          fi
 
           echo "Checking broken Google Analytics tag..."
-          if grep -R "G-Y5QM3GGPPWEscript>" . \
+          if grep -R "G-Y5QM3GGPWEscript>" . \
             --include="*.html" \
             --exclude-dir=.git \
             --exclude-dir=node_modules; then
@@ -252,7 +268,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No generated changes to commit"
           else
-            git commit -m "Update Quvirl products, SEO, slot access, and analytics"
+            git commit -m "Fix Google Analytics measurement ID"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
