@@ -219,7 +219,7 @@ jobs:
             const border = primary ? '#34d399' : '#30363d';
             const color = primary ? '#001b0b' : '#f0f6fc';
 
-            return `${url}${label}</a>`;
+            return '' + url + '' + label + '</a>';
           }
 
           const CJ_BLOCK = `
@@ -293,27 +293,37 @@ jobs:
           function patchHtml(filePath) {
             const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
 
-            // Skip only root homepage and root legal/contact pages.
-            // Product/category/blog index.html files will still get the banner.
+            let html = fs.readFileSync(filePath, 'utf8');
+            const original = html;
+
+            // Always remove old CJ banner first, even from homepage.
+            html = html.replace(CJ_BLOCK_REGEX, '\n');
+
+            // Skip adding banner back to root homepage and root legal/contact pages.
             if (SKIP_ROOT_FILES.has(relPath)) {
+              if (html !== original) {
+                fs.writeFileSync(filePath, html);
+                return true;
+              }
               return false;
             }
 
             if (path.basename(filePath).startsWith('google') && path.basename(filePath).endsWith('.html')) {
+              if (html !== original) {
+                fs.writeFileSync(filePath, html);
+                return true;
+              }
               return false;
             }
-
-            let html = fs.readFileSync(filePath, 'utf8');
-            const original = html;
 
             if (!/<body[^>]*>/i.test(html)) {
+              if (html !== original) {
+                fs.writeFileSync(filePath, html);
+                return true;
+              }
               return false;
             }
 
-            // Remove old CJ banner first so updates do not duplicate.
-            html = html.replace(CJ_BLOCK_REGEX, '\n');
-
-            // Place CJ banner after Adcash banner when available.
             if (html.includes('<!-- Adcash Display Banner 728x90 -->')) {
               html = html.replace(
                 /<!-- End Adcash Display Banner 728x90 -->/i,
