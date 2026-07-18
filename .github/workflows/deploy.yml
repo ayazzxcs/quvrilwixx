@@ -93,6 +93,93 @@ jobs:
         run: |
           node patch-slot-access.js
 
+      - name: Add Adcash AutoTag to all HTML pages
+        run: |
+          cat > patch-adcash-autotag.js <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const ADCASH_ZONE_ID = 'ghbh1xtplz';
+
+          const openScript = '<' + 'script';
+          const closeScript = '<' + '/script>';
+
+          const ADCASH_TAG = [
+            '  <!-- Adcash AutoTag -->',
+            '  ' + openScript + ' id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js">' + closeScript,
+            '  ' + openScript + ' type="text/javascript">',
+            '    aclib.runAutoTag({',
+            "      zoneId: '" + ADCASH_ZONE_ID + "',",
+            '    });',
+            '  ' + closeScript,
+            '  <!-- End Adcash AutoTag -->'
+          ].join('\n');
+
+          const ADCASH_BLOCK_REGEX = /\n?\s*<!-- Adcash AutoTag -->[\s\S]*?<!-- End Adcash AutoTag -->\s*/gi;
+
+          function walk(dir, files = []) {
+            if (!fs.existsSync(dir)) return files;
+
+            for (const name of fs.readdirSync(dir)) {
+              const fullPath = path.join(dir, name);
+              const stat = fs.statSync(fullPath);
+
+              if (stat.isDirectory()) {
+                if (
+                  name === '.git' ||
+                  name === 'node_modules' ||
+                  name === '.vercel' ||
+                  name === '.wrangler'
+                ) {
+                  continue;
+                }
+
+                walk(fullPath, files);
+              } else if (name.endsWith('.html')) {
+                files.push(fullPath);
+              }
+            }
+
+            return files;
+          }
+
+          function injectIntoHtml(filePath) {
+            let html = fs.readFileSync(filePath, 'utf8');
+            const original = html;
+
+            html = html.replace(ADCASH_BLOCK_REGEX, '\n');
+
+            if (/<\/body>/i.test(html)) {
+              html = html.replace(/<\/body>/i, `${ADCASH_TAG}\n</body>`);
+            } else if (/<\/head>/i.test(html)) {
+              html = html.replace(/<\/head>/i, `${ADCASH_TAG}\n</head>`);
+            } else {
+              return false;
+            }
+
+            if (html !== original) {
+              fs.writeFileSync(filePath, html);
+              return true;
+            }
+
+            return false;
+          }
+
+          let changed = 0;
+
+          for (const filePath of walk(process.cwd())) {
+            if (injectIntoHtml(filePath)) {
+              changed++;
+              console.log('Updated Adcash:', path.relative(process.cwd(), filePath));
+            }
+          }
+
+          console.log(`Adcash AutoTag patch complete. HTML files changed: ${changed}`);
+          NODE
+
+          node patch-adcash-autotag.js
+          rm patch-adcash-autotag.js
+
       - name: Add correct Google Analytics tag to all HTML pages
         run: |
           cat > patch-google-analytics.js <<'NODE'
@@ -253,6 +340,10 @@ jobs:
             echo "Old droptrend.pages.dev URL still exists. Fix before deploy."
             exit 1
           fi
+
+          echo "Checking Adcash AutoTag on homepage..."
+          grep -q 'ghbh1xtplz' index.html
+          grep -q 'acscdn.com/script/aclib.js' index.html
 
           echo "Validation passed."
 
