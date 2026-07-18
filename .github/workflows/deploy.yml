@@ -203,6 +203,136 @@ jobs:
           node patch-adcash-display.js
           rm patch-adcash-display.js
 
+      - name: Add CJdropshipping affiliate banners to Quvirl pages
+        run: |
+          cat > patch-cj-affiliate-banners.js <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const CJ_SERVICE_URL = 'https://www.cjdropshipping.com/ouroffers?token=d2d687f6-4fae-4758-9231-7c01dc4dce1d';
+          const CJ_HOME_URL = 'https://www.cjdropshipping.com/?token=d2d687f6-4fae-4758-9231-7c01dc4dce1d';
+          const CJ_REGISTER_URL = 'https://www.cjdropshipping.com/register.html?token=d2d687f6-4fae-4758-9231-7c01dc4dce1d';
+          const CJ_SHOPIFY_APP_URL = 'https://www.cjdropshipping.com/tempPage.html?token=d2d687f6-4fae-4758-9231-7c01dc4dce1d';
+
+          const CJ_BLOCK = `
+          <!-- Quvirl CJdropshipping Affiliate Banner -->
+          <section class="quvirl-cj-affiliate-banner" style="max-width:1180px;margin:22px auto;padding:22px;border:1px solid rgba(48,54,61,.9);border-radius:22px;background:linear-gradient(135deg,#0d1117,#07121f);color:#f0f6fc;box-shadow:0 18px 50px rgba(0,0,0,.32);">
+            <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;">
+              <div style="flex:1;min-width:260px;">
+                <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:10px;padding:6px 10px;border:1px solid rgba(126,231,135,.35);border-radius:999px;color:#7ee787;font-size:13px;font-weight:700;">
+                  Partner recommendation
+                </div>
+                <h2 style="margin:0 0 8px;font-size:clamp(24px,4vw,38px);line-height:1.05;color:#fff;">
+                  Found a product on Quvirl? Source it with CJdropshipping.
+                </h2>
+                <p style="margin:0;color:#c9d1d9;font-size:16px;line-height:1.55;">
+                  Use CJdropshipping to explore sourcing, fulfillment, supplier services, and Shopify store integration after shortlisting product ideas on Quvirl.
+                </p>
+              </div>
+
+              <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start;min-width:260px;">
+                ${CJ_REGISTER_URL}
+                  Create CJ account
+                </a>
+                ${CJ_SERVICE_URL}
+                  View CJ services
+                </a>
+                <a href="${CJ_SHOPIFY_APP_URL}" target="_blank" rel="nofollow sponsored noopener         <a href="${CJ_HOME_URL}" target="_blank" rel="nofollow sponsored noopener"   </div>
+            </div>
+          </section>
+          <!-- End Quvirl CJdropshipping Affiliate Banner -->
+          `;
+
+          const CJ_BLOCK_REGEX = /\n?\s*<!-- Quvirl CJdropshipping Affiliate Banner -->[\s\S]*?<!-- End Quvirl CJdropshipping Affiliate Banner -->\s*/gi;
+
+          const SKIP_PATH_PARTS = [
+            '.git',
+            'node_modules',
+            '.vercel',
+            '.wrangler'
+          ];
+
+          const SKIP_FILES = new Set([
+            'privacy.html',
+            'terms.html',
+            'contact.html',
+            'about.html',
+            'slot-verify.html'
+          ]);
+
+          function shouldSkipPath(filePath) {
+            return SKIP_PATH_PARTS.some(part => filePath.split(path.sep).includes(part));
+          }
+
+          function walk(dir, files = []) {
+            if (!fs.existsSync(dir)) return files;
+
+            for (const name of fs.readdirSync(dir)) {
+              const fullPath = path.join(dir, name);
+              const stat = fs.statSync(fullPath);
+
+              if (stat.isDirectory()) {
+                if (!shouldSkipPath(fullPath)) walk(fullPath, files);
+              } else if (name.endsWith('.html')) {
+                files.push(fullPath);
+              }
+            }
+
+            return files;
+          }
+
+          function patchHtml(filePath) {
+            const baseName = path.basename(filePath);
+
+            if (SKIP_FILES.has(baseName)) {
+              return false;
+            }
+
+            if (baseName.startsWith('google') && baseName.endsWith('.html')) {
+              return false;
+            }
+
+            let html = fs.readFileSync(filePath, 'utf8');
+            const original = html;
+
+            if (!/<body[^>]*>/i.test(html)) {
+              return false;
+            }
+
+            html = html.replace(CJ_BLOCK_REGEX, '\n');
+
+            if (html.includes('<!-- Adcash Display Banner 728x90 -->')) {
+              html = html.replace(
+                /<!-- End Adcash Display Banner 728x90 -->/i,
+                `<!-- End Adcash Display Banner 728x90 -->\n${CJ_BLOCK}`
+              );
+            } else {
+              html = html.replace(/<body([^>]*)>/i, `<body$1>\n${CJ_BLOCK}`);
+            }
+
+            if (html !== original) {
+              fs.writeFileSync(filePath, html);
+              return true;
+            }
+
+            return false;
+          }
+
+          let changed = 0;
+
+          for (const filePath of walk(process.cwd())) {
+            if (patchHtml(filePath)) {
+              changed++;
+              console.log('Updated CJ affiliate banner:', path.relative(process.cwd(), filePath));
+            }
+          }
+
+          console.log(`CJ affiliate banner patch complete. HTML files changed: ${changed}`);
+          NODE
+
+          node patch-cj-affiliate-banners.js
+          rm patch-cj-affiliate-banners.js
+
       - name: Add correct Google Analytics tag to all HTML pages
         run: |
           cat > patch-google-analytics.js <<'NODE'
@@ -378,6 +508,11 @@ jobs:
             exit 1
           fi
  
+          echo "Checking CJdropshipping affiliate banner on homepage..."
+          grep -q 'd2d687f6-4fae-4758-9231-7c01dc4dce1d' index.html
+          grep -q 'Quvirl CJdropshipping Affiliate Banner' index.html
+          grep -q 'rel="nofollow sponsored noopener"' index.html
+
           echo "Validation passed."
 
       - name: Commit generated Quvirl pages
