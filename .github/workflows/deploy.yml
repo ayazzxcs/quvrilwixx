@@ -219,7 +219,17 @@ jobs:
           const border = primary ? '#34d399' : '#30363d';
           const color = primary ? '#001b0b' : '#f0f6fc';
 
-          return `${url}${label}</a>`;
+          const openA = '<' + 'a';
+          const closeA = '<' + '/a>';
+
+          return openA
+           + ' href="' + url + '"'
+           + ' target="_blank"'
+           + ' rel="nofollow sponsored noopener"'
+           + ' style="display:inline-flex;align-items:center;justify-content:center;padding:11px 14px;border-radius:12px;background:' + bg + ';border:1px solid ' + border + ';color:' + color + ';font-weight:800;text-decoration:none;font-size:14px;line-height:1;"'
+           + '>'
+           + label
+           + closeA;
           }
 
           const CJ_BLOCK = `
