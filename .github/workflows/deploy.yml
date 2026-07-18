@@ -215,11 +215,11 @@ jobs:
           const CJ_SHOPIFY_APP_URL = 'https://www.cjdropshipping.com/tempPage.html?token=d2d687f6-4fae-4758-9231-7c01dc4dce1d';
 
           function button(url, label, primary = false) {
-            const bg = primary ? '#16a34a' : '#0d1117';
-            const border = primary ? '#34d399' : '#30363d';
-            const color = primary ? '#001b0b' : '#f0f6fc';
+          const bg = primary ? '#16a34a' : '#0d1117';
+          const border = primary ? '#34d399' : '#30363d';
+          const color = primary ? '#001b0b' : '#f0f6fc';
 
-            return '' + url + '' + label + '</a>';
+          return `${url}${label}</a>`;
           }
 
           const CJ_BLOCK = `
