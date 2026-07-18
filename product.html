@@ -226,6 +226,9 @@
   "logo": "https://quvirl.com/logo.png"
 }
 </script>
+<!-- Adcash Library -->
+  <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
+  <!-- End Adcash Library -->
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y5QM3GGPWE"></script>
   <script>
@@ -237,6 +240,15 @@
   <!-- End Google Analytics -->
 </head>
 <body>
+  <!-- Adcash Display Banner 336x280 -->
+  <div class="quvirl-adcash-banner" style="display:flex;justify-content:center;align-items:center;margin:24px auto;min-height:280px;width:100%;max-width:336px;">
+    <script type="text/javascript">
+      aclib.runBanner({
+        zoneId: '11748766',
+      });
+    </script>
+  </div>
+  <!-- End Adcash Display Banner 336x280 -->
 <div class="bg-orb orb1"></div><div class="bg-orb orb2"></div><div class="bg-orb orb3"></div>
 <div class="productPage">
   <a class="backLink" href="./">← Back to Quvirl products</a>
@@ -456,13 +468,5 @@ init();
 })();
 </script>
 <script src="/slot-access.js" defer></script>
-  <!-- Adcash AutoTag -->
-  <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
-  <script type="text/javascript">
-    aclib.runAutoTag({
-      zoneId: 'ghbh1xtplz',
-    });
-  </script>
-  <!-- End Adcash AutoTag -->
 </body>
 </html>
