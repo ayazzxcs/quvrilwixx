@@ -93,14 +93,16 @@ jobs:
         run: |
           node patch-slot-access.js
 
-      - name: Add Adcash display banner ads to all HTML pages
+      - name: Add Adcash 728x90 display banner to all HTML pages
         run: |
           cat > patch-adcash-display.js <<'NODE'
           const fs = require('fs');
           const path = require('path');
 
-          const ADCASH_DISPLAY_ZONE_ID = '11748766';
+          const ADCASH_DISPLAY_ZONE_ID = '11748834';
+
           const OLD_AUTOTAG_ZONE_ID = 'ghbh1xtplz';
+          const OLD_DISPLAY_336_ZONE_ID = '11748766';
 
           const openScript = '<' + 'script';
           const closeScript = '<' + '/script>';
@@ -112,21 +114,21 @@ jobs:
           ].join('\n');
 
           const ADCASH_BANNER = [
-            '  <!-- Adcash Display Banner 336x280 -->',
-            '  <div class="quvirl-adcash-banner" style="display:flex;justify-content:center;align-items:center;margin:24px auto;min-height:280px;width:100%;max-width:336px;">',
+            '  <!-- Adcash Display Banner 728x90 -->',
+            '  <div class="quvirl-adcash-banner quvirl-adcash-banner-728x90" style="display:flex;justify-content:center;align-items:center;margin:18px auto 24px auto;min-height:90px;width:100%;max-width:728px;overflow:hidden;">',
             '    ' + openScript + ' type="text/javascript">',
             '      aclib.runBanner({',
             "        zoneId: '" + ADCASH_DISPLAY_ZONE_ID + "',",
             '      });',
             '    ' + closeScript,
             '  </div>',
-            '  <!-- End Adcash Display Banner 336x280 -->'
+            '  <!-- End Adcash Display Banner 728x90 -->'
           ].join('\n');
 
           const ADCASH_LIBRARY_REGEX = /\n?\s*<!-- Adcash Library -->[\s\S]*?<!-- End Adcash Library -->\s*/gi;
-          const ADCASH_BANNER_REGEX = /\n?\s*<!-- Adcash Display Banner 336x280 -->[\s\S]*?<!-- End Adcash Display Banner 336x280 -->\s*/gi;
+          const ADCASH_BANNER_728_REGEX = /\n?\s*<!-- Adcash Display Banner 728x90 -->[\s\S]*?<!-- End Adcash Display Banner 728x90 -->\s*/gi;
+          const ADCASH_BANNER_336_REGEX = /\n?\s*<!-- Adcash Display Banner 336x280 -->[\s\S]*?<!-- End Adcash Display Banner 336x280 -->\s*/gi;
           const OLD_AUTOTAG_BLOCK_REGEX = /\n?\s*<!-- Adcash AutoTag -->[\s\S]*?<!-- End Adcash AutoTag -->\s*/gi;
-          const OLD_AUTOTAG_ZONE_REGEX = new RegExp(OLD_AUTOTAG_ZONE_ID, 'g');
 
           function walk(dir, files = []) {
             if (!fs.existsSync(dir)) return files;
@@ -162,20 +164,20 @@ jobs:
               return false;
             }
 
-            // Remove previous Adcash blocks if the workflow has run before.
+            // Remove previous Adcash blocks.
             html = html.replace(ADCASH_LIBRARY_REGEX, '\n');
-            html = html.replace(ADCASH_BANNER_REGEX, '\n');
-
-            // Remove old AutoTag block if it was added before.
+            html = html.replace(ADCASH_BANNER_728_REGEX, '\n');
+            html = html.replace(ADCASH_BANNER_336_REGEX, '\n');
             html = html.replace(OLD_AUTOTAG_BLOCK_REGEX, '\n');
 
-            // If old AutoTag zone ID appears anywhere else, leave the file clean.
-            html = html.replace(OLD_AUTOTAG_ZONE_REGEX, '');
+            // Remove old zone IDs if leftovers exist.
+            html = html.replace(new RegExp(OLD_AUTOTAG_ZONE_ID, 'g'), '');
+            html = html.replace(new RegExp(OLD_DISPLAY_336_ZONE_ID, 'g'), '');
 
             // Add Adcash library inside head.
             html = html.replace(/<\/head>/i, `${ADCASH_LIBRARY}\n</head>`);
 
-            // Add visible 336x280 banner immediately after opening body.
+            // Add visible 728x90 banner immediately after opening body.
             html = html.replace(/<body([^>]*)>/i, `<body$1>\n${ADCASH_BANNER}`);
 
             if (html !== original) {
@@ -191,11 +193,11 @@ jobs:
           for (const filePath of walk(process.cwd())) {
             if (patchHtml(filePath)) {
               changed++;
-              console.log('Updated Adcash display banner:', path.relative(process.cwd(), filePath));
+              console.log('Updated Adcash 728x90 banner:', path.relative(process.cwd(), filePath));
             }
           }
 
-          console.log(`Adcash display banner patch complete. HTML files changed: ${changed}`);
+          console.log(`Adcash 728x90 display banner patch complete. HTML files changed: ${changed}`);
           NODE
 
           node patch-adcash-display.js
@@ -362,17 +364,17 @@ jobs:
             exit 1
           fi
 
-          echo "Checking Adcash display banner on homepage..."
-          grep -q '11748766' index.html
+          echo "Checking Adcash 728x90 display banner on homepage..."
+          grep -q '11748834' index.html
           grep -q 'acscdn.com/script/aclib.js' index.html
           grep -q 'aclib.runBanner' index.html
- 
-          echo "Checking old Adcash AutoTag is gone..."
-          if grep -R "ghbh1xtplz" . \
+
+          echo "Checking old Adcash AutoTag and 336x280 zone are gone..."
+          if grep -R "ghbh1xtplz\|11748766" . \
             --include="*.html" \
             --exclude-dir=.git \
             --exclude-dir=node_modules; then
-          echo "Old Adcash AutoTag zone still exists."
+          echo "Old Adcash AutoTag or 336x280 zone still exists."
             exit 1
           fi
  
