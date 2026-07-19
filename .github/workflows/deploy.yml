@@ -93,16 +93,15 @@ jobs:
         run: |
           node patch-slot-access.js
 
-      - name: Add Adcash 728x90 display banner to generated pages
+      - name: Add Adcash banner and Monetag Vignette below homepage signal boxes
         run: |
-          cat > patch-adcash-display.js <<'NODE'
+          cat > patch-homepage-monetization.js <<'NODE'
           const fs = require('fs');
-          const path = require('path');
+
+          const filePath = 'index.html';
 
           const ADCASH_DISPLAY_ZONE_ID = '11748834';
-
-          const OLD_AUTOTAG_ZONE_ID = 'ghbh1xtplz';
-          const OLD_DISPLAY_336_ZONE_ID = '11748766';
+          const MONETAG_ZONE_ID = '11345816';
 
           const openScript = '<' + 'script';
           const closeScript = '<' + '/script>';
@@ -115,7 +114,7 @@ jobs:
 
           const ADCASH_BANNER = [
             '  <!-- Adcash Display Banner 728x90 -->',
-            '  <div class="quvirl-adcash-wrap" style="max-width:760px;margin:34px auto 28px auto;padding:10px 12px;border:1px solid rgba(48,54,61,.55);border-radius:16px;background:rgba(13,17,23,.72);text-align:center;">',
+            '  <div class="quvirl-adcash-wrap" style="max-width:760px;margin:18px auto 18px auto;padding:10px 12px;border:1px solid rgba(48,54,61,.55);border-radius:16px;background:rgba(13,17,23,.72);text-align:center;">',
             '    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8b949e;margin-bottom:8px;">Advertisement</div>',
             '    <div class="quvirl-adcash-banner quvirl-adcash-banner-728x90" style="display:flex;justify-content:center;align-items:center;min-height:90px;width:100%;max-width:728px;margin:0 auto;overflow:hidden;">',
             '      ' + openScript + ' type="text/javascript">',
@@ -128,110 +127,72 @@ jobs:
             '  <!-- End Adcash Display Banner 728x90 -->'
           ].join('\n');
 
+          const MONETAG_VIGNETTE = [
+            '  <!-- Monetag Vignette Banner -->',
+            '  ' + openScript + '>',
+            "    (function(s){s.dataset.zone='" + MONETAG_ZONE_ID + "';s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))",
+            '  ' + closeScript,
+            '  <!-- End Monetag Vignette Banner -->'
+          ].join('\n');
+
           const ADCASH_LIBRARY_REGEX = /\n?\s*<!-- Adcash Library -->[\s\S]*?<!-- End Adcash Library -->\s*/gi;
-          const ADCASH_BANNER_728_REGEX = /\n?\s*<!-- Adcash Display Banner 728x90 -->[\s\S]*?<!-- End Adcash Display Banner 728x90 -->\s*/gi;
+          const ADCASH_BANNER_REGEX = /\n?\s*<!-- Adcash Display Banner 728x90 -->[\s\S]*?<!-- End Adcash Display Banner 728x90 -->\s*/gi;
           const ADCASH_BANNER_336_REGEX = /\n?\s*<!-- Adcash Display Banner 336x280 -->[\s\S]*?<!-- End Adcash Display Banner 336x280 -->\s*/gi;
           const OLD_AUTOTAG_BLOCK_REGEX = /\n?\s*<!-- Adcash AutoTag -->[\s\S]*?<!-- End Adcash AutoTag -->\s*/gi;
+          const MONETAG_VIGNETTE_REGEX = /\n?\s*<!-- Monetag Vignette Banner -->[\s\S]*?<!-- End Monetag Vignette Banner -->\s*/gi;
 
-          const SKIP_ROOT_FILES = new Set([
-            'index.html',
-            'privacy.html',
-            'terms.html',
-            'contact.html',
-            'about.html',
-            'slot-verify.html'
-          ]);
-
-          function walk(dir, files = []) {
-            if (!fs.existsSync(dir)) return files;
-
-            for (const name of fs.readdirSync(dir)) {
-              const fullPath = path.join(dir, name);
-              const stat = fs.statSync(fullPath);
-
-              if (stat.isDirectory()) {
-                if (
-                  name === '.git' ||
-                  name === 'node_modules' ||
-                  name === '.vercel' ||
-                  name === '.wrangler'
-                ) {
-                  continue;
-                }
-
-                walk(fullPath, files);
-              } else if (name.endsWith('.html')) {
-                files.push(fullPath);
-              }
-            }
-
-            return files;
+          if (!fs.existsSync(filePath)) {
+            throw new Error('index.html not found');
           }
 
-          function patchHtml(filePath) {
-            const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+          let html = fs.readFileSync(filePath, 'utf8');
+          const original = html;
 
-            let html = fs.readFileSync(filePath, 'utf8');
-            const original = html;
+          // Clean old ad blocks first.
+          html = html.replace(ADCASH_LIBRARY_REGEX, '\n');
+          html = html.replace(ADCASH_BANNER_REGEX, '\n');
+          html = html.replace(ADCASH_BANNER_336_REGEX, '\n');
+          html = html.replace(OLD_AUTOTAG_BLOCK_REGEX, '\n');
+          html = html.replace(MONETAG_VIGNETTE_REGEX, '\n');
 
-            // Always remove previous Adcash blocks first, including from homepage.
-            html = html.replace(ADCASH_LIBRARY_REGEX, '\n');
-            html = html.replace(ADCASH_BANNER_728_REGEX, '\n');
-            html = html.replace(ADCASH_BANNER_336_REGEX, '\n');
-            html = html.replace(OLD_AUTOTAG_BLOCK_REGEX, '\n');
+          // Clean old zone leftovers.
+          html = html.replace(/11748766/g, '');
+          html = html.replace(/ghbh1xtplz/g, '');
 
-            html = html.replace(new RegExp(OLD_AUTOTAG_ZONE_ID, 'g'), '');
-            html = html.replace(new RegExp(OLD_DISPLAY_336_ZONE_ID, 'g'), '');
-
-            // Do not add Adcash back to homepage or legal/contact pages.
-            if (SKIP_ROOT_FILES.has(relPath)) {
-              if (html !== original) {
-                fs.writeFileSync(filePath, html);
-                return true;
-              }
-              return false;
-            }
-
-            if (!/<\/head>/i.test(html) || !/<\/body>/i.test(html)) {
-              if (html !== original) {
-                fs.writeFileSync(filePath, html);
-                return true;
-              }
-              return false;
-            }
-
-            // Add Adcash library inside head.
-            html = html.replace(/<\/head>/i, `${ADCASH_LIBRARY}\n</head>`);
-
-            // Add the banner near the bottom, before footer/body close.
-            if (/<footer[^>]*>/i.test(html)) {
-              html = html.replace(/<footer/i, `${ADCASH_BANNER}\n<footer`);
-            } else {
-              html = html.replace(/<\/body>/i, `${ADCASH_BANNER}\n</body>`);
-            }
-
-            if (html !== original) {
-              fs.writeFileSync(filePath, html);
-              return true;
-            }
-
-            return false;
+          if (!/<\/head>/i.test(html)) {
+            throw new Error('No </head> tag found in homepage');
           }
 
-          let changed = 0;
-
-          for (const filePath of walk(process.cwd())) {
-            if (patchHtml(filePath)) {
-              changed++;
-              console.log('Updated Adcash banner:', path.relative(process.cwd(), filePath));
-            }
+          if (!/<\/body>/i.test(html)) {
+            throw new Error('No </body> tag found in homepage');
           }
 
-          console.log(`Adcash display banner patch complete. HTML files changed: ${changed}`);
+          // Add Adcash library in head.
+          html = html.replace(/<\/head>/i, `${ADCASH_LIBRARY}\n</head>`);
+
+          // Add Adcash visible banner below the hero signal boxes.
+          const heroAnchor = 'Loaded 1,500 Quvirl products ranked by Google Trends + Amazon demand + supplier score.';
+
+          if (html.includes(heroAnchor)) {
+            html = html.replace(heroAnchor, `${heroAnchor}\n${ADCASH_BANNER}`);
+          } else {
+            // Fallback: place after first main hero section if exact text changes.
+            html = html.replace(/<\/section>/i, `${ADCASH_BANNER}\n</section>`);
+          }
+
+          // Add Monetag Vignette near bottom of page.
+          html = html.replace(/<\/body>/i, `${MONETAG_VIGNETTE}\n</body>`);
+
+          if (html !== original) {
+            fs.writeFileSync(filePath, html, 'utf8');
+            console.log('Homepage Adcash + Monetag updated');
+          } else {
+            console.log('No homepage monetization changes needed');
+          }
           NODE
 
-          node patch-adcash-display.js
-          rm patch-adcash-display.js
+          node patch-homepage-monetization.js
+          rm patch-homepage-monetization.js
 
       - name: Add CJdropshipping affiliate banners to Quvirl pages
         run: |
@@ -589,37 +550,22 @@ jobs:
             exit 1
           fi
 
-          echo "Checking Adcash banner is not on homepage..."
-          if grep -q 'Adcash Display Banner 728x90' index.html; then
-          echo "Adcash banner should not appear on homepage."
-          exit 1
-          fi
+          echo "Checking homepage Adcash banner..."
+          grep -q '11748834' index.html
+          grep -q 'acscdn.com/script/aclib.js' index.html
+          grep -q 'Adcash Display Banner 728x90' index.html
 
-          echo "Checking Adcash banner exists on generated pages..."
-          if ! grep -R -q '11748834' . \
-            --include="*.html" \
-            --exclude="index.html" \
-            --exclude-dir=.git \
-            --exclude-dir=node_modules; then
-          echo "Adcash banner was not found on generated pages."
-          exit 1
-          fi
+          echo "Checking homepage Monetag Vignette..."
+          grep -q '11345816' index.html
+          grep -q 'n6wxm.com/vignette.min.js' index.html
+          grep -q 'Monetag Vignette Banner' index.html
 
           echo "Checking old Adcash AutoTag and 336x280 zone are gone..."
           if grep -R "ghbh1xtplz\|11748766" . \
             --include="*.html" \
             --exclude-dir=.git \
             --exclude-dir=node_modules; then
-          echo "Old Adcash AutoTag or 336x280 zone still exists."
-          exit 1
-          fi
-
-          echo "Checking old Adcash AutoTag and 336x280 zone are gone..."
-          if grep -R "ghbh1xtplz\|11748766" . \
-            --include="*.html" \
-            --exclude-dir=.git \
-            --exclude-dir=node_modules; then
-          echo "Old Adcash AutoTag or 336x280 zone still exists."
+            echo "Old Adcash AutoTag or 336x280 zone still exists."
             exit 1
           fi
  
