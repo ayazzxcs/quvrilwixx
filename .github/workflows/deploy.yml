@@ -95,7 +95,7 @@ jobs:
 
       - name: Add Adcash 728x90 banner to generated pages only
         run: |
-          .js <<'NODE'
+          cat > patch-adcash-generated-pages.js <<'NODE'
           const fs = require('fs');
           const path = require('path');
 
@@ -241,7 +241,7 @@ jobs:
 
           node patch-adcash-generated-pages.js
           rm patch-adcash-generated-pages.js
-      
+        
       - name: Add CJdropshipping affiliate banners to Quvirl pages
         run: |
           cat > patch-cj-affiliate-banners.js <<'NODE'
