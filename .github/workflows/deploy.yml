@@ -495,6 +495,38 @@ jobs:
           node patch-google-analytics.js
           rm patch-google-analytics.js
 
+      - name: Add Monetag verification meta tag
+        run: |
+          cat > patch-monetag-verification.js <<'NODE'
+          const fs = require('fs');
+
+          const filePath = 'index.html';
+          const MONETAG_META = '<meta name="monetag" content="d344576bb6c59fcd0d1df124b80bb512">';
+
+          if (!fs.existsSync(filePath)) {
+            throw new Error('index.html not found');
+          }
+
+          let html = fs.readFileSync(filePath, 'utf8');
+
+          // Remove old Monetag verification meta tag if it exists.
+          html = html.replace(/<meta\s+name=["']monetag["'][^>]*>\s*/gi, '');
+
+          if (!/<\/head>/i.test(html)) {
+            throw new Error('No </head> tag found in index.html');
+          }
+
+          // Add fresh Monetag verification tag before </head>.
+          html = html.replace(/<\/head>/i, `  ${MONETAG_META}\n</head>`);
+
+          fs.writeFileSync(filePath, html, 'utf8');
+
+          console.log('Monetag verification meta tag added to index.html');
+          NODE
+
+          node patch-monetag-verification.js
+          rm patch-monetag-verification.js
+
       - name: Validate Quvirl output
         run: |
           set -euo pipefail
@@ -616,6 +648,9 @@ jobs:
           echo "CJ affiliate sponsored nofollow attributes not found."
           exit 1
           fi
+
+          echo "Checking Monetag verification meta tag..."
+          grep -q 'meta name="monetag" content="d344576bb6c59fcd0d1df124b80bb512"' index.html
 
           echo "Validation passed."
 
