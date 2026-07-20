@@ -17,8 +17,39 @@
   }
 
   function getImage() {
-    return getMeta('og:image') || getMeta('twitter:image') || '';
+  const metaImage = getMeta('og:image') || getMeta('twitter:image');
+
+  if (metaImage) {
+    return metaImage;
   }
+
+  const productImg =
+    document.querySelector('.product-hero img') ||
+    document.querySelector('.hero img') ||
+    document.querySelector('main img') ||
+    document.querySelector('article img') ||
+    document.querySelector('img');
+
+  if (!productImg) {
+    return '';
+  }
+
+  const src =
+    productImg.getAttribute('src') ||
+    productImg.getAttribute('data-src') ||
+    productImg.getAttribute('data-original') ||
+    '';
+
+  if (!src) {
+    return '';
+  }
+
+  try {
+    return new URL(src, window.location.origin).href;
+  } catch (error) {
+    return src;
+  }
+}
 
   function getDescription() {
     return getMeta('description') || getMeta('og:description') || '';
