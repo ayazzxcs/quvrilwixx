@@ -19,37 +19,52 @@
   function getImage() {
   const metaImage = getMeta('og:image') || getMeta('twitter:image');
 
-  if (metaImage) {
-    return metaImage;
+  if (metaImage && !metaImage.includes('logo') && !metaImage.includes('icon')) {
+    try {
+      return new URL(metaImage, window.location.origin).href;
+    } catch (error) {
+      return metaImage;
+    }
   }
 
-  const productImg =
-    document.querySelector('.product-hero img') ||
-    document.querySelector('.hero img') ||
-    document.querySelector('main img') ||
-    document.querySelector('article img') ||
-    document.querySelector('img');
+  const images = Array.from(document.querySelectorAll('img'))
+    .map((img) => {
+      const src =
+        img.currentSrc ||
+        img.getAttribute('src') ||
+        img.getAttribute('data-src') ||
+        img.getAttribute('data-original') ||
+        '';
 
-  if (!productImg) {
-    return '';
+      let absolute = '';
+
+      try {
+        absolute = src ? new URL(src, window.location.origin).href : '';
+      } catch (error) {
+        absolute = src;
+      }
+
+      return {
+        img,
+        src: absolute,
+        width: img.naturalWidth || img.width || 0,
+        height: img.naturalHeight || img.height || 0,
+        area: (img.naturalWidth || img.width || 0) * (img.naturalHeight || img.height || 0)
+      };
+    })
+    .filter((item) => {
+      if (!item.src) return false;
+      if (item.src.startsWith('data:')) return false;
+      if (item.src.includes('logo')) return false;
+      if (item.src.includes('icon')) return false;
+      if (item.src.includes('favicon')) return false;
+      if (item.width < 140 || item.height < 140) return false;
+      return true;
+    })
+    .sort((a, b) => b.area - a.area);
+
+  return images.length ? images[0].src : '';
   }
-
-  const src =
-    productImg.getAttribute('src') ||
-    productImg.getAttribute('data-src') ||
-    productImg.getAttribute('data-original') ||
-    '';
-
-  if (!src) {
-    return '';
-  }
-
-  try {
-    return new URL(src, window.location.origin).href;
-  } catch (error) {
-    return src;
-  }
-}
 
   function getDescription() {
     return getMeta('description') || getMeta('og:description') || '';
