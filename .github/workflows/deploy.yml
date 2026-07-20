@@ -636,6 +636,89 @@ jobs:
           node patch-monetag-verification.js
           rm patch-monetag-verification.js
 
+      - name: Add public Shopify integration script to Quvirl pages
+        run: |
+          cat > patch-shopify-add-script.js <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const SCRIPT_TAG = '<' + 'script src="/shopify-add.js"><' + '/script>';
+          const SCRIPT_REGEX = /\n?\s*<script\s+src=["']\/shopify-add\.js["']><\/script>\s*/gi;
+
+          const SKIP_ROOT_FILES = new Set([
+            'index.html',
+            'privacy.html',
+            'terms.html',
+            'contact.html',
+            'about.html',
+            'slot-verify.html'
+          ]);
+
+          function walk(dir, files = []) {
+            if (!fs.existsSync(dir)) return files;
+
+            for (const name of fs.readdirSync(dir)) {
+              const fullPath = path.join(dir, name);
+              const stat = fs.statSync(fullPath);
+
+              if (stat.isDirectory()) {
+                if (
+                  name === '.git' ||
+                  name === 'node_modules' ||
+                  name === '.vercel' ||
+                  name === '.wrangler'
+                ) {
+                  continue;
+                }
+
+                walk(fullPath, files);
+              } else if (name.endsWith('.html')) {
+                files.push(fullPath);
+              }
+            }
+
+            return files;
+          }
+
+          function patchHtml(filePath) {
+            const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+            const baseName = path.basename(filePath);
+
+            if (SKIP_ROOT_FILES.has(relPath)) return false;
+            if (baseName.startsWith('google') && baseName.endsWith('.html')) return false;
+
+            let html = fs.readFileSync(filePath, 'utf8');
+            const original = html;
+
+            html = html.replace(SCRIPT_REGEX, '\n');
+
+            if (!/<\/body>/i.test(html)) return false;
+
+            html = html.replace(/<\/body>/i, `  ${SCRIPT_TAG}\n</body>`);
+
+            if (html !== original) {
+              fs.writeFileSync(filePath, html, 'utf8');
+              return true;
+            }
+
+            return false;
+          }
+
+          let changed = 0;
+
+          for (const filePath of walk(process.cwd())) {
+            if (patchHtml(filePath)) {
+              changed++;
+              console.log('Added Shopify script:', path.relative(process.cwd(), filePath));
+            }
+          }
+
+          console.log(`Shopify integration script patch complete. HTML files changed: ${changed}`);
+          NODE
+
+          node patch-shopify-add-script.js
+          rm patch-shopify-add-script.js
+      
       - name: Validate Quvirl output
         run: |
           set -euo pipefail
@@ -766,6 +849,22 @@ jobs:
           echo "Checking Monetag verification meta tag..."
           grep -q 'meta name="monetag" content="d344576bb6c59fcd0d1df124b80bb512"' index.html
 
+          echo "Checking public Shopify integration script exists on generated pages..."
+          if ! grep -R -q '/shopify-add.js' . \
+            --include="*.html" \
+            --exclude="index.html" \
+            --exclude-dir=.git \
+            --exclude-dir=node_modules; then
+            echo "Shopify integration script was not found on generated pages."
+            exit 1
+          fi
+
+          echo "Checking public Shopify integration script is not on homepage..."
+          if grep -q '/shopify-add.js' index.html; then
+            echo "Shopify integration script should not appear on homepage."
+            exit 1
+          fi
+ 
           echo "Validation passed."
 
       - name: Commit generated Quvirl pages
