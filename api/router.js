@@ -55,7 +55,7 @@ async function parseBodyForRoute(req, routePath) {
   }
 
   const rawBodyBuffer = await readRawBody(req);
-  const rawBody = rawBodyBuffer.toString('utf8');
+  const rawBody = rawBodyBuffer.toString('utf8').trim();
 
   req.rawBody = rawBody;
 
@@ -66,7 +66,11 @@ async function parseBodyForRoute(req, routePath) {
 
   const contentType = String(req.headers['content-type'] || '').toLowerCase();
 
-  if (contentType.includes('application/json')) {
+  if (
+    contentType.includes('application/json') ||
+    rawBody.startsWith('{') ||
+    rawBody.startsWith('[')
+  ) {
     try {
       req.body = JSON.parse(rawBody);
     } catch {
