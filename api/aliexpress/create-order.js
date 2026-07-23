@@ -7,16 +7,21 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const QUVIRL_INTERNAL_API_KEY = process.env.QUVIRL_INTERNAL_API_KEY;
 
 const API_BASE = 'https://api-sg.aliexpress.com/sync';
-const METHOD = 'aliexpress.ds.order.create';
+const ORDER_CREATE_METHOD = 'aliexpress.ds.order.create';
+const FREIGHT_QUERY_METHOD = 'aliexpress.ds.freight.query';
 
 const DEFAULT_LOGISTICS_SERVICE =
-  process.env.ALIEXPRESS_DEFAULT_LOGISTICS_SERVICE || 'EPAM';
+  process.env.ALIEXPRESS_DEFAULT_LOGISTICS_SERVICE || '';
 
 const DEFAULT_PAY_CURRENCY =
   process.env.ALIEXPRESS_PAY_CURRENCY || 'USD';
 
 function timestamp() {
   return Date.now().toString();
+}
+
+function clean(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
 }
 
 function signTopRequest(params, secret) {
@@ -51,8 +56,11 @@ function phoneCountry(countryCode) {
   return map[String(countryCode || '').toUpperCase()] || '';
 }
 
-function clean(value) {
-  return String(value || '').replace(/\s+/g, ' ').trim();
+function getQuantityFromRecord(record) {
+  const lineItem = record.line_item || {};
+  const quantity = Number(lineItem.quantity || 1);
+
+  return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
 }
 
 function extractOrderCreateResponse(json) {
@@ -123,6 +131,31 @@ function extractAliExpressFailure(json) {
   };
 }
 
+function pickBestDeliveryOption(json) {
+  const options =
+    json.aliexpress_ds_freight_query_response?.result?.delivery_options
+      ?.delivery_option_d_t_o || [];
+
+  if (!Array.isArray(options) || !options.length) {
+    return null;
+  }
+
+  const valid = options
+    .filter((option) => option.code)
+    .sort((a, b) => {
+      const aMax = Number(a.max_delivery_days || 999999);
+      const bMax = Number(b.max_delivery_days || 999999);
+
+      if (aMax !== bMax) return aMax - bMax;
+
+      const aFee = Number(a.shipping_fee_cent || 999999);
+      const bFee = Number(b.shipping_fee_cent || 999999);
+
+      return aFee - bFee;
+    });
+
+  return valid[0] || null;
+}
 async function getLatestAliExpressConnection() {
   const response = await fetch(
     `${SUPABASE_URL}/rest/v1/aliexpress_connections?select=*&order=created_at.desc&limit=1`,
@@ -187,12 +220,109 @@ async function updateFulfillmentRecord(id, patch) {
   }
 }
 
-function buildAliExpressOrderPayload(record) {
+async function queryAliExpressFreight(record, connection) {
+  const address = record.shipping_address || {};
+  const quantity = getQuantityFromRecord(record);
+
+  const productId = clean(record.supplier_item_id);
+  const selectedSkuId = clean(record.supplier_sku_id);
+  const shipToCountry = clean(
+    address.country_code || record.customer_country || ''
+  ).toUpperCase();
+
+  if (!productId) {
+    throw new Error('Missing supplier_item_id for freight query');
+  }
+
+  if (!selectedSkuId) {
+    throw new Error('Missing supplier_sku_id for freight query');
+  }
+
+  if (!shipToCountry) {
+    throw new Error('Missing ship_to_country for freight query');
+  }
+
+  const queryDeliveryReq = {
+    productId,
+    selectedSkuId,
+    shipToCountry,
+    provinceCode: '',
+    cityCode: '',
+    currency: DEFAULT_PAY_CURRENCY,
+    quantity,
+    source: '',
+    language: 'en_US',
+    locale: ''
+  };
+
+  const params = {
+    app_key: ALIEXPRESS_APP_KEY.trim(),
+    method: FREIGHT_QUERY_METHOD,
+    sign_method: 'sha256',
+    timestamp: timestamp(),
+    format: 'json',
+    v: '2.0',
+    session: connection.access_token,
+    queryDeliveryReq: JSON.stringify(queryDeliveryReq)
+  };
+
+  params.sign = signTopRequest(params, ALIEXPRESS_APP_SECRET);
+
+  const response = await fetch(API_BASE, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+      Accept: 'application/json'
+    },
+    body: new URLSearchParams(params)
+  });
+
+  const text = await response.text();
+
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new Error(
+      'AliExpress freight response was not JSON: ' +
+        (text || '[EMPTY RESPONSE]')
+    );
+  }
+
+  if (!response.ok || json.error_response) {
+    throw new Error(
+      'AliExpress freight query failed: ' + JSON.stringify(json, null, 2)
+    );
+  }
+
+  const freightResult = json.aliexpress_ds_freight_query_response?.result;
+
+  if (!freightResult?.success) {
+    throw new Error(
+      'AliExpress freight query failed: ' +
+        JSON.stringify(freightResult || json, null, 2)
+    );
+  }
+
+  const deliveryOption = pickBestDeliveryOption(json);
+
+  if (!deliveryOption?.code) {
+    throw new Error(
+      'No available AliExpress logistics option found: ' +
+        JSON.stringify(json, null, 2)
+    );
+  }
+
+  return {
+    logisticsServiceName: String(deliveryOption.code),
+    deliveryOption,
+    rawFreightResponse: json
+  };
+}
+function buildAliExpressOrderPayload(record, freightInfo) {
   const address = record.shipping_address || {};
   const lineItem = record.line_item || {};
-
-  const quantity = Number(lineItem.quantity || 1);
-  const productCount = Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
+  const productCount = getQuantityFromRecord(record);
 
   const fullName =
     clean(address.name) ||
@@ -216,8 +346,9 @@ function buildAliExpressOrderPayload(record) {
     clean(lineItem.sku);
 
   const logisticsService =
+    clean(freightInfo?.logisticsServiceName) ||
     clean(record.logistics_service_name) ||
-    DEFAULT_LOGISTICS_SERVICE;
+    clean(DEFAULT_LOGISTICS_SERVICE);
 
   if (!record.supplier_item_id) {
     throw new Error('Missing supplier_item_id');
@@ -225,6 +356,10 @@ function buildAliExpressOrderPayload(record) {
 
   if (!supplierSku) {
     throw new Error('Missing supplier SKU or sku_attr');
+  }
+
+  if (!logisticsService) {
+    throw new Error('Missing logistics_service_name');
   }
 
   if (!countryCode || !address.address1 || !address.city || !address.zip) {
@@ -270,11 +405,12 @@ function buildAliExpressOrderPayload(record) {
 
 async function createAliExpressOrder(record) {
   const connection = await getLatestAliExpressConnection();
-  const payload = buildAliExpressOrderPayload(record);
+  const freightInfo = await queryAliExpressFreight(record, connection);
+  const payload = buildAliExpressOrderPayload(record, freightInfo);
 
   const params = {
     app_key: ALIEXPRESS_APP_KEY.trim(),
-    method: METHOD,
+    method: ORDER_CREATE_METHOD,
     sign_method: 'sha256',
     timestamp: timestamp(),
     format: 'json',
@@ -308,19 +444,34 @@ async function createAliExpressOrder(record) {
     );
   }
 
-  if (!response.ok || json.error_response || json.error_code || (json.code && String(json.code) !== '0')) {
-    throw new Error('AliExpress order create failed: ' + JSON.stringify(json, null, 2));
+  json.quvirl_freight_selection = {
+    logistics_service_name: freightInfo.logisticsServiceName,
+    delivery_option: freightInfo.deliveryOption,
+    raw_freight_response: freightInfo.rawFreightResponse
+  };
+
+  if (
+    !response.ok ||
+    json.error_response ||
+    json.error_code ||
+    (json.code && String(json.code) !== '0')
+  ) {
+    throw new Error(
+      'AliExpress order create failed: ' + JSON.stringify(json, null, 2)
+    );
   }
 
   return json;
 }
-
 module.exports = async function handler(req, res) {
   const { fulfillmentId } = req.body || {};
 
   try {
     if (req.method !== 'POST') {
-      return res.status(405).json({ ok: false, error: 'Method not allowed' });
+      return res.status(405).json({
+        ok: false,
+        error: 'Method not allowed'
+      });
     }
 
     if (
