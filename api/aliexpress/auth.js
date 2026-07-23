@@ -19,7 +19,7 @@ module.exports = async function handler(req, res) {
     const state = makeState();
 
     const authUrl =
-      'https://api-sg.aliexpress.com/oauth/authorize' +
+      'https://oauth.aliexpress.com/authorize' +
       '?response_type=code' +
       '&force_auth=true' +
       '&redirect_uri=' + encodeURIComponent(ALIEXPRESS_CALLBACK_URL) +
