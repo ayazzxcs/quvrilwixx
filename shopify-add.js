@@ -17,53 +17,52 @@
   }
 
   function getImage() {
-  const metaImage = getMeta('og:image') || getMeta('twitter:image');
+    const metaImage = getMeta('og:image') || getMeta('twitter:image');
 
-  if (metaImage && !metaImage.includes('logo') && !metaImage.includes('icon')) {
-    try {
-      return new URL(metaImage, window.location.origin).href;
-    } catch (error) {
-      return metaImage;
-    }
-  }
-
-  const images = Array.from(document.querySelectorAll('img'))
-    .map((img) => {
-      const src =
-        img.currentSrc ||
-        img.getAttribute('src') ||
-        img.getAttribute('data-src') ||
-        img.getAttribute('data-original') ||
-        '';
-
-      let absolute = '';
-
+    if (metaImage && !metaImage.includes('logo') && !metaImage.includes('icon')) {
       try {
-        absolute = src ? new URL(src, window.location.origin).href : '';
-      } catch (error) {
-        absolute = src;
+        return new URL(metaImage, window.location.origin).href;
+      } catch {
+        return metaImage;
       }
+    }
 
-      return {
-        img,
-        src: absolute,
-        width: img.naturalWidth || img.width || 0,
-        height: img.naturalHeight || img.height || 0,
-        area: (img.naturalWidth || img.width || 0) * (img.naturalHeight || img.height || 0)
-      };
-    })
-    .filter((item) => {
-      if (!item.src) return false;
-      if (item.src.startsWith('data:')) return false;
-      if (item.src.includes('logo')) return false;
-      if (item.src.includes('icon')) return false;
-      if (item.src.includes('favicon')) return false;
-      if (item.width < 140 || item.height < 140) return false;
-      return true;
-    })
-    .sort((a, b) => b.area - a.area);
+    const images = Array.from(document.querySelectorAll('img'))
+      .map((img) => {
+        const src =
+          img.currentSrc ||
+          img.getAttribute('src') ||
+          img.getAttribute('data-src') ||
+          img.getAttribute('data-original') ||
+          '';
 
-  return images.length ? images[0].src : '';
+        let absolute = '';
+
+        try {
+          absolute = src ? new URL(src, window.location.origin).href : '';
+        } catch {
+          absolute = src;
+        }
+
+        return {
+          src: absolute,
+          width: img.naturalWidth || img.width || 0,
+          height: img.naturalHeight || img.height || 0,
+          area: (img.naturalWidth || img.width || 0) * (img.naturalHeight || img.height || 0)
+        };
+      })
+      .filter((item) => {
+        if (!item.src) return false;
+        if (item.src.startsWith('data:')) return false;
+        if (item.src.includes('logo')) return false;
+        if (item.src.includes('icon')) return false;
+        if (item.src.includes('favicon')) return false;
+        if (item.width < 120 || item.height < 120) return false;
+        return true;
+      })
+      .sort((a, b) => b.area - a.area);
+
+    return images.length ? images[0].src : '';
   }
 
   function getDescription() {
@@ -100,12 +99,14 @@
 
   function productPayload() {
     return {
+      id: document.body.getAttribute('data-product-id') || window.location.pathname,
       title: getTitle(),
       description: getDescription(),
       imageUrl: getImage(),
       sourceUrl: window.location.href,
       category: document.body.getAttribute('data-category') || 'Trending Product',
-      price: '19.99'
+      price: '19.99',
+      score: document.body.getAttribute('data-quvirl-score') || ''
     };
   }
 
@@ -164,7 +165,7 @@
         border-color: rgba(52, 211, 153, 0.8);
       }
 
-      .qv-shopify-overlay {
+      .qv-overlay {
         position: fixed;
         inset: 0;
         z-index: 100000;
@@ -176,12 +177,14 @@
         backdrop-filter: blur(10px);
       }
 
-      .qv-shopify-overlay.qv-open {
+      .qv-overlay.qv-open {
         display: flex;
       }
 
-      .qv-shopify-modal {
-        width: min(94vw, 520px);
+      .qv-modal {
+        width: min(94vw, 760px);
+        max-height: 88vh;
+        overflow: auto;
         border: 1px solid rgba(148, 163, 184, 0.22);
         border-radius: 28px;
         padding: 22px;
@@ -192,7 +195,7 @@
         box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
       }
 
-      .qv-shopify-kicker {
+      .qv-kicker {
         display: inline-flex;
         align-items: center;
         gap: 8px;
@@ -208,7 +211,7 @@
         text-transform: uppercase;
       }
 
-      .qv-shopify-title {
+      .qv-title {
         margin: 0 0 8px;
         font-size: 26px;
         line-height: 1.07;
@@ -216,14 +219,14 @@
         color: #ffffff;
       }
 
-      .qv-shopify-copy {
+      .qv-copy {
         margin: 0 0 18px;
         font-size: 14px;
         line-height: 1.55;
         color: #b7c4d7;
       }
 
-      .qv-shopify-label {
+      .qv-label {
         display: block;
         margin: 0 0 8px;
         font-size: 13px;
@@ -231,7 +234,7 @@
         font-weight: 800;
       }
 
-      .qv-shopify-input {
+      .qv-input {
         width: 100%;
         box-sizing: border-box;
         border-radius: 16px;
@@ -243,12 +246,12 @@
         font-size: 15px;
       }
 
-      .qv-shopify-input:focus {
+      .qv-input:focus {
         border-color: rgba(34, 197, 94, 0.7);
         box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
       }
 
-      .qv-shopify-actions {
+      .qv-actions {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
@@ -256,7 +259,7 @@
         margin-top: 18px;
       }
 
-      .qv-shopify-action {
+      .qv-action {
         border: 1px solid rgba(148, 163, 184, 0.25);
         border-radius: 14px;
         padding: 12px 14px;
@@ -265,18 +268,18 @@
         cursor: pointer;
       }
 
-      .qv-shopify-action-secondary {
+      .qv-secondary {
         background: rgba(15, 23, 42, 0.85);
         color: #e2e8f0;
       }
 
-      .qv-shopify-action-primary {
+      .qv-primary {
         background: linear-gradient(135deg, #22c55e, #14b8a6);
         color: #001b0b;
         border-color: rgba(52, 211, 153, 0.8);
       }
 
-      .qv-shopify-status {
+      .qv-status {
         margin-top: 12px;
         padding: 10px 12px;
         border-radius: 14px;
@@ -288,8 +291,60 @@
         display: none;
       }
 
-      .qv-shopify-status.qv-show {
+      .qv-status.qv-show {
         display: block;
+      }
+
+      .qv-supplier-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .qv-supplier-card {
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 18px;
+        overflow: hidden;
+        background: rgba(15, 23, 42, 0.82);
+      }
+
+      .qv-supplier-card img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        background: #020617;
+      }
+
+      .qv-supplier-body {
+        padding: 12px;
+      }
+
+      .qv-supplier-title {
+        margin: 0 0 8px;
+        color: #fff;
+        font-size: 13px;
+        line-height: 1.35;
+        font-weight: 800;
+        min-height: 52px;
+      }
+
+      .qv-supplier-meta {
+        color: #a7f3d0;
+        font-size: 12px;
+        line-height: 1.45;
+        margin-bottom: 10px;
+      }
+
+      .qv-supplier-select {
+        width: 100%;
+        border: 1px solid rgba(52, 211, 153, 0.55);
+        border-radius: 12px;
+        background: linear-gradient(135deg, #22c55e, #14b8a6);
+        color: #001b0b;
+        padding: 10px 11px;
+        font-weight: 900;
+        cursor: pointer;
       }
 
       @media (max-width: 560px) {
@@ -303,12 +358,12 @@
           font-size: 13px;
         }
 
-        .qv-shopify-modal {
+        .qv-modal {
           border-radius: 24px;
           padding: 20px;
         }
 
-        .qv-shopify-title {
+        .qv-title {
           font-size: 23px;
         }
       }
@@ -331,38 +386,38 @@
   }
 
   function openConnectModal() {
-    let overlay = document.querySelector('.qv-shopify-overlay');
+    let overlay = document.querySelector('.qv-connect-overlay');
 
     if (!overlay) {
       overlay = document.createElement('div');
-      overlay.className = 'qv-shopify-overlay';
+      overlay.className = 'qv-overlay qv-connect-overlay';
 
       overlay.innerHTML = `
-        <div class="qv-shopify-modal" role="dialog" aria-modal="true">
-          <div class="qv-shopify-kicker">Shopify integration</div>
-          <h2 class="qv-shopify-title">Connect your Shopify store</h2>
-          <p class="qv-shopify-copy">
-            Connect your store to add Quvirl product research picks directly to Shopify as draft products. You can review, edit, price, and publish them from your Shopify admin.
+        <div class="qv-modal" role="dialog" aria-modal="true">
+          <div class="qv-kicker">Shopify integration</div>
+          <h2 class="qv-title">Connect your Shopify store</h2>
+          <p class="qv-copy">
+            Connect your store to add Quvirl product research picks directly to Shopify as draft products.
           </p>
 
-          <label class="qv-shopify-label" for="qv-shopify-shop-input">
+          <label class="qv-label" for="qv-shopify-shop-input">
             Shopify store name or .myshopify.com domain
           </label>
           <input
             id="qv-shopify-shop-input"
-            class="qv-shopify-input"
+            class="qv-input"
             type="text"
             placeholder="example-store.myshopify.com"
             autocomplete="off"
           />
 
-          <div class="qv-shopify-status"></div>
+          <div class="qv-status"></div>
 
-          <div class="qv-shopify-actions">
-            <button type="button" class="qv-shopify-action qv-shopify-action-secondary" data-qv-close>
+          <div class="qv-actions">
+            <button type="button" class="qv-action qv-secondary" data-qv-close>
               Cancel
             </button>
-            <button type="button" class="qv-shopify-action qv-shopify-action-primary" data-qv-connect>
+            <button type="button" class="qv-action qv-primary" data-qv-connect>
               Continue to Shopify
             </button>
           </div>
@@ -379,7 +434,7 @@
 
       overlay.querySelector('[data-qv-connect]').addEventListener('click', function () {
         const input = overlay.querySelector('#qv-shopify-shop-input');
-        const status = overlay.querySelector('.qv-shopify-status');
+        const status = overlay.querySelector('.qv-status');
         const shop = normalizeShop(input.value);
 
         if (!shop || !/^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(shop)) {
@@ -409,8 +464,174 @@
   }
 
   function closeConnectModal() {
-    const overlay = document.querySelector('.qv-shopify-overlay');
+    const overlay = document.querySelector('.qv-connect-overlay');
     if (overlay) overlay.classList.remove('qv-open');
+  }
+
+  function openSupplierModal() {
+    let overlay = document.querySelector('.qv-supplier-overlay');
+
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'qv-overlay qv-supplier-overlay';
+
+      overlay.innerHTML = `
+        <div class="qv-modal" role="dialog" aria-modal="true">
+          <div class="qv-kicker">AliExpress supplier</div>
+          <h2 class="qv-title">Choose a supplier option</h2>
+          <p class="qv-copy">
+            Quvirl will search AliExpress and attach your selected supplier data to the Shopify draft product.
+          </p>
+
+          <div class="qv-status qv-show">Searching AliExpress supplier options...</div>
+          <div class="qv-supplier-grid"></div>
+
+          <div class="qv-actions">
+            <button type="button" class="qv-action qv-secondary" data-qv-close>
+              Cancel
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+
+      overlay.addEventListener('click', function (event) {
+        if (event.target === overlay || event.target.hasAttribute('data-qv-close')) {
+          closeSupplierModal();
+        }
+      });
+    }
+
+    overlay.classList.add('qv-open');
+    searchSupplierOptions();
+  }
+
+  function closeSupplierModal() {
+    const overlay = document.querySelector('.qv-supplier-overlay');
+    if (overlay) overlay.classList.remove('qv-open');
+  }
+
+  async function searchSupplierOptions() {
+    const overlay = document.querySelector('.qv-supplier-overlay');
+    const grid = overlay.querySelector('.qv-supplier-grid');
+    const status = overlay.querySelector('.qv-status');
+
+    grid.innerHTML = '';
+    status.textContent = 'Searching AliExpress supplier options...';
+    status.classList.add('qv-show');
+
+    try {
+      const product = productPayload();
+
+      const response = await fetch('/api/aliexpress/search-options', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          keyword: product.title,
+          shipToCountry: 'US',
+          currency: 'USD'
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error ? JSON.stringify(result.error) : 'AliExpress search failed');
+      }
+
+      if (!result.options || !result.options.length) {
+        status.textContent = 'No AliExpress supplier options found. Try editing the product title or search keyword later.';
+        return;
+      }
+
+      status.textContent = 'Select one supplier option to continue.';
+      renderSupplierOptions(result.options);
+    } catch (error) {
+      status.textContent = 'Failed to load supplier options: ' + error.message;
+    }
+  }
+
+  function renderSupplierOptions(options) {
+    const overlay = document.querySelector('.qv-supplier-overlay');
+    const grid = overlay.querySelector('.qv-supplier-grid');
+
+    grid.innerHTML = '';
+
+    options.forEach((supplier) => {
+      const card = document.createElement('div');
+      card.className = 'qv-supplier-card';
+
+      card.innerHTML = `
+        ${supplier.imageUrl ? `" alt="">` : ''}
+        <div class="qv-supplier-body">
+          <p class="qv-supplier-title">${escapeHtml(supplier.title || 'AliExpress product')}</p>
+          <div class="qv-supplier-meta">
+            ${supplier.price ? `Price: ${escapeHtml(String(supplier.price))} ${escapeHtml(supplier.currency || '')}<br>` : ''}
+            ${supplier.orders ? `Orders: ${escapeHtml(String(supplier.orders))}<br>` : ''}
+            ${supplier.rating ? `Rating: ${escapeHtml(String(supplier.rating))}<br>` : ''}
+            ${supplier.itemId ? `Item ID: ${escapeHtml(String(supplier.itemId))}` : ''}
+          </div>
+          <button type="button" class="qv-supplier-select">Select supplier & add draft</button>
+        </div>
+      `;
+
+      card.querySelector('.qv-supplier-select').addEventListener('click', function () {
+        addToShopifyWithSupplier(supplier);
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  async function addToShopifyWithSupplier(supplier) {
+    const overlay = document.querySelector('.qv-supplier-overlay');
+    const status = overlay.querySelector('.qv-status');
+
+    const shop = getConnectedShop();
+    const installToken = getInstallToken();
+
+    if (!shop || !installToken) {
+      closeSupplierModal();
+      openConnectModal();
+      return;
+    }
+
+    status.textContent = 'Creating Shopify draft product with selected supplier...';
+    status.classList.add('qv-show');
+
+    try {
+      const response = await fetch('/api/shopify/add-product', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          shop,
+          installToken,
+          product: productPayload(),
+          supplier
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || JSON.stringify(result.errors || result));
+      }
+
+      if (result.status === 'exists') {
+        status.textContent = 'This product already exists in your Shopify store. Supplier selection was saved.';
+      } else {
+        status.textContent = 'Product added to Shopify as a draft with selected AliExpress supplier data.';
+      }
+
+      setTimeout(closeSupplierModal, 1800);
+    } catch (error) {
+      status.textContent = 'Failed to add product: ' + error.message;
+    }
   }
 
   function createButton() {
@@ -445,7 +666,7 @@
         const shop = getConnectedShop();
 
         const confirmed = confirm(
-          'Disconnect Shopify store ' + shop + '? This will remove the saved connection from this browser.'
+          'Disconnect Shopify store ' + shop + '? This removes the saved connection from this browser.'
         );
 
         if (!confirmed) return;
@@ -461,49 +682,13 @@
       openConnectModal();
     });
 
-    add.addEventListener('click', async function () {
-      const shop = getConnectedShop();
-      const installToken = getInstallToken();
-
-      if (!shop || !installToken) {
+    add.addEventListener('click', function () {
+      if (!isConnected()) {
         openConnectModal();
         return;
       }
 
-      add.disabled = true;
-      add.textContent = 'Adding...';
-
-      try {
-        const response = await fetch('/api/shopify/add-product', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            shop,
-            installToken,
-            product: productPayload()
-          })
-        });
-
-        const result = await response.json();
-
-        if (!response.ok || !result.ok) {
-          throw new Error(result.error || JSON.stringify(result.errors || result));
-        }
-
-        if (result.status === 'exists') {
-          alert('This product already exists in your Shopify store.');
-        } else {
-          alert('Product added to Shopify as a draft.');
-        }
-      } catch (error) {
-        alert('Failed to add product: ' + error.message);
-      } finally {
-        add.disabled = false;
-        add.textContent = 'Add to Shopify';
-        refreshConnectionButton();
-      }
+      openSupplierModal();
     });
 
     refreshConnectionButton();
@@ -511,6 +696,15 @@
     wrap.appendChild(connection);
     wrap.appendChild(add);
     document.body.appendChild(wrap);
+  }
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   function shouldShow() {
