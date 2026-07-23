@@ -35,6 +35,25 @@ function shopifyGid(type, id) {
   return `gid://shopify/${type}/${value}`;
 }
 
+async function saveWebhookDebugLog(payload) {
+  try {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return;
+
+    await fetch(`${SUPABASE_URL}/rest/v1/shopify_webhook_debug_logs`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+  } catch {
+    // Never block webhook processing because debug logging failed.
+  }
+}
+
 async function getShopifyStore(shopDomain) {
   const response = await fetch(
     `${SUPABASE_URL}/rest/v1/shopify_stores?shop_domain=eq.${encodeURIComponent(shopDomain)}&select=*`,
@@ -148,7 +167,9 @@ function shippingAddressComplete(address) {
 }
 
 function fulfillmentFailureReason({ supplierFields, address }) {
-  if (!supplierFields.supplier_item_id) return 'missing_supplier_item_id';
+  if (!supplierFields.supplier_item_id) {
+    return 'missing_supplier_item_id';
+  }
 
   if (!supplierFields.supplier_sku_attr && !supplierFields.supplier_sku_id) {
     return 'missing_supplier_sku_or_sku_attr';
@@ -179,7 +200,10 @@ async function triggerAliExpressCreateOrder(fulfillmentId) {
   try {
     json = JSON.parse(text);
   } catch {
-    json = { ok: false, error: text };
+    json = {
+      ok: false,
+      error: text
+    };
   }
 
   return json;
@@ -208,29 +232,56 @@ async function processLineItem({ shop, store, order, lineItem }) {
     shopify_line_item_id: String(lineItem.id || ''),
     shopify_product_id: String(lineItem.product_id || ''),
     shopify_variant_id: String(lineItem.variant_id || ''),
+
     supplier_item_id: supplierFields.supplier_item_id || '',
     supplier_sku_id: supplierFields.supplier_sku_id || '',
     supplier_sku_attr: supplierFields.supplier_sku_attr || '',
     supplier_url: supplierFields.supplier_url || '',
     logistics_service_name: supplierFields.logistics_service_name || '',
+
     customer_country: order.shipping_address?.country_code || '',
     customer_name:
       order.shipping_address?.name ||
       `${order.shipping_address?.first_name || ''} ${order.shipping_address?.last_name || ''}`.trim(),
+
     shipping_address: order.shipping_address || null,
     line_item: lineItem,
+
     status: initialStatus,
     failure_reason: reason || null,
+
     raw_shopify_order: order,
     updated_at: new Date().toISOString()
   });
 
   if (!reason && record?.id) {
-    await triggerAliExpressCreateOrder(record.id);
+    const aliResult = await triggerAliExpressCreateOrder(record.id);
+
+    await saveWebhookDebugLog({
+      shop_domain: shop,
+      topic: 'orders/paid',
+      hmac_present: true,
+      hmac_valid: true,
+      status: aliResult?.ok ? 'aliexpress_create_order_triggered' : 'aliexpress_create_order_failed',
+      error: aliResult?.ok ? null : JSON.stringify(aliResult)
+    });
+  } else {
+    await saveWebhookDebugLog({
+      shop_domain: shop,
+      topic: 'orders/paid',
+      hmac_present: true,
+      hmac_valid: true,
+      status: 'fulfillment_record_saved_with_failure_reason',
+      error: reason || null
+    });
   }
 }
 
 module.exports = async function handler(req, res) {
+  let rawBody = '';
+  let shop = '';
+  let topic = '';
+
   try {
     if (req.method !== 'POST') {
       return res.status(405).send('Method not allowed');
@@ -251,27 +302,68 @@ module.exports = async function handler(req, res) {
       chunks.push(chunk);
     }
 
-    const rawBody = Buffer.concat(chunks).toString('utf8');
+    rawBody = Buffer.concat(chunks).toString('utf8');
+
     const hmacHeader = req.headers['x-shopify-hmac-sha256'];
 
-    if (!verifyShopifyWebhook(rawBody, hmacHeader)) {
+    shop = normalizeShop(req.headers['x-shopify-shop-domain']);
+    topic = String(req.headers['x-shopify-topic'] || '');
+
+    const hmacValid = verifyShopifyWebhook(rawBody, hmacHeader);
+
+    await saveWebhookDebugLog({
+      shop_domain: shop,
+      topic,
+      hmac_present: Boolean(hmacHeader),
+      hmac_valid: hmacValid,
+      status: hmacValid ? 'received_valid_hmac' : 'received_invalid_hmac',
+      error: hmacValid ? null : 'Invalid webhook HMAC'
+    });
+
+    if (!hmacValid) {
       return res.status(401).send('Invalid webhook HMAC');
     }
 
-    const shop = normalizeShop(req.headers['x-shopify-shop-domain']);
-    const order = JSON.parse(rawBody);
-
     if (!shop) {
+      await saveWebhookDebugLog({
+        shop_domain: '',
+        topic,
+        hmac_present: Boolean(hmacHeader),
+        hmac_valid: true,
+        status: 'missing_shop_domain',
+        error: 'Missing Shopify shop domain header'
+      });
+
       return res.status(400).send('Missing Shopify shop domain');
     }
+
+    const order = JSON.parse(rawBody);
 
     const store = await getShopifyStore(shop);
 
     if (!store) {
+      await saveWebhookDebugLog({
+        shop_domain: shop,
+        topic,
+        hmac_present: Boolean(hmacHeader),
+        hmac_valid: true,
+        status: 'shop_not_connected_to_quvirl',
+        error: 'No matching shopify_stores row found'
+      });
+
       return res.status(200).send('Shop not connected to Quvirl');
     }
 
     const lineItems = order.line_items || [];
+
+    await saveWebhookDebugLog({
+      shop_domain: shop,
+      topic,
+      hmac_present: Boolean(hmacHeader),
+      hmac_valid: true,
+      status: `processing_${lineItems.length}_line_items`,
+      error: null
+    });
 
     for (const lineItem of lineItems) {
       await processLineItem({
@@ -282,9 +374,27 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    await saveWebhookDebugLog({
+      shop_domain: shop,
+      topic,
+      hmac_present: Boolean(hmacHeader),
+      hmac_valid: true,
+      status: 'processed_successfully',
+      error: null
+    });
+
     return res.status(200).send('OK');
   } catch (error) {
-    return res.status(500).send(error.message);
+    await saveWebhookDebugLog({
+      shop_domain: shop,
+      topic,
+      hmac_present: null,
+      hmac_valid: null,
+      status: 'handler_error',
+      error: error.message || String(error)
+    });
+
+    return res.status(500).send(error.message || String(error));
   }
 };
 
