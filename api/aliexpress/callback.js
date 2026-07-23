@@ -8,7 +8,8 @@ const ALIEXPRESS_CALLBACK_URL =
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const TOKEN_URL = 'https://oauth.aliexpress.com/token';
+const TOKEN_PATH = '/auth/token/create';
+const TOKEN_URL = 'https://api-sg.aliexpress.com/rest' + TOKEN_PATH;
 
 async function exchangeCodeForToken(code) {
   const params = {
