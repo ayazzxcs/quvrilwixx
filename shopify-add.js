@@ -565,7 +565,7 @@
       card.className = 'qv-supplier-card';
 
       card.innerHTML = `
-        ${supplier.imageUrl ? `" alt="">` : ''}
+        ${supplier.imageUrl ? `${escapeHtml(supplier.imageUrl)}` : ''}
         <div class="qv-supplier-body">
           <p class="qv-supplier-title">${escapeHtml(supplier.title || 'AliExpress product')}</p>
           <div class="qv-supplier-meta">
