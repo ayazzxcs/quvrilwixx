@@ -71,15 +71,19 @@ async function exchangeCodeForToken(code) {
     );
   }
 
-  if (!response.ok || json.error_response || json.error_code || json.code) {
-    throw new Error(
-      'Timestamp sent: ' +
-        params.timestamp +
-        '\nError: ' +
-        JSON.stringify(json, null, 2)
-    );
+  if (
+  !response.ok ||
+  json.error_response ||
+  json.error_code ||
+  (json.code && String(json.code) !== '0')
+) {
+  throw new Error(
+    'Timestamp sent: ' +
+      params.timestamp +
+      '\nError: ' +
+      JSON.stringify(json, null, 2)
+  );
   }
-
   return json;
 }
 
