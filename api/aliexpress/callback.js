@@ -9,24 +9,9 @@ const API_BASE = 'https://api-sg.aliexpress.com/rest';
 const TOKEN_PATH = '/auth/token/create';
 
 function timestamp() {
-  const d = new Date(Date.now() + 8 * 60 * 60 * 1000);
-  const pad = (n) => String(n).padStart(2, '0');
-
-  return (
-    d.getUTCFullYear() +
-    '-' +
-    pad(d.getUTCMonth() + 1) +
-    '-' +
-    pad(d.getUTCDate()) +
-    ' ' +
-    pad(d.getUTCHours()) +
-    ':' +
-    pad(d.getUTCMinutes()) +
-    ':' +
-    pad(d.getUTCSeconds())
-  );
+  return Date.now().toString();
 }
-
+  
 function signRequest(apiPath, params, secret) {
   const sorted = Object.keys(params)
     .sort()
@@ -55,23 +40,19 @@ async function exchangeCodeForToken(code) {
   const params = {
     app_key: ALIEXPRESS_APP_KEY.trim(),
     code: String(code),
-    format: 'json',
     sign_method: 'sha256',
-    timestamp: timestamp(),
-    v: '2.0'
+    timestamp: timestamp()
   };
 
   params.sign = signRequest(TOKEN_PATH, params, ALIEXPRESS_APP_SECRET);
 
-  const queryString = encodeQuery(params);
-
-  const requestUrl = API_BASE + TOKEN_PATH + '?' + queryString;
-  
-  const response = await fetch(requestUrl, {
+  const response = await fetch(API_BASE + TOKEN_PATH, {
     method: 'POST',
     headers: {
+      'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
       Accept: 'application/json'
-    }
+    },
+    body: new URLSearchParams(params)
   });
 
   const text = await response.text();
@@ -85,8 +66,6 @@ async function exchangeCodeForToken(code) {
         response.status +
         '. Timestamp sent: ' +
         params.timestamp +
-        '. Request URL: ' +
-        requestUrl +
         '. Raw: ' +
         (text || '[EMPTY RESPONSE]')
     );
@@ -96,8 +75,6 @@ async function exchangeCodeForToken(code) {
     throw new Error(
       'Timestamp sent: ' +
         params.timestamp +
-        '\nRequest URL: ' +
-        requestUrl +
         '\nError: ' +
         JSON.stringify(json, null, 2)
     );
