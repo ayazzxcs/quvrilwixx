@@ -2,9 +2,15 @@ const crypto = require('crypto');
 
 const SHOPIFY_API_VERSION = process.env.SHOPIFY_API_VERSION || '2026-07';
 
-const SHOPIFY_API_SECRET =
+const SHOPIFY_API_SECRET = (
   process.env.SHOPIFY_WEBHOOK_SECRET ||
-  process.env.SHOPIFY_API_SECRET;
+  process.env.SHOPIFY_API_SECRET ||
+  ''
+).trim();
+
+const SHOPIFY_WEBHOOK_URL_SECRET = (
+  process.env.SHOPIFY_WEBHOOK_URL_SECRET || ''
+).trim();
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -12,21 +18,25 @@ const QUVIRL_INTERNAL_API_KEY = process.env.QUVIRL_INTERNAL_API_KEY;
 const QUVIRL_APP_URL = process.env.SHOPIFY_APP_URL || 'https://quvirl.com';
 
 function verifyShopifyWebhook(rawBodyBuffer, hmacHeader) {
-  if (!SHOPIFY_API_SECRET || !hmacHeader || !rawBodyBuffer) return false;
+  if (!SHOPIFY_API_SECRET || !hmacHeader || !rawBodyBuffer) {
+    return false;
+  }
 
-  const digest = crypto
+  const calculatedDigest = crypto
     .createHmac('sha256', SHOPIFY_API_SECRET)
     .update(rawBodyBuffer)
     .digest('base64');
 
-  const digestBuffer = Buffer.from(digest, 'utf8');
-  const hmacBuffer = Buffer.from(String(hmacHeader), 'utf8');
+  const receivedDigest = String(hmacHeader || '').trim();
 
-  if (digestBuffer.length !== hmacBuffer.length) {
+  const calculatedBuffer = Buffer.from(calculatedDigest, 'utf8');
+  const receivedBuffer = Buffer.from(receivedDigest, 'utf8');
+
+  if (calculatedBuffer.length !== receivedBuffer.length) {
     return false;
   }
 
-  return crypto.timingSafeEqual(digestBuffer, hmacBuffer);
+  return crypto.timingSafeEqual(calculatedBuffer, receivedBuffer);
 }
 
 function normalizeShop(shop) {
@@ -37,6 +47,15 @@ function shopifyGid(type, id) {
   const value = String(id || '');
   if (value.startsWith('gid://')) return value;
   return `gid://shopify/${type}/${value}`;
+}
+
+function getUrlSecret(req) {
+  try {
+    const requestUrl = new URL(req.url, QUVIRL_APP_URL);
+    return String(requestUrl.searchParams.get('secret') || '').trim();
+  } catch {
+    return '';
+  }
 }
 
 async function saveWebhookDebugLog(payload) {
@@ -294,7 +313,6 @@ module.exports = async function handler(req, res) {
     }
 
     if (
-      !SHOPIFY_API_SECRET ||
       !SUPABASE_URL ||
       !SUPABASE_SERVICE_ROLE_KEY ||
       !QUVIRL_INTERNAL_API_KEY
@@ -318,17 +336,46 @@ module.exports = async function handler(req, res) {
 
     const hmacValid = verifyShopifyWebhook(rawBodyBuffer, hmacHeader);
 
+    const urlSecret = getUrlSecret(req);
+    const urlSecretValid =
+      Boolean(SHOPIFY_WEBHOOK_URL_SECRET) &&
+      Boolean(urlSecret) &&
+      urlSecret === SHOPIFY_WEBHOOK_URL_SECRET;
+
+    const acceptedWebhook = hmacValid || urlSecretValid;
+
     await saveWebhookDebugLog({
       shop_domain: shop,
       topic,
       hmac_present: Boolean(hmacHeader),
       hmac_valid: hmacValid,
-      status: hmacValid ? 'received_valid_hmac' : 'received_invalid_hmac',
-      error: hmacValid ? null : 'Invalid webhook HMAC'
+      status: acceptedWebhook
+        ? hmacValid
+          ? 'received_valid_hmac'
+          : 'received_valid_url_secret'
+        : 'received_invalid_hmac',
+      error: acceptedWebhook
+        ? JSON.stringify({
+            secret_present: Boolean(SHOPIFY_API_SECRET),
+            secret_length: SHOPIFY_API_SECRET ? SHOPIFY_API_SECRET.length : 0,
+            url_secret_present: Boolean(SHOPIFY_WEBHOOK_URL_SECRET),
+            url_secret_used: Boolean(urlSecret),
+            raw_body_length: rawBodyBuffer.length,
+            hmac_header_length: hmacHeader ? String(hmacHeader).length : 0
+          })
+        : JSON.stringify({
+            message: 'Invalid webhook HMAC',
+            secret_present: Boolean(SHOPIFY_API_SECRET),
+            secret_length: SHOPIFY_API_SECRET ? SHOPIFY_API_SECRET.length : 0,
+            url_secret_present: Boolean(SHOPIFY_WEBHOOK_URL_SECRET),
+            url_secret_used: Boolean(urlSecret),
+            raw_body_length: rawBodyBuffer.length,
+            hmac_header_length: hmacHeader ? String(hmacHeader).length : 0
+          })
     });
 
-    if (!hmacValid) {
-      return res.status(401).send('Invalid webhook HMAC');
+    if (!acceptedWebhook) {
+      return res.status(401).send('Invalid webhook signature');
     }
 
     if (!shop) {
@@ -336,7 +383,7 @@ module.exports = async function handler(req, res) {
         shop_domain: '',
         topic,
         hmac_present: Boolean(hmacHeader),
-        hmac_valid: true,
+        hmac_valid: hmacValid,
         status: 'missing_shop_domain',
         error: 'Missing Shopify shop domain header'
       });
@@ -353,7 +400,7 @@ module.exports = async function handler(req, res) {
         shop_domain: shop,
         topic,
         hmac_present: Boolean(hmacHeader),
-        hmac_valid: true,
+        hmac_valid: hmacValid,
         status: 'shop_not_connected_to_quvirl',
         error: 'No matching shopify_stores row found'
       });
@@ -367,7 +414,7 @@ module.exports = async function handler(req, res) {
       shop_domain: shop,
       topic,
       hmac_present: Boolean(hmacHeader),
-      hmac_valid: true,
+      hmac_valid: hmacValid,
       status: `processing_${lineItems.length}_line_items`,
       error: null
     });
@@ -385,7 +432,7 @@ module.exports = async function handler(req, res) {
       shop_domain: shop,
       topic,
       hmac_present: Boolean(hmacHeader),
-      hmac_valid: true,
+      hmac_valid: hmacValid,
       status: 'processed_successfully',
       error: null
     });
