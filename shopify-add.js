@@ -616,7 +616,14 @@
         })
       });
 
-      const result = await response.json();
+      const text = await response.text();
+
+      let result;
+      try {
+        result = JSON.parse(text);
+        } catch (error) {
+        throw new Error('Supplier API returned non-JSON response: ' + text.slice(0, 200));
+        }
 
       if (!response.ok || !result.ok) {
         throw new Error(result.error || JSON.stringify(result.errors || result));
