@@ -14,13 +14,22 @@ const routes = {
 };
 
 function getRoutePath(req) {
-  const raw = req.query?.path || '';
+  const rawQueryPath = req.query && req.query.path ? req.query.path : '';
 
-  if (Array.isArray(raw)) {
-    return raw.join('/');
+  if (Array.isArray(rawQueryPath)) {
+    return rawQueryPath.join('/');
   }
 
-  return String(raw || '').replace(/^\/+|\/+$/g, '');
+  if (rawQueryPath) {
+    return String(rawQueryPath).replace(/^\/+|\/+$/g, '');
+  }
+
+  const urlWithoutQuery = String(req.url || '').split('?')[0];
+
+  return urlWithoutQuery
+    .replace(/^\/api\/router\/?/, '')
+    .replace(/^\/api\/?/, '')
+    .replace(/^\/+|\/+$/g, '');
 }
 
 async function readRawBody(req) {
@@ -33,7 +42,7 @@ async function readRawBody(req) {
   return Buffer.concat(chunks);
 }
 
-async function parseBodyForNormalRoutes(req, routePath) {
+async function parseBodyForRoute(req, routePath) {
   if (routePath === 'shopify/webhooks/order-paid') {
     return;
   }
@@ -86,7 +95,7 @@ module.exports = async function router(req, res) {
       });
     }
 
-    await parseBodyForNormalRoutes(req, routePath);
+    await parseBodyForRoute(req, routePath);
 
     return handler(req, res);
   } catch (error) {
