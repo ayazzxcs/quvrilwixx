@@ -3,7 +3,10 @@ const crypto = require('crypto');
 const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY;
 const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET;
 const SHOPIFY_APP_URL = process.env.SHOPIFY_APP_URL || 'https://quvirl.com';
-const SHOPIFY_SCOPES = process.env.SHOPIFY_SCOPES || 'read_products,write_products';
+
+const SHOPIFY_SCOPES =
+  process.env.SHOPIFY_SCOPES ||
+  'read_products,write_products,read_orders';
 
 function normalizeShop(shop) {
   shop = String(shop || '').trim().toLowerCase();
@@ -22,6 +25,7 @@ function normalizeShop(shop) {
 
 function signState(payload) {
   const encoded = Buffer.from(JSON.stringify(payload)).toString('base64url');
+
   const sig = crypto
     .createHmac('sha256', SHOPIFY_API_SECRET)
     .update(encoded)
