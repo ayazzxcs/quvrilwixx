@@ -30,13 +30,14 @@ function timestamp() {
 function signRequest(apiPath, params, secret) {
   const sorted = Object.keys(params)
     .sort()
+    .filter((key) => key !== 'sign')
     .map((key) => key + params[key])
     .join('');
 
   const stringToSign = apiPath + sorted;
 
   return crypto
-    .createHmac('sha256', secret)
+    .createHmac('sha256', secret.trim())
     .update(stringToSign)
     .digest('hex')
     .toUpperCase();
@@ -46,19 +47,25 @@ async function exchangeCodeForToken(code) {
   const params = {
     app_key: ALIEXPRESS_APP_KEY.trim(),
     code: String(code),
+    format: 'json',
     sign_method: 'sha256',
-    timestamp: timestamp()
+    timestamp: timestamp(),
+    v: '2.0'
   };
 
-  params.sign = signRequest(TOKEN_PATH, params, ALIEXPRESS_APP_SECRET.trim());
+  params.sign = signRequest(TOKEN_PATH, params, ALIEXPRESS_APP_SECRET);
 
-  const response = await fetch(API_BASE + TOKEN_PATH, {
+  const requestUrl =
+    API_BASE +
+    TOKEN_PATH +
+    '?' +
+    new URLSearchParams(params).toString();
+
+  const response = await fetch(requestUrl, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
       Accept: 'application/json'
-    },
-    body: new URLSearchParams(params)
+    }
   });
 
   const text = await response.text();
@@ -70,13 +77,24 @@ async function exchangeCodeForToken(code) {
     throw new Error(
       'AliExpress token response was not JSON. Status: ' +
         response.status +
+        '. Timestamp sent: ' +
+        params.timestamp +
+        '. Request URL: ' +
+        requestUrl +
         '. Raw: ' +
         (text || '[EMPTY RESPONSE]')
     );
   }
 
   if (!response.ok || json.error_response || json.error_code || json.code) {
-    throw new Error(JSON.stringify(json, null, 2));
+    throw new Error(
+      'Timestamp sent: ' +
+        params.timestamp +
+        '\nRequest URL: ' +
+        requestUrl +
+        '\nError: ' +
+        JSON.stringify(json, null, 2)
+    );
   }
 
   return json;
