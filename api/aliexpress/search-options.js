@@ -37,29 +37,84 @@ async function getLatestAliExpressToken() {
     }
   );
 
-  const rows = await response.json();
+  const text = await response.text();
 
-  if (!response.ok || !rows.length) {
-    throw new Error('No AliExpress connection found in Supabase');
+  let rows;
+  try {
+    rows = JSON.parse(text);
+  } catch {
+    throw new Error('Supabase did not return JSON: ' + text);
+  }
+
+  if (!response.ok) {
+    throw new Error('Supabase token lookup failed: ' + JSON.stringify(rows));
+  }
+
+  if (!rows.length || !rows[0].access_token) {
+    throw new Error('No AliExpress access token found in Supabase');
   }
 
   return rows[0].access_token;
 }
 
+function normalizeProducts(json, currency) {
+  const data =
+    json.aliexpress_ds_text_search_response?.data ||
+    json.result ||
+    json.data ||
+    {};
+
+  const products =
+    data.products?.selection_search_product ||
+    data.products ||
+    [];
+
+  if (!Array.isArray(products)) return [];
+
+  return products.slice(0, 6).map((p) => {
+    const itemUrl = p.itemUrl || p.item_url || '';
+
+    return {
+      itemId: String(p.itemId || p.item_id || ''),
+      skuId: String(p.skuId || p.sku_id || ''),
+      title: p.title || '',
+      imageUrl: p.itemMainPic || p.imageUrl || p.image || '',
+      productUrl: itemUrl
+        ? String(itemUrl).startsWith('http')
+          ? itemUrl
+          : 'https:' + itemUrl
+        : '',
+      price: p.targetSalePrice || p.salePrice || p.salePriceFormat || '',
+      currency: p.targetOriginalPriceCurrency || p.salePriceCurrency || currency,
+      orders: p.orders || '',
+      rating: p.score || '',
+      raw: p
+    };
+  });
+}
+
 module.exports = async function handler(req, res) {
   try {
+    res.setHeader('Content-Type', 'application/json');
+
     if (req.method !== 'POST') {
       return res.status(405).json({ ok: false, error: 'Method not allowed' });
     }
 
     if (!ALIEXPRESS_APP_KEY || !ALIEXPRESS_APP_SECRET || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      return res.status(500).json({ ok: false, error: 'Missing environment variables' });
+      return res.status(500).json({
+        ok: false,
+        error: 'Missing required environment variables'
+      });
     }
 
     const { keyword, shipToCountry = 'US', currency = 'USD' } = req.body || {};
 
     if (!keyword) {
-      return res.status(400).json({ ok: false, error: 'Missing keyword' });
+      return res.status(400).json({
+        ok: false,
+        error: 'Missing keyword'
+      });
     }
 
     const accessToken = await getLatestAliExpressToken();
@@ -96,31 +151,30 @@ module.exports = async function handler(req, res) {
     try {
       json = JSON.parse(text);
     } catch {
-      throw new Error('AliExpress response was not JSON: ' + (text || '[EMPTY RESPONSE]'));
+      return res.status(502).json({
+        ok: false,
+        error: 'AliExpress did not return JSON',
+        status: response.status,
+        raw: text || '[EMPTY RESPONSE]'
+      });
     }
 
     if (!response.ok || json.error_response) {
-      return res.status(400).json({ ok: false, error: json });
+      return res.status(400).json({
+        ok: false,
+        error: json
+      });
     }
 
-    const data =
-      json.aliexpress_ds_text_search_response?.data ||
-      json.result ||
-      json.data ||
-      {};
-
-    const products =
-      data.products?.selection_search_product ||
-      data.products ||
-      [];
-
-    const options = Array.isArray(products)
-      ? products.slice(0, 6).map((p) => ({
-          itemId: String(p.itemId || p.item_id || ''),
-          skuId: String(p.skuId || p.sku_id || ''),
-          title: p.title || '',
-          imageUrl: p.itemMainPic || p.imageUrl || p.image || '',
-          productUrl: p.itemUrl
-            ? String(p.itemUrl).startsWith('http')
-              ? p.itemUrl
-              : 
+    return res.status(200).json({
+      ok: true,
+      options: normalizeProducts(json, currency),
+      raw: json
+    });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      error: error.message || String(error)
+    });
+  }
+};
