@@ -4,6 +4,8 @@ const SHOPIFY_API_VERSION = process.env.SHOPIFY_API_VERSION || '2026-07';
 const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET;
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const QUVIRL_INTERNAL_API_KEY = process.env.QUVIRL_INTERNAL_API_KEY;
+const QUVIRL_APP_URL = process.env.SHOPIFY_APP_URL || 'https://quvirl.com';
 
 function verifyShopifyWebhook(rawBody, hmacHeader) {
   if (!SHOPIFY_API_SECRET || !hmacHeader) return false;
@@ -82,7 +84,7 @@ async function getProductSupplierMetafields(shop, accessToken, productId) {
       product(id: $id) {
         id
         title
-        metafields(first: 20, namespace: "quvirl") {
+        metafields(first: 30, namespace: "quvirl") {
           nodes {
             key
             value
@@ -113,22 +115,31 @@ async function saveFulfillmentRecord(payload) {
       apikey: SUPABASE_SERVICE_ROLE_KEY,
       Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
       'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates,return=minimal'
+      Prefer: 'resolution=merge-duplicates,return=representation'
     },
     body: JSON.stringify(payload)
   });
 
+  const text = await response.text();
+
+  let rows;
+  try {
+    rows = JSON.parse(text);
+  } catch {
+    rows = [];
+  }
+
   if (!response.ok) {
-    const text = await response.text();
     throw new Error('Supabase fulfillment save failed: ' + text);
   }
+
+  return Array.isArray(rows) ? rows[0] : null;
 }
 
 function shippingAddressComplete(address) {
   if (!address) return false;
 
   return Boolean(
-    address.first_name &&
     address.address1 &&
     address.city &&
     address.country_code &&
@@ -138,8 +149,40 @@ function shippingAddressComplete(address) {
 
 function fulfillmentFailureReason({ supplierFields, address }) {
   if (!supplierFields.supplier_item_id) return 'missing_supplier_item_id';
-  if (!shippingAddressComplete(address)) return 'missing_or_incomplete_shipping_address';
+
+  if (!supplierFields.supplier_sku_attr && !supplierFields.supplier_sku_id) {
+    return 'missing_supplier_sku_or_sku_attr';
+  }
+
+  if (!shippingAddressComplete(address)) {
+    return 'missing_or_incomplete_shipping_address';
+  }
+
   return '';
+}
+
+async function triggerAliExpressCreateOrder(fulfillmentId) {
+  const response = await fetch(`${QUVIRL_APP_URL}/api/aliexpress/create-order`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Quvirl-Internal-Key': QUVIRL_INTERNAL_API_KEY
+    },
+    body: JSON.stringify({
+      fulfillmentId
+    })
+  });
+
+  const text = await response.text();
+
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    json = { ok: false, error: text };
+  }
+
+  return json;
 }
 
 async function processLineItem({ shop, store, order, lineItem }) {
@@ -154,9 +197,11 @@ async function processLineItem({ shop, store, order, lineItem }) {
     address: order.shipping_address
   });
 
-  const status = reason ? `auto_failed_${reason}` : 'ready_for_aliexpress_order_create';
+  const initialStatus = reason
+    ? `auto_failed_${reason}`
+    : 'ready_for_aliexpress_order_create';
 
-  await saveFulfillmentRecord({
+  const record = await saveFulfillmentRecord({
     shop_domain: shop,
     shopify_order_id: String(order.id),
     shopify_order_name: String(order.name || ''),
@@ -165,15 +210,24 @@ async function processLineItem({ shop, store, order, lineItem }) {
     shopify_variant_id: String(lineItem.variant_id || ''),
     supplier_item_id: supplierFields.supplier_item_id || '',
     supplier_sku_id: supplierFields.supplier_sku_id || '',
+    supplier_sku_attr: supplierFields.supplier_sku_attr || '',
     supplier_url: supplierFields.supplier_url || '',
+    logistics_service_name: supplierFields.logistics_service_name || '',
     customer_country: order.shipping_address?.country_code || '',
+    customer_name:
+      order.shipping_address?.name ||
+      `${order.shipping_address?.first_name || ''} ${order.shipping_address?.last_name || ''}`.trim(),
     shipping_address: order.shipping_address || null,
     line_item: lineItem,
-    status,
+    status: initialStatus,
     failure_reason: reason || null,
     raw_shopify_order: order,
     updated_at: new Date().toISOString()
   });
+
+  if (!reason && record?.id) {
+    await triggerAliExpressCreateOrder(record.id);
+  }
 }
 
 module.exports = async function handler(req, res) {
@@ -182,7 +236,12 @@ module.exports = async function handler(req, res) {
       return res.status(405).send('Method not allowed');
     }
 
-    if (!SHOPIFY_API_SECRET || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (
+      !SHOPIFY_API_SECRET ||
+      !SUPABASE_URL ||
+      !SUPABASE_SERVICE_ROLE_KEY ||
+      !QUVIRL_INTERNAL_API_KEY
+    ) {
       return res.status(500).send('Missing environment variables');
     }
 
@@ -226,5 +285,11 @@ module.exports = async function handler(req, res) {
     return res.status(200).send('OK');
   } catch (error) {
     return res.status(500).send(error.message);
+  }
+};
+
+module.exports.config = {
+  api: {
+    bodyParser: false
   }
 };
