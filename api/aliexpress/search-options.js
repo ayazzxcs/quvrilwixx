@@ -127,11 +127,13 @@ module.exports = async function handler(req, res) {
       format: 'json',
       v: '2.0',
       session: accessToken,
-      keywords: String(keyword).slice(0, 120),
-      ship_to_country: shipToCountry,
-      target_currency: currency,
-      page_size: '6',
-      page_index: '1'
+
+      keyWord: String(keyword).slice(0, 120),
+      local: 'en_US',
+      countryCode: shipToCountry,
+      currency: currency,
+      pageSize: '6',
+      pageIndex: '1'
     };
 
     params.sign = signRequest(params, ALIEXPRESS_APP_SECRET);
