@@ -2,9 +2,7 @@ const crypto = require('crypto');
 
 const ALIEXPRESS_APP_KEY = process.env.ALIEXPRESS_APP_KEY;
 const ALIEXPRESS_CALLBACK_URL =
-  process.env.ALIIEXPRESS_CALLBACK_URL ||
-  process.env.ALIEXPRESS_CALLBACK_URL ||
-  'https://quvirl.com/api/aliexpress/callback';
+  process.env.ALIEXPRESS_CALLBACK_URL || 'https://quvirl.com/api/aliexpress/callback';
 
 function makeState() {
   return crypto.randomBytes(16).toString('hex');
@@ -19,7 +17,7 @@ module.exports = async function handler(req, res) {
     const state = makeState();
 
     const authUrl =
-      'https://oauth.aliexpress.com/authorize' +
+      'https://api-sg.aliexpress.com/oauth/authorize' +
       '?response_type=code' +
       '&force_auth=true' +
       '&redirect_uri=' + encodeURIComponent(ALIEXPRESS_CALLBACK_URL) +
