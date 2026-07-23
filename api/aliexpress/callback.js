@@ -43,6 +43,14 @@ function signRequest(apiPath, params, secret) {
     .toUpperCase();
 }
 
+function encodeQuery(params) {
+  return Object.keys(params)
+    .map((key) => {
+      return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+    })
+    .join('&');
+}
+
 async function exchangeCodeForToken(code) {
   const params = {
     app_key: ALIEXPRESS_APP_KEY.trim(),
@@ -55,12 +63,10 @@ async function exchangeCodeForToken(code) {
 
   params.sign = signRequest(TOKEN_PATH, params, ALIEXPRESS_APP_SECRET);
 
-  const requestUrl =
-    API_BASE +
-    TOKEN_PATH +
-    '?' +
-    new URLSearchParams(params).toString();
+  const queryString = encodeQuery(params);
 
+  const requestUrl = API_BASE + TOKEN_PATH + '?' + queryString;
+  
   const response = await fetch(requestUrl, {
     method: 'POST',
     headers: {
