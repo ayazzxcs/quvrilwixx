@@ -9,22 +9,22 @@ const API_BASE = 'https://api-sg.aliexpress.com/rest';
 const TOKEN_PATH = '/auth/token/create';
 
 function timestamp() {
-  const d = new Date(Date.now() + 8 * 60 * 60 * 1000);
-  const pad = (n) => String(n).padStart(2, '0');
+  const now = new Date();
 
-  return (
-    d.getUTCFullYear() +
-    '-' +
-    pad(d.getUTCMonth() + 1) +
-    '-' +
-    pad(d.getUTCDate()) +
-    ' ' +
-    pad(d.getUTCHours()) +
-    ':' +
-    pad(d.getUTCMinutes()) +
-    ':' +
-    pad(d.getUTCSeconds())
-  );
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).formatToParts(now);
+
+  const get = (type) => parts.find((p) => p.type === type)?.value;
+
+  return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}:${get('second')}`;
 }
 
 function signRequest(apiPath, params, secret) {
