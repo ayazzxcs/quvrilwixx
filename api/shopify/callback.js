@@ -128,3 +128,55 @@ module.exports = async function handler(req, res) {
     return res.status(500).send(error.message);
   }
 };
+async function shopifyGraphql(shop, accessToken, query, variables = {}) {
+  const endpoint = `https://${shop}/admin/api/2026-07/graphql.json`;
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Shopify-Access-Token': accessToken
+    },
+    body: JSON.stringify({ query, variables })
+  });
+
+  const json = await response.json();
+
+  if (!response.ok || json.errors) {
+    throw new Error(JSON.stringify(json));
+  }
+
+  return json.data;
+}
+
+async function registerOrderPaidWebhook(shop, accessToken) {
+  const mutation = `
+    mutation webhookSubscriptionCreate($topic: WebhookSubscriptionTopic!, $webhookSubscription: WebhookSubscriptionInput!) {
+      webhookSubscriptionCreate(topic: $topic, webhookSubscription: $webhookSubscription) {
+        webhookSubscription {
+          id
+          topic
+          uri
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+  `;
+
+  const data = await shopifyGraphql(shop, accessToken, mutation, {
+    topic: 'ORDERS_PAID',
+    webhookSubscription: {
+      uri: 'https://quvirl.com/api/shopify/webhooks/order-paid',
+      format: 'JSON'
+    }
+  });
+
+  const errors = data.webhookSubscriptionCreate?.userErrors || [];
+
+  if (errors.length) {
+    console.log('Webhook registration errors:', JSON.stringify(errors));
+  }
+}
