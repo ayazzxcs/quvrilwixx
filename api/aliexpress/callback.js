@@ -9,7 +9,7 @@ const API_BASE = 'https://api-sg.aliexpress.com/rest';
 const TOKEN_PATH = '/auth/token/create';
 
 function timestamp() {
-  const d = new Date();
+  const d = new Date(Date.now() + 8 * 60 * 60 * 1000);
   const pad = (n) => String(n).padStart(2, '0');
 
   return (
