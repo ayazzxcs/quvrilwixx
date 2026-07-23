@@ -1,28 +1,32 @@
 const crypto = require('crypto');
 
 const SHOPIFY_API_VERSION = process.env.SHOPIFY_API_VERSION || '2026-07';
-const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET;
+
+const SHOPIFY_API_SECRET =
+  process.env.SHOPIFY_WEBHOOK_SECRET ||
+  process.env.SHOPIFY_API_SECRET;
+
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const QUVIRL_INTERNAL_API_KEY = process.env.QUVIRL_INTERNAL_API_KEY;
 const QUVIRL_APP_URL = process.env.SHOPIFY_APP_URL || 'https://quvirl.com';
 
-function verifyShopifyWebhook(rawBody, hmacHeader) {
-  if (!SHOPIFY_API_SECRET || !hmacHeader) return false;
+function verifyShopifyWebhook(rawBodyBuffer, hmacHeader) {
+  if (!SHOPIFY_API_SECRET || !hmacHeader || !rawBodyBuffer) return false;
 
   const digest = crypto
     .createHmac('sha256', SHOPIFY_API_SECRET)
-    .update(rawBody, 'utf8')
+    .update(rawBodyBuffer)
     .digest('base64');
 
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(digest, 'base64'),
-      Buffer.from(hmacHeader, 'base64')
-    );
-  } catch {
+  const digestBuffer = Buffer.from(digest, 'utf8');
+  const hmacBuffer = Buffer.from(String(hmacHeader), 'utf8');
+
+  if (digestBuffer.length !== hmacBuffer.length) {
     return false;
   }
+
+  return crypto.timingSafeEqual(digestBuffer, hmacBuffer);
 }
 
 function normalizeShop(shop) {
@@ -50,7 +54,7 @@ async function saveWebhookDebugLog(payload) {
       body: JSON.stringify(payload)
     });
   } catch {
-    // Never block webhook processing because debug logging failed.
+    // Debug logging must never block webhook processing.
   }
 }
 
@@ -262,7 +266,9 @@ async function processLineItem({ shop, store, order, lineItem }) {
       topic: 'orders/paid',
       hmac_present: true,
       hmac_valid: true,
-      status: aliResult?.ok ? 'aliexpress_create_order_triggered' : 'aliexpress_create_order_failed',
+      status: aliResult?.ok
+        ? 'aliexpress_create_order_triggered'
+        : 'aliexpress_create_order_failed',
       error: aliResult?.ok ? null : JSON.stringify(aliResult)
     });
   } else {
@@ -299,17 +305,18 @@ module.exports = async function handler(req, res) {
     const chunks = [];
 
     for await (const chunk of req) {
-      chunks.push(chunk);
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
     }
 
-    rawBody = Buffer.concat(chunks).toString('utf8');
+    const rawBodyBuffer = Buffer.concat(chunks);
+    rawBody = rawBodyBuffer.toString('utf8');
 
     const hmacHeader = req.headers['x-shopify-hmac-sha256'];
 
     shop = normalizeShop(req.headers['x-shopify-shop-domain']);
     topic = String(req.headers['x-shopify-topic'] || '');
 
-    const hmacValid = verifyShopifyWebhook(rawBody, hmacHeader);
+    const hmacValid = verifyShopifyWebhook(rawBodyBuffer, hmacHeader);
 
     await saveWebhookDebugLog({
       shop_domain: shop,
