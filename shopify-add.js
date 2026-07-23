@@ -480,7 +480,7 @@
           <div class="qv-kicker">AliExpress supplier</div>
           <h2 class="qv-title">Choose a supplier option</h2>
           <p class="qv-copy">
-            Quvirl will search AliExpress and attach your selected supplier data to the Shopify draft product.
+            Quvirl will search AliExpress and attach your selected supplier and variant data to the Shopify draft product.
           </p>
 
           <div class="qv-status qv-show">Searching AliExpress supplier options...</div>
@@ -536,7 +536,14 @@
         })
       });
 
-      const result = await response.json();
+      const text = await response.text();
+
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch {
+        throw new Error('Supplier API returned non-JSON response: ' + text.slice(0, 200));
+      }
 
       if (!response.ok || !result.ok) {
         throw new Error(result.error ? JSON.stringify(result.error) : 'AliExpress search failed');
@@ -565,7 +572,7 @@
       card.className = 'qv-supplier-card';
 
       card.innerHTML = `
-        ${supplier.imageUrl ? `${escapeHtml(supplier.imageUrl)}` : ''}
+        ${supplier.imageUrl ? `" alt="">` : ''}
         <div class="qv-supplier-body">
           <p class="qv-supplier-title">${escapeHtml(supplier.title || 'AliExpress product')}</p>
           <div class="qv-supplier-meta">
@@ -599,10 +606,56 @@
       return;
     }
 
-    status.textContent = 'Creating Shopify draft product with selected supplier...';
+    status.textContent = 'Fetching AliExpress variant details...';
     status.classList.add('qv-show');
 
     try {
+      const detailResponse = await fetch('/api/aliexpress/product-details', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          productId: supplier.itemId,
+          shipToCountry: 'US',
+          currency: 'USD',
+          language: 'en'
+        })
+      });
+
+      const detailText = await detailResponse.text();
+
+      let detailResult;
+      try {
+        detailResult = JSON.parse(detailText);
+      } catch {
+        throw new Error('Product details API returned non-JSON response: ' + detailText.slice(0, 200));
+      }
+
+      if (!detailResponse.ok || !detailResult.ok || !detailResult.selectedSku) {
+        throw new Error(detailResult.error || 'Could not fetch AliExpress SKU details');
+      }
+
+      supplier.skuAttr = detailResult.selectedSku.skuAttr;
+      supplier.skuId = detailResult.selectedSku.skuId;
+      supplier.selectedVariant = detailResult.selectedSku.label;
+      supplier.variantPrice = detailResult.selectedSku.price;
+      supplier.variantStock = detailResult.selectedSku.stock;
+
+      if (detailResult.selectedSku.price) {
+        supplier.price = detailResult.selectedSku.price;
+      }
+
+      if (detailResult.selectedSku.currency) {
+        supplier.currency = detailResult.selectedSku.currency;
+      }
+
+      if (detailResult.selectedSku.imageUrl) {
+        supplier.imageUrl = detailResult.selectedSku.imageUrl;
+      }
+
+      status.textContent = 'Creating Shopify draft product with selected supplier and variant...';
+
       const response = await fetch('/api/shopify/add-product', {
         method: 'POST',
         headers: {
@@ -616,14 +669,7 @@
         })
       });
 
-      const text = await response.text();
-
-      let result;
-      try {
-        result = JSON.parse(text);
-        } catch (error) {
-        throw new Error('Supplier API returned non-JSON response: ' + text.slice(0, 200));
-        }
+      const result = await response.json();
 
       if (!response.ok || !result.ok) {
         throw new Error(result.error || JSON.stringify(result.errors || result));
@@ -632,7 +678,7 @@
       if (result.status === 'exists') {
         status.textContent = 'This product already exists in your Shopify store. Supplier selection was saved.';
       } else {
-        status.textContent = 'Product added to Shopify as a draft with selected AliExpress supplier data.';
+        status.textContent = 'Product added to Shopify as a draft with selected AliExpress supplier and SKU data.';
       }
 
       setTimeout(closeSupplierModal, 1800);
