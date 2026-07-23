@@ -187,6 +187,9 @@ function buildDescription({ title, category, score, sourceUrl, supplier }) {
         <li><strong>Supplier product:</strong> ${clean(supplier.title || 'AliExpress product')}</li>
         <li><strong>Supplier item ID:</strong> ${clean(supplier.itemId || '')}</li>
         ${supplier.skuId ? `<li><strong>Supplier SKU ID:</strong> ${clean(supplier.skuId)}</li>` : ''}
+        ${supplier.skuAttr ? `<li><strong>Supplier SKU attribute:</strong> ${clean(supplier.skuAttr)}</li>` : ''}
+        ${supplier.selectedVariant ? `<li><strong>Selected variant:</strong> ${clean(supplier.selectedVariant)}</li>` : ''}
+        ${supplier.variantStock ? `<li><strong>Variant stock:</strong> ${clean(supplier.variantStock)}</li>` : ''}
         ${supplier.price ? `<li><strong>Supplier price:</strong> ${clean(supplier.price)} ${clean(supplier.currency || '')}</li>` : ''}
         ${supplier.orders ? `<li><strong>Orders:</strong> ${clean(supplier.orders)}</li>` : ''}
         ${supplier.rating ? `<li><strong>Rating:</strong> ${clean(supplier.rating)}</li>` : ''}
@@ -243,6 +246,24 @@ function buildMetafields({ supplier, sourceUrl }) {
     },
     {
       namespace: 'quvirl',
+      key: 'supplier_sku_attr',
+      type: 'single_line_text_field',
+      value: supplier?.skuAttr || ''
+    },
+    {
+      namespace: 'quvirl',
+      key: 'supplier_variant',
+      type: 'single_line_text_field',
+      value: supplier?.selectedVariant || ''
+    },
+    {
+      namespace: 'quvirl',
+      key: 'supplier_stock',
+      type: 'single_line_text_field',
+      value: supplier?.variantStock ? String(supplier.variantStock) : ''
+    },
+    {
+      namespace: 'quvirl',
       key: 'supplier_url',
       type: 'url',
       value: supplier?.productUrl ? safeUrl(supplier.productUrl) : ''
@@ -269,7 +290,7 @@ function buildMetafields({ supplier, sourceUrl }) {
       namespace: 'quvirl',
       key: 'fulfillment_note',
       type: 'multi_line_text_field',
-      value: 'Selected AliExpress supplier data was attached by Quvirl. Review supplier, variant, price, shipping, and fulfillment setup before publishing.'
+      value: 'Selected AliExpress supplier and SKU attribute data was attached by Quvirl. Review supplier, variant, price, shipping, and fulfillment setup before publishing.'
     }
   ];
 
@@ -315,9 +336,11 @@ module.exports = async function handler(req, res) {
     const price = money(product.price || 19.99);
 
     const handle = `quvirl-${slugify(title)}`;
-    const sku = supplier?.itemId
-      ? `QV-AE-${slugify(supplier.itemId).slice(0, 32).toUpperCase()}`
-      : `QV-${slugify(title).slice(0, 32).toUpperCase()}`;
+    const sku = supplier?.skuId
+      ? `QV-AE-SKU-${slugify(supplier.skuId).slice(0, 32).toUpperCase()}`
+      : supplier?.itemId
+        ? `QV-AE-${slugify(supplier.itemId).slice(0, 32).toUpperCase()}`
+        : `QV-${slugify(title).slice(0, 32).toUpperCase()}`;
 
     const existing = await productByHandle(shop, store.access_token, handle);
 
@@ -342,6 +365,7 @@ module.exports = async function handler(req, res) {
       'trending-product',
       'supplier-aliexpress',
       supplier?.itemId ? 'supplier-selected' : 'supplier-setup-required',
+      supplier?.skuAttr ? 'supplier-sku-ready' : 'supplier-sku-missing',
       'draft-review-required',
       category
     ].filter(Boolean);
@@ -388,7 +412,7 @@ module.exports = async function handler(req, res) {
         }),
         seo: {
           title: `${title} | Quvirl Product Research`,
-          description: 'Imported from Quvirl product research with selected AliExpress supplier data. Review supplier, price, shipping, and fulfillment before publishing.'
+          description: 'Imported from Quvirl product research with selected AliExpress supplier and SKU data. Review supplier, price, shipping, and fulfillment before publishing.'
         }
       },
       media: imageUrl
