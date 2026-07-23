@@ -2,25 +2,57 @@ const crypto = require('crypto');
 
 const ALIEXPRESS_APP_KEY = process.env.ALIEXPRESS_APP_KEY;
 const ALIEXPRESS_APP_SECRET = process.env.ALIEXPRESS_APP_SECRET;
-const ALIEXPRESS_CALLBACK_URL =
-  process.env.ALIEXPRESS_CALLBACK_URL || 'https://quvirl.com/api/aliexpress/callback';
-
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+const API_BASE = 'https://api-sg.aliexpress.com/rest';
 const TOKEN_PATH = '/auth/token/create';
-const TOKEN_URL = 'https://api-sg.aliexpress.com/rest' + TOKEN_PATH;
+
+function timestamp() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+
+  return (
+    d.getUTCFullYear() +
+    '-' +
+    pad(d.getUTCMonth() + 1) +
+    '-' +
+    pad(d.getUTCDate()) +
+    ' ' +
+    pad(d.getUTCHours()) +
+    ':' +
+    pad(d.getUTCMinutes()) +
+    ':' +
+    pad(d.getUTCSeconds())
+  );
+}
+
+function signRequest(apiPath, params, secret) {
+  const sorted = Object.keys(params)
+    .sort()
+    .map((key) => key + params[key])
+    .join('');
+
+  const stringToSign = apiPath + sorted;
+
+  return crypto
+    .createHmac('sha256', secret)
+    .update(stringToSign)
+    .digest('hex')
+    .toUpperCase();
+}
 
 async function exchangeCodeForToken(code) {
   const params = {
-    grant_type: 'authorization_code',
-    client_id: ALIEXPRESS_APP_KEY,
-    client_secret: ALIEXPRESS_APP_SECRET,
-    code,
-    redirect_uri: ALIEXPRESS_CALLBACK_URL
+    app_key: ALIEXPRESS_APP_KEY.trim(),
+    code: String(code),
+    sign_method: 'sha256',
+    timestamp: timestamp()
   };
 
-  const response = await fetch(TOKEN_URL, {
+  params.sign = signRequest(TOKEN_PATH, params, ALIEXPRESS_APP_SECRET.trim());
+
+  const response = await fetch(API_BASE + TOKEN_PATH, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
@@ -31,37 +63,32 @@ async function exchangeCodeForToken(code) {
 
   const text = await response.text();
 
-  let json = null;
+  let json;
   try {
     json = JSON.parse(text);
-  } catch (error) {
-    return {
-      ok: false,
-      status: response.status,
-      contentType: response.headers.get('content-type') || '',
-      rawText: text || '[EMPTY RESPONSE]'
-    };
+  } catch {
+    throw new Error(
+      'AliExpress token response was not JSON. Status: ' +
+        response.status +
+        '. Raw: ' +
+        (text || '[EMPTY RESPONSE]')
+    );
   }
 
-  return {
-    ok: response.ok,
-    status: response.status,
-    contentType: response.headers.get('content-type') || '',
-    json
-  };
-}
-
-function tokenExpiry(expiresInSeconds) {
-  const seconds = Number(expiresInSeconds || 0);
-
-  if (!Number.isFinite(seconds) || seconds <= 0) {
-    return null;
+  if (!response.ok || json.error_response || json.error_code || json.code) {
+    throw new Error(JSON.stringify(json, null, 2));
   }
 
-  return new Date(Date.now() + seconds * 1000).toISOString();
+  return json;
 }
 
-async function saveAliExpressConnection(tokenJson) {
+function tokenExpiry(seconds) {
+  const n = Number(seconds || 0);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return new Date(Date.now() + n * 1000).toISOString();
+}
+
+async function saveConnection(tokenJson) {
   const accessToken = tokenJson.access_token;
 
   if (!accessToken) {
@@ -97,8 +124,6 @@ async function saveAliExpressConnection(tokenJson) {
   if (!response.ok) {
     throw new Error('Supabase save failed: ' + text);
   }
-
-  return text;
 }
 
 module.exports = async function handler(req, res) {
@@ -109,65 +134,12 @@ module.exports = async function handler(req, res) {
       return res.status(400).send('Missing AliExpress authorization code');
     }
 
-    if (
-      !ALIEXPRESS_APP_KEY ||
-      !ALIEXPRESS_APP_SECRET ||
-      !SUPABASE_URL ||
-      !SUPABASE_SERVICE_ROLE_KEY
-    ) {
+    if (!ALIEXPRESS_APP_KEY || !ALIEXPRESS_APP_SECRET || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       return res.status(500).send('Missing required environment variables');
     }
 
-    const tokenResult = await exchangeCodeForToken(String(code));
-
-    if (!tokenResult.ok || !tokenResult.json || !tokenResult.json.access_token) {
-      return res.status(500).send(`
-        <!doctype html>
-        <html>
-          <head>
-            <meta charset="utf-8" />
-            <title>AliExpress Token Debug - Quvirl</title>
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                background: #020617;
-                color: #e5eefb;
-                padding: 32px;
-              }
-              .card {
-                max-width: 900px;
-                margin: 40px auto;
-                background: #0f172a;
-                border: 1px solid #7f1d1d;
-                border-radius: 20px;
-                padding: 24px;
-              }
-              pre {
-                white-space: pre-wrap;
-                word-break: break-word;
-                background: #020617;
-                border: 1px solid #334155;
-                padding: 14px;
-                border-radius: 12px;
-                color: #fecaca;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="card">
-              <h1>AliExpress token exchange failed</h1>
-              <p><strong>Request URL:</strong> ${TOKEN_URL}</p>
-              <p><strong>Status:</strong> ${tokenResult.status}</p>
-              <p><strong>Content-Type:</strong> ${tokenResult.contentType || ''}</p>
-              <h3>Response</h3>
-              <pre>${JSON.stringify(tokenResult.json || tokenResult.rawText, null, 2)}</pre>
-            </div>
-          </body>
-        </html>
-      `);
-    }
-
-    await saveAliExpressConnection(tokenResult.json);
+    const tokenJson = await exchangeCodeForToken(code);
+    await saveConnection(tokenJson);
 
     return res.status(200).send(`
       <!doctype html>
@@ -176,24 +148,9 @@ module.exports = async function handler(req, res) {
           <meta charset="utf-8" />
           <title>AliExpress Connected - Quvirl</title>
           <style>
-            body {
-              font-family: Arial, sans-serif;
-              background: #020617;
-              color: #e5eefb;
-              padding: 32px;
-            }
-            .card {
-              max-width: 720px;
-              margin: 40px auto;
-              background: #0f172a;
-              border: 1px solid #334155;
-              border-radius: 20px;
-              padding: 24px;
-            }
-            .ok {
-              color: #86efac;
-              font-weight: 800;
-            }
+            body { font-family: Arial, sans-serif; background:#020617; color:#e5eefb; padding:32px; }
+            .card { max-width:720px; margin:40px auto; background:#0f172a; border:1px solid #334155; border-radius:20px; padding:24px; }
+            .ok { color:#86efac; font-weight:800; }
           </style>
         </head>
         <body>
@@ -212,7 +169,7 @@ module.exports = async function handler(req, res) {
       <html>
         <body style="background:#020617;color:#fecaca;font-family:Arial;padding:32px;">
           <h1>AliExpress connection error</h1>
-          <pre>${String(error.stack || error.message)}</pre>
+          <pre style="white-space:pre-wrap;word-break:break-word;">${String(error.stack || error.message)}</pre>
         </body>
       </html>
     `);
