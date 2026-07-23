@@ -45,7 +45,11 @@ function normalizeShop(shop) {
 
 function shopifyGid(type, id) {
   const value = String(id || '');
-  if (value.startsWith('gid://')) return value;
+
+  if (value.startsWith('gid://')) {
+    return value;
+  }
+
   return `gid://shopify/${type}/${value}`;
 }
 
@@ -106,7 +110,10 @@ async function shopifyGraphql(shop, accessToken, query, variables = {}) {
       'Content-Type': 'application/json',
       'X-Shopify-Access-Token': accessToken
     },
-    body: JSON.stringify({ query, variables })
+    body: JSON.stringify({
+      query,
+      variables
+    })
   });
 
   const json = await response.json();
@@ -150,14 +157,43 @@ async function getProductSupplierMetafields(shop, accessToken, productId) {
   return fields;
 }
 
+async function findExistingFulfillmentRecord(payload) {
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/aliexpress_auto_fulfillments?shopify_order_id=eq.${encodeURIComponent(payload.shopify_order_id)}&shopify_line_item_id=eq.${encodeURIComponent(payload.shopify_line_item_id)}&select=*`,
+    {
+      headers: {
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+      }
+    }
+  );
+
+  const rows = await response.json();
+
+  if (!response.ok) {
+    throw new Error('Supabase duplicate lookup failed: ' + JSON.stringify(rows));
+  }
+
+  return Array.isArray(rows) && rows.length ? rows[0] : null;
+}
+
 async function saveFulfillmentRecord(payload) {
+  const existing = await findExistingFulfillmentRecord(payload);
+
+  if (existing) {
+    return {
+      record: existing,
+      existed: true
+    };
+  }
+
   const response = await fetch(`${SUPABASE_URL}/rest/v1/aliexpress_auto_fulfillments`, {
     method: 'POST',
     headers: {
       apikey: SUPABASE_SERVICE_ROLE_KEY,
       Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
       'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates,return=representation'
+      Prefer: 'return=representation'
     },
     body: JSON.stringify(payload)
   });
@@ -172,10 +208,30 @@ async function saveFulfillmentRecord(payload) {
   }
 
   if (!response.ok) {
+    let parsedError = null;
+
+    try {
+      parsedError = JSON.parse(text);
+    } catch {}
+
+    if (parsedError?.code === '23505') {
+      const duplicate = await findExistingFulfillmentRecord(payload);
+
+      if (duplicate) {
+        return {
+          record: duplicate,
+          existed: true
+        };
+      }
+    }
+
     throw new Error('Supabase fulfillment save failed: ' + text);
   }
 
-  return Array.isArray(rows) ? rows[0] : null;
+  return {
+    record: Array.isArray(rows) ? rows[0] : null,
+    existed: false
+  };
 }
 
 function shippingAddressComplete(address) {
@@ -183,9 +239,9 @@ function shippingAddressComplete(address) {
 
   return Boolean(
     address.address1 &&
-    address.city &&
-    address.country_code &&
-    address.zip
+      address.city &&
+      address.country_code &&
+      address.zip
   );
 }
 
@@ -248,7 +304,7 @@ async function processLineItem({ shop, store, order, lineItem }) {
     ? `auto_failed_${reason}`
     : 'ready_for_aliexpress_order_create';
 
-  const record = await saveFulfillmentRecord({
+  const saved = await saveFulfillmentRecord({
     shop_domain: shop,
     shopify_order_id: String(order.id),
     shopify_order_name: String(order.name || ''),
@@ -276,6 +332,21 @@ async function processLineItem({ shop, store, order, lineItem }) {
     raw_shopify_order: order,
     updated_at: new Date().toISOString()
   });
+
+  const record = saved.record;
+
+  if (saved.existed) {
+    await saveWebhookDebugLog({
+      shop_domain: shop,
+      topic: 'orders/paid',
+      hmac_present: true,
+      hmac_valid: true,
+      status: 'duplicate_fulfillment_skipped',
+      error: `Existing fulfillment record found for order ${order.name || order.id}, line item ${lineItem.id || ''}`
+    });
+
+    return;
+  }
 
   if (!reason && record?.id) {
     const aliResult = await triggerAliExpressCreateOrder(record.id);
