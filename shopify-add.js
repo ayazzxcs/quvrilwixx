@@ -668,84 +668,129 @@
   }
 
   function renderSupplierOptions(options, source) {
-    const overlay = document.querySelector('.qv-supplier-overlay');
-    const grid = overlay.querySelector('.qv-supplier-grid');
+  const overlay = document.querySelector('.qv-supplier-overlay');
+  const grid = overlay.querySelector('.qv-supplier-grid');
 
-    grid.innerHTML = '';
+  grid.innerHTML = '';
 
-    options.forEach((supplier) => {
-      const platform = supplier.platform || source || 'aliexpress';
-      const isCJ = platform === 'cjdropshipping';
+  options.forEach((supplier) => {
+    const platform = supplier.platform || source || 'aliexpress';
+    const isCJ = platform === 'cjdropshipping';
 
-      const title = supplier.title || supplier.productName || (isCJ ? 'CJdropshipping product' : 'AliExpress product');
-      const itemId = isCJ ? supplier.pid || supplier.productId : supplier.itemId;
-      const sku = isCJ ? supplier.sku : supplier.skuId;
-      const inventory = isCJ ? supplier.inventory : '';
-      const category = isCJ ? supplier.categoryName : '';
+    const title =
+      supplier.title ||
+      supplier.productName ||
+      (isCJ ? 'CJdropshipping product' : 'AliExpress product');
 
-      const imageBlock = supplier.imageUrl
-        ? `${escapeHtml(supplier.imageUrl)}" loading="lazy">`
-        : '';
+    const itemId = isCJ ? supplier.pid || supplier.productId : supplier.itemId;
+    const sku = isCJ ? supplier.sku : supplier.skuId;
+    const inventory = isCJ ? supplier.inventory : '';
+    const category = isCJ ? supplier.categoryName : '';
 
-      const matchBlock = isCJ
-        ? `
-          <div class="qv-match">
-            <strong>${escapeHtml(supplier.matchLevel || 'Match')}</strong><br>
-            ${supplier.matchScore !== undefined ? `Score: ${escapeHtml(String(supplier.matchScore))}<br>` : ''}
-            ${supplier.imageMatchScore !== undefined ? `Image: ${escapeHtml(String(supplier.imageMatchScore))} (${escapeHtml(supplier.imageMatchLevel || '')})<br>` : ''}
-            ${supplier.titleMatchScore !== undefined ? `Title: ${escapeHtml(String(supplier.titleMatchScore))}<br>` : ''}
-            ${
-              supplier.matchedTerms && supplier.matchedTerms.length
-                ? `Terms: ${escapeHtml(supplier.matchedTerms.slice(0, 5).join(', '))}<br>`
-                : ''
-            }
-            ${
-              supplier.penaltyTerms && supplier.penaltyTerms.length
-                ? `Warnings: ${escapeHtml(supplier.penaltyTerms.slice(0, 3).join(', '))}`
-                : ''
-            }
-          </div>
-        `
-        : '';
+    const imageBlock = supplier.imageUrl
+      ? `" alt="${escapeHtml(title)}" loading="lazy">`
+      : '';
 
-      const card = document.createElement('div');
-      card.className = 'qv-supplier-card';
-
-      card.innerHTML = `
-        ${imageBlock}
-        <div class="qv-supplier-body">
-          <div class="qv-supplier-badge ${isCJ ? 'qv-cj' : ''}">
-            ${isCJ ? 'CJdropshipping' : 'AliExpress'}
-          </div>
-
-          <p class="qv-supplier-title">${escapeHtml(title)}</p>
-
-          ${matchBlock}
-
-          <div class="qv-supplier-meta">
-            ${supplier.price ? `Price: ${escapeHtml(String(supplier.price))} ${escapeHtml(supplier.currency || 'USD')}<br>` : ''}
-            ${itemId ? `${isCJ ? 'PID' : 'Item ID'}: ${escapeHtml(String(itemId))}<br>` : ''}
-            ${sku ? `SKU: ${escapeHtml(String(sku))}<br>` : ''}
-            ${inventory ? `Inventory: ${escapeHtml(String(inventory))}<br>` : ''}
-            ${category ? `Category: ${escapeHtml(String(category))}<br>` : ''}
-            ${supplier.orders ? `Orders: ${escapeHtml(String(supplier.orders))}<br>` : ''}
-            ${supplier.rating ? `Rating: ${escapeHtml(String(supplier.rating))}<br>` : ''}
-          </div>
-
-          <button type="button" class="qv-supplier-select">
-            Select supplier & add draft
-          </button>
+    const matchBlock = isCJ
+      ? `
+        <div class="qv-match">
+          <strong>${escapeHtml(supplier.matchLevel || 'Match')}</strong><br>
+          ${
+            supplier.matchScore !== undefined
+              ? `Score: ${escapeHtml(String(supplier.matchScore))}<br>`
+              : ''
+          }
+          ${
+            supplier.imageMatchScore !== undefined
+              ? `Image: ${escapeHtml(String(supplier.imageMatchScore))} (${escapeHtml(supplier.imageMatchLevel || '')})<br>`
+              : ''
+          }
+          ${
+            supplier.titleMatchScore !== undefined
+              ? `Title: ${escapeHtml(String(supplier.titleMatchScore))}<br>`
+              : ''
+          }
+          ${
+            supplier.matchedTerms && supplier.matchedTerms.length
+              ? `Terms: ${escapeHtml(supplier.matchedTerms.slice(0, 5).join(', '))}<br>`
+              : ''
+          }
+          ${
+            supplier.penaltyTerms && supplier.penaltyTerms.length
+              ? `Warnings: ${escapeHtml(supplier.penaltyTerms.slice(0, 3).join(', '))}`
+              : ''
+          }
         </div>
-      `;
+      `
+      : '';
 
-      card.querySelector('.qv-supplier-select').addEventListener('click', function () {
-        addToShopifyWithSupplier(supplier);
-      });
+    const card = document.createElement('div');
+    card.className = 'qv-supplier-card';
 
-      grid.appendChild(card);
+    card.innerHTML = `
+      ${imageBlock}
+
+      <div class="qv-supplier-body">
+        <div class="qv-supplier-badge ${isCJ ? 'qv-cj' : ''}">
+          ${isCJ ? 'CJdropshipping' : 'AliExpress'}
+        </div>
+
+        <p class="qv-supplier-title">${escapeHtml(title)}</p>
+
+        ${matchBlock}
+
+        <div class="qv-supplier-meta">
+          ${
+            supplier.price
+              ? `Price: ${escapeHtml(String(supplier.price))} ${escapeHtml(supplier.currency || 'USD')}<br>`
+              : ''
+          }
+          ${
+            itemId
+              ? `${isCJ ? 'PID' : 'Item ID'}: ${escapeHtml(String(itemId))}<br>`
+              : ''
+          }
+          ${
+            sku
+              ? `SKU: ${escapeHtml(String(sku))}<br>`
+              : ''
+          }
+          ${
+            inventory
+              ? `Inventory: ${escapeHtml(String(inventory))}<br>`
+              : ''
+          }
+          ${
+            category
+              ? `Category: ${escapeHtml(String(category))}<br>`
+              : ''
+          }
+          ${
+            supplier.orders
+              ? `Orders: ${escapeHtml(String(supplier.orders))}<br>`
+              : ''
+          }
+          ${
+            supplier.rating
+              ? `Rating: ${escapeHtml(String(supplier.rating))}<br>`
+              : ''
+          }
+        </div>
+
+        <button type="button" class="qv-supplier-select">
+          Select supplier & add draft
+        </button>
+      </div>
+    `;
+
+    card.querySelector('.qv-supplier-select').addEventListener('click', function () {
+      addToShopifyWithSupplier(supplier);
     });
-  }
 
+    grid.appendChild(card);
+  });
+  }
+  
   function getCJStockFromResponse(detailResult, countryCode) {
     const rows = detailResult?.stockResponse?.data || [];
     const targetCountry = String(countryCode || 'US').toUpperCase();
