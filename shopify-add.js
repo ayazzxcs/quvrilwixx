@@ -1,4 +1,6 @@
 (function () {
+  const cjSourcingCache = new Map();
+
   function getParam(name) {
     return new URLSearchParams(window.location.search).get(name);
   }
@@ -28,6 +30,7 @@
     }
 
     const images = Array.from(document.querySelectorAll('img'))
+      .filter((img) => !img.closest('.qv-overlay'))
       .map((img) => {
         const src =
           img.currentSrc ||
@@ -605,6 +608,16 @@
     const product = productPayload();
 
     if (supplierSource === 'cjdropshipping') {
+      const cacheKey = `${product.id}|${product.title}|${product.imageUrl}`;
+
+      if (cjSourcingCache.has(cacheKey)) {
+        const cached = cjSourcingCache.get(cacheKey);
+        status.textContent = 'Exact CJ supplier sourcing request already submitted.';
+        status.classList.add('qv-show');
+        renderCJSourcingSubmitted(cached, product);
+        return;
+      }
+
       status.textContent = 'Submitting exact CJ supplier sourcing request...';
       status.classList.add('qv-show');
 
@@ -635,6 +648,8 @@
         if (!response.ok || !result.ok) {
           throw new Error(result.error ? JSON.stringify(result.error) : 'CJ sourcing request failed');
         }
+
+        cjSourcingCache.set(cacheKey, result);
 
         status.textContent = 'Exact CJ supplier sourcing request submitted.';
         renderCJSourcingSubmitted(result, product);
@@ -691,6 +706,16 @@
     }
   }
 
+  function appendImage(parent, imageUrl, altText) {
+    if (!imageUrl) return;
+
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.alt = altText || 'Supplier product image';
+    img.loading = 'lazy';
+    parent.appendChild(img);
+  }
+
   function renderCJSourcingSubmitted(result, product) {
     const overlay = document.querySelector('.qv-supplier-overlay');
     const grid = overlay.querySelector('.qv-supplier-grid');
@@ -698,52 +723,55 @@
     const cjSourcingId = result.cjSourcingId || '';
     const sourcingRequestId = result.sourcingRequestId || '';
 
-    const imageBlock = product.imageUrl
-      ? `${escapeHtml(product.imageUrl)}" loading="lazy">`
-      : '';
+    grid.innerHTML = '';
 
-    grid.innerHTML = `
-      <div class="qv-supplier-card">
-        ${imageBlock}
+    const card = document.createElement('div');
+    card.className = 'qv-supplier-card';
 
-        <div class="qv-supplier-body">
-          <div class="qv-supplier-badge qv-cj">
-            CJdropshipping exact sourcing
-          </div>
+    appendImage(card, product.imageUrl, product.title || 'CJ sourcing product');
 
-          <p class="qv-supplier-title">${escapeHtml(product.title)}</p>
+    const body = document.createElement('div');
+    body.className = 'qv-supplier-body';
 
-          <div class="qv-match">
-            <strong>Exact supplier request submitted</strong><br>
-            CJ will source this product using the product image, title, and page URL.<br>
-            ${
-              cjSourcingId
-                ? `CJ sourcing ID: ${escapeHtml(String(cjSourcingId))}<br>`
-                : ''
-            }
-            ${
-              sourcingRequestId
-                ? `Quvirl request ID: ${escapeHtml(String(sourcingRequestId))}<br>`
-                : ''
-            }
-          </div>
-
-          <div class="qv-supplier-meta">
-            Status: Waiting for CJ sourcing result<br>
-            Product URL saved: Yes<br>
-            Product image saved: ${product.imageUrl ? 'Yes' : 'No'}
-          </div>
-
-          ${
-            cjSourcingId
-              ? `<button type="button" class="qv-supplier-select" data-cj-check="${escapeHtml(String(cjSourcingId))}">
-                  Check CJ sourcing result
-                </button>`
-              : ''
-          }
-        </div>
+    body.innerHTML = `
+      <div class="qv-supplier-badge qv-cj">
+        CJdropshipping exact sourcing
       </div>
+
+      <p class="qv-supplier-title">${escapeHtml(product.title)}</p>
+
+      <div class="qv-match">
+        <strong>Exact supplier request submitted</strong><br>
+        CJ will source this product using the product image, title, and page URL.<br>
+        ${
+          cjSourcingId
+            ? `CJ sourcing ID: ${escapeHtml(String(cjSourcingId))}<br>`
+            : ''
+        }
+        ${
+          sourcingRequestId
+            ? `Quvirl request ID: ${escapeHtml(String(sourcingRequestId))}<br>`
+            : ''
+        }
+      </div>
+
+      <div class="qv-supplier-meta">
+        Status: Waiting for CJ sourcing result<br>
+        Product URL saved: Yes<br>
+        Product image saved: ${product.imageUrl ? 'Yes' : 'No'}
+      </div>
+
+      ${
+        cjSourcingId
+          ? `<button type="button" class="qv-supplier-select" data-cj-check="${escapeHtml(String(cjSourcingId))}">
+              Check CJ sourcing result
+            </button>`
+          : ''
+      }
     `;
+
+    card.appendChild(body);
+    grid.appendChild(card);
 
     const checkButton = grid.querySelector('[data-cj-check]');
 
@@ -887,40 +915,41 @@
       const inventory = isCJ ? supplier.variantStock || supplier.inventory : '';
       const category = isCJ ? supplier.categoryName : '';
 
-      const imageBlock = supplier.imageUrl
-        ? `" alt="${escapeHtml(title)}" loading="lazy">`
-        : '';
-
       const card = document.createElement('div');
       card.className = 'qv-supplier-card';
 
-      card.innerHTML = `
-        ${imageBlock}
+      appendImage(card, supplier.imageUrl, title);
 
-        <div class="qv-supplier-body">
-          <div class="qv-supplier-badge ${isCJ ? 'qv-cj' : ''}">
-            ${isCJ ? 'CJdropshipping' : 'AliExpress'}
-          </div>
+      const body = document.createElement('div');
+      body.className = 'qv-supplier-body';
 
-          <p class="qv-supplier-title">${escapeHtml(title)}</p>
-
-          <div class="qv-supplier-meta">
-            ${supplier.price ? `Price: ${escapeHtml(String(supplier.price))} ${escapeHtml(supplier.currency || 'USD')}<br>` : ''}
-            ${itemId ? `${isCJ ? 'PID' : 'Item ID'}: ${escapeHtml(String(itemId))}<br>` : ''}
-            ${sku ? `SKU: ${escapeHtml(String(sku))}<br>` : ''}
-            ${inventory ? `Inventory: ${escapeHtml(String(inventory))}<br>` : ''}
-            ${category ? `Category: ${escapeHtml(String(category))}<br>` : ''}
-            ${supplier.orders ? `Orders: ${escapeHtml(String(supplier.orders))}<br>` : ''}
-            ${supplier.rating ? `Rating: ${escapeHtml(String(supplier.rating))}<br>` : ''}
-          </div>
-
-          <button type="button" class="qv-supplier-select">
-            Select supplier & add draft
-          </button>
+      body.innerHTML = `
+        <div class="qv-supplier-badge ${isCJ ? 'qv-cj' : ''}">
+          ${isCJ ? 'CJdropshipping' : 'AliExpress'}
         </div>
+
+        <p class="qv-supplier-title">${escapeHtml(title)}</p>
+
+        <div class="qv-supplier-meta">
+          ${supplier.price ? `Price: ${escapeHtml(String(supplier.price))} ${escapeHtml(supplier.currency || 'USD')}<br>` : ''}
+          ${itemId ? `${isCJ ? 'PID' : 'Item ID'}: ${escapeHtml(String(itemId))}<br>` : ''}
+          ${sku ? `SKU: ${escapeHtml(String(sku))}<br>` : ''}
+          ${inventory ? `Inventory: ${escapeHtml(String(inventory))}<br>` : ''}
+          ${category ? `Category: ${escapeHtml(String(category))}<br>` : ''}
+          ${supplier.orders ? `Orders: ${escapeHtml(String(supplier.orders))}<br>` : ''}
+          ${supplier.rating ? `Rating: ${escapeHtml(String(supplier.rating))}<br>` : ''}
+        </div>
+
+        <button type="button" class="qv-supplier-select">
+          Select supplier & add draft
+        </button>
       `;
 
-      card.querySelector('.qv-supplier-select').addEventListener('click', function () {
+      card.appendChild(body);
+
+      const selectButton = body.querySelector('.qv-supplier-select');
+
+      selectButton.addEventListener('click', function () {
         addToShopifyWithSupplier(supplier);
       });
 
