@@ -182,7 +182,7 @@
       }
 
       .qv-modal {
-        width: min(94vw, 760px);
+        width: min(94vw, 820px);
         max-height: 88vh;
         overflow: auto;
         border: 1px solid rgba(148, 163, 184, 0.22);
@@ -295,6 +295,30 @@
         display: block;
       }
 
+      .qv-supplier-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 14px 0 12px;
+      }
+
+      .qv-supplier-tab {
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 999px;
+        padding: 9px 12px;
+        background: rgba(15, 23, 42, 0.8);
+        color: #dbeafe;
+        font-size: 13px;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .qv-supplier-tab.qv-active {
+        background: linear-gradient(135deg, #22c55e, #14b8a6);
+        color: #001b0b;
+        border-color: rgba(52, 211, 153, 0.8);
+      }
+
       .qv-supplier-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
@@ -334,6 +358,24 @@
         font-size: 12px;
         line-height: 1.45;
         margin-bottom: 10px;
+      }
+
+      .qv-supplier-badge {
+        display: inline-flex;
+        margin-bottom: 8px;
+        padding: 5px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 950;
+        background: rgba(59, 130, 246, 0.18);
+        color: #bfdbfe;
+        border: 1px solid rgba(96, 165, 250, 0.35);
+      }
+
+      .qv-supplier-badge.qv-cj {
+        background: rgba(250, 204, 21, 0.13);
+        color: #fef08a;
+        border-color: rgba(250, 204, 21, 0.35);
       }
 
       .qv-supplier-select {
@@ -477,11 +519,20 @@
 
       overlay.innerHTML = `
         <div class="qv-modal" role="dialog" aria-modal="true">
-          <div class="qv-kicker">AliExpress supplier</div>
+          <div class="qv-kicker">Supplier selection</div>
           <h2 class="qv-title">Choose a supplier option</h2>
           <p class="qv-copy">
-            Quvirl will search AliExpress and attach your selected supplier and variant data to the Shopify draft product.
+            Quvirl can search AliExpress and CJdropshipping, then attach the selected supplier and variant data to your Shopify draft product.
           </p>
+
+          <div class="qv-supplier-tabs">
+            <button type="button" class="qv-supplier-tab qv-active" data-source="aliexpress">
+              AliExpress
+            </button>
+            <button type="button" class="qv-supplier-tab" data-source="cjdropshipping">
+              CJdropshipping
+            </button>
+          </div>
 
           <div class="qv-status qv-show">Searching AliExpress supplier options...</div>
           <div class="qv-supplier-grid"></div>
@@ -501,10 +552,25 @@
           closeSupplierModal();
         }
       });
+
+      overlay.querySelectorAll('.qv-supplier-tab').forEach((button) => {
+        button.addEventListener('click', function () {
+          overlay.querySelectorAll('.qv-supplier-tab').forEach((tab) => {
+            tab.classList.remove('qv-active');
+          });
+
+          button.classList.add('qv-active');
+          searchSupplierOptions(button.getAttribute('data-source') || 'aliexpress');
+        });
+      });
     }
 
     overlay.classList.add('qv-open');
-    searchSupplierOptions();
+
+    const active = overlay.querySelector('.qv-supplier-tab.qv-active');
+    const source = active ? active.getAttribute('data-source') : 'aliexpress';
+
+    searchSupplierOptions(source || 'aliexpress');
   }
 
   function closeSupplierModal() {
@@ -512,28 +578,45 @@
     if (overlay) overlay.classList.remove('qv-open');
   }
 
-  async function searchSupplierOptions() {
+  async function searchSupplierOptions(source) {
     const overlay = document.querySelector('.qv-supplier-overlay');
     const grid = overlay.querySelector('.qv-supplier-grid');
     const status = overlay.querySelector('.qv-status');
 
     grid.innerHTML = '';
-    status.textContent = 'Searching AliExpress supplier options...';
+
+    const supplierSource = source || 'aliexpress';
+    const sourceLabel = supplierSource === 'cjdropshipping' ? 'CJdropshipping' : 'AliExpress';
+
+    status.textContent = `Searching ${sourceLabel} supplier options...`;
     status.classList.add('qv-show');
 
     try {
       const product = productPayload();
 
-      const response = await fetch('/api/aliexpress/search-options', {
+      const endpoint =
+        supplierSource === 'cjdropshipping'
+          ? '/api/cj/search-products'
+          : '/api/aliexpress/search-options';
+
+      const requestBody =
+        supplierSource === 'cjdropshipping'
+          ? {
+              keyword: product.title,
+              countryCode: 'US'
+            }
+          : {
+              keyword: product.title,
+              shipToCountry: 'US',
+              currency: 'USD'
+            };
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          keyword: product.title,
-          shipToCountry: 'US',
-          currency: 'USD'
-        })
+        body: JSON.stringify(requestBody)
       });
 
       const text = await response.text();
@@ -546,42 +629,67 @@
       }
 
       if (!response.ok || !result.ok) {
-        throw new Error(result.error ? JSON.stringify(result.error) : 'AliExpress search failed');
+        throw new Error(result.error ? JSON.stringify(result.error) : `${sourceLabel} search failed`);
       }
 
       if (!result.options || !result.options.length) {
-        status.textContent = 'No AliExpress supplier options found. Try editing the product title or search keyword later.';
+        status.textContent = `No ${sourceLabel} supplier options found. Try editing the product title or search keyword later.`;
         return;
       }
 
-      status.textContent = 'Select one supplier option to continue.';
-      renderSupplierOptions(result.options);
+      const normalized = result.options.map((option) => ({
+        ...option,
+        platform: supplierSource
+      }));
+
+      status.textContent = `Select one ${sourceLabel} supplier option to continue.`;
+      renderSupplierOptions(normalized, supplierSource);
     } catch (error) {
       status.textContent = 'Failed to load supplier options: ' + error.message;
     }
   }
 
-  function renderSupplierOptions(options) {
+  function renderSupplierOptions(options, source) {
     const overlay = document.querySelector('.qv-supplier-overlay');
     const grid = overlay.querySelector('.qv-supplier-grid');
 
     grid.innerHTML = '';
 
     options.forEach((supplier) => {
+      const platform = supplier.platform || source || 'aliexpress';
+      const isCJ = platform === 'cjdropshipping';
+
+      const title = supplier.title || supplier.productName || (isCJ ? 'CJdropshipping product' : 'AliExpress product');
+      const itemId = isCJ ? supplier.pid || supplier.productId : supplier.itemId;
+      const sku = isCJ ? supplier.sku : supplier.skuId;
+      const inventory = isCJ ? supplier.inventory : '';
+      const category = isCJ ? supplier.categoryName : '';
+
       const card = document.createElement('div');
       card.className = 'qv-supplier-card';
 
       card.innerHTML = `
         ${supplier.imageUrl ? `" alt="">` : ''}
         <div class="qv-supplier-body">
-          <p class="qv-supplier-title">${escapeHtml(supplier.title || 'AliExpress product')}</p>
+          <div class="qv-supplier-badge ${isCJ ? 'qv-cj' : ''}">
+            ${isCJ ? 'CJdropshipping' : 'AliExpress'}
+          </div>
+
+          <p class="qv-supplier-title">${escapeHtml(title)}</p>
+
           <div class="qv-supplier-meta">
-            ${supplier.price ? `Price: ${escapeHtml(String(supplier.price))} ${escapeHtml(supplier.currency || '')}<br>` : ''}
+            ${supplier.price ? `Price: ${escapeHtml(String(supplier.price))} ${escapeHtml(supplier.currency || 'USD')}<br>` : ''}
+            ${itemId ? `${isCJ ? 'PID' : 'Item ID'}: ${escapeHtml(String(itemId))}<br>` : ''}
+            ${sku ? `SKU: ${escapeHtml(String(sku))}<br>` : ''}
+            ${inventory ? `Inventory: ${escapeHtml(String(inventory))}<br>` : ''}
+            ${category ? `Category: ${escapeHtml(String(category))}` : ''}
             ${supplier.orders ? `Orders: ${escapeHtml(String(supplier.orders))}<br>` : ''}
             ${supplier.rating ? `Rating: ${escapeHtml(String(supplier.rating))}<br>` : ''}
-            ${supplier.itemId ? `Item ID: ${escapeHtml(String(supplier.itemId))}` : ''}
           </div>
-          <button type="button" class="qv-supplier-select">Select supplier & add draft</button>
+
+          <button type="button" class="qv-supplier-select">
+            Select supplier & add draft
+          </button>
         </div>
       `;
 
@@ -591,6 +699,142 @@
 
       grid.appendChild(card);
     });
+  }
+
+  function getCJStockFromResponse(detailResult, countryCode) {
+    const rows = detailResult?.stockResponse?.data || [];
+    const targetCountry = String(countryCode || 'US').toUpperCase();
+
+    const match = rows.find((row) => {
+      return String(row.countryCode || '').toUpperCase() === targetCountry;
+    });
+
+    if (!match) {
+      return detailResult?.selectedVariant?.stock || 0;
+    }
+
+    return Number(
+      match.totalInventoryNum ||
+        match.storageNum ||
+        match.cjInventoryNum ||
+        match.factoryInventoryNum ||
+        detailResult?.selectedVariant?.stock ||
+        0
+    );
+  }
+
+  async function enrichAliExpressSupplier(supplier) {
+    const detailResponse = await fetch('/api/aliexpress/product-details', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        productId: supplier.itemId,
+        shipToCountry: 'US',
+        currency: 'USD',
+        language: 'en'
+      })
+    });
+
+    const detailText = await detailResponse.text();
+
+    let detailResult;
+    try {
+      detailResult = JSON.parse(detailText);
+    } catch {
+      throw new Error('Product details API returned non-JSON response: ' + detailText.slice(0, 200));
+    }
+
+    if (!detailResponse.ok || !detailResult.ok || !detailResult.selectedSku) {
+      throw new Error(detailResult.error || 'Could not fetch AliExpress SKU details');
+    }
+
+    supplier.platform = 'aliexpress';
+    supplier.skuAttr = detailResult.selectedSku.skuAttr;
+    supplier.skuId = detailResult.selectedSku.skuId;
+    supplier.selectedVariant = detailResult.selectedSku.label;
+    supplier.variantPrice = detailResult.selectedSku.price;
+    supplier.variantStock = detailResult.selectedSku.stock;
+
+    if (detailResult.selectedSku.price) {
+      supplier.price = detailResult.selectedSku.price;
+    }
+
+    if (detailResult.selectedSku.currency) {
+      supplier.currency = detailResult.selectedSku.currency;
+    }
+
+    if (detailResult.selectedSku.imageUrl) {
+      supplier.imageUrl = detailResult.selectedSku.imageUrl;
+    }
+
+    return supplier;
+  }
+
+  async function enrichCJSupplier(supplier) {
+    const productId = supplier.pid || supplier.productId;
+
+    if (!productId) {
+      throw new Error('Missing CJ product ID');
+    }
+
+    const detailResponse = await fetch('/api/cj/product-details', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        productId,
+        countryCode: 'US'
+      })
+    });
+
+    const detailText = await detailResponse.text();
+
+    let detailResult;
+    try {
+      detailResult = JSON.parse(detailText);
+    } catch {
+      throw new Error('CJ product details API returned non-JSON response: ' + detailText.slice(0, 200));
+    }
+
+    if (!detailResponse.ok || !detailResult.ok || !detailResult.selectedVariant) {
+      throw new Error(detailResult.error || 'Could not fetch CJ variant details');
+    }
+
+    const selected = detailResult.selectedVariant;
+    const stock = getCJStockFromResponse(detailResult, 'US');
+
+    supplier.platform = 'cjdropshipping';
+    supplier.pid = detailResult.product?.pid || productId;
+    supplier.productId = detailResult.product?.pid || productId;
+    supplier.productName = detailResult.product?.productName || supplier.title || '';
+    supplier.title = detailResult.product?.productName || supplier.title || '';
+    supplier.vid = selected.vid;
+    supplier.variantId = selected.vid;
+    supplier.variantSku = selected.variantSku;
+    supplier.variantKey = selected.variantKey;
+    supplier.selectedVariant = selected.variantKey || selected.variantName;
+    supplier.variantPrice = selected.price;
+    supplier.variantStock = stock;
+    supplier.fromCountryCode = stock > 0 ? 'US' : 'CN';
+
+    if (selected.price) {
+      supplier.price = selected.price;
+    }
+
+    if (selected.currency) {
+      supplier.currency = selected.currency;
+    }
+
+    if (selected.imageUrl) {
+      supplier.imageUrl = selected.imageUrl;
+    } else if (detailResult.product?.imageUrl) {
+      supplier.imageUrl = detailResult.product.imageUrl;
+    }
+
+    return supplier;
   }
 
   async function addToShopifyWithSupplier(supplier) {
@@ -606,55 +850,19 @@
       return;
     }
 
-    status.textContent = 'Fetching AliExpress variant details...';
+    const platform = supplier.platform || 'aliexpress';
+    const isCJ = platform === 'cjdropshipping';
+    const sourceLabel = isCJ ? 'CJdropshipping' : 'AliExpress';
+
+    status.textContent = `Fetching ${sourceLabel} variant details...`;
     status.classList.add('qv-show');
 
     try {
-      const detailResponse = await fetch('/api/aliexpress/product-details', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          productId: supplier.itemId,
-          shipToCountry: 'US',
-          currency: 'USD',
-          language: 'en'
-        })
-      });
+      const enrichedSupplier = isCJ
+        ? await enrichCJSupplier(supplier)
+        : await enrichAliExpressSupplier(supplier);
 
-      const detailText = await detailResponse.text();
-
-      let detailResult;
-      try {
-        detailResult = JSON.parse(detailText);
-      } catch {
-        throw new Error('Product details API returned non-JSON response: ' + detailText.slice(0, 200));
-      }
-
-      if (!detailResponse.ok || !detailResult.ok || !detailResult.selectedSku) {
-        throw new Error(detailResult.error || 'Could not fetch AliExpress SKU details');
-      }
-
-      supplier.skuAttr = detailResult.selectedSku.skuAttr;
-      supplier.skuId = detailResult.selectedSku.skuId;
-      supplier.selectedVariant = detailResult.selectedSku.label;
-      supplier.variantPrice = detailResult.selectedSku.price;
-      supplier.variantStock = detailResult.selectedSku.stock;
-
-      if (detailResult.selectedSku.price) {
-        supplier.price = detailResult.selectedSku.price;
-      }
-
-      if (detailResult.selectedSku.currency) {
-        supplier.currency = detailResult.selectedSku.currency;
-      }
-
-      if (detailResult.selectedSku.imageUrl) {
-        supplier.imageUrl = detailResult.selectedSku.imageUrl;
-      }
-
-      status.textContent = 'Creating Shopify draft product with selected supplier and variant...';
+      status.textContent = `Creating Shopify draft product with selected ${sourceLabel} supplier and variant...`;
 
       const response = await fetch('/api/shopify/add-product', {
         method: 'POST',
@@ -665,7 +873,7 @@
           shop,
           installToken,
           product: productPayload(),
-          supplier
+          supplier: enrichedSupplier
         })
       });
 
@@ -678,7 +886,7 @@
       if (result.status === 'exists') {
         status.textContent = 'This product already exists in your Shopify store. Supplier selection was saved.';
       } else {
-        status.textContent = 'Product added to Shopify as a draft with selected AliExpress supplier and SKU data.';
+        status.textContent = `Product added to Shopify as a draft with selected ${sourceLabel} supplier and variant data.`;
       }
 
       setTimeout(closeSupplierModal, 1800);
