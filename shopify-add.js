@@ -541,7 +541,7 @@
           <div class="qv-kicker">Supplier selection</div>
           <h2 class="qv-title">Choose a supplier option</h2>
           <p class="qv-copy">
-            AliExpress shows live supplier options. CJdropshipping submits an exact sourcing request using this product image and title.
+            AliExpress shows live supplier options. CJdropshipping uses the seller's connected CJ account for exact sourcing.
           </p>
 
           <div class="qv-supplier-tabs">
@@ -608,53 +608,31 @@
     const product = productPayload();
 
     if (supplierSource === 'cjdropshipping') {
-      const cacheKey = `${product.id}|${product.title}|${product.imageUrl}`;
+      const shop = getConnectedShop();
+      const installToken = getInstallToken();
 
-      if (cjSourcingCache.has(cacheKey)) {
-        const cached = cjSourcingCache.get(cacheKey);
-        status.textContent = 'Exact CJ supplier sourcing request already submitted.';
-        status.classList.add('qv-show');
-        renderCJSourcingSubmitted(cached, product);
+      if (!shop || !installToken) {
+        closeSupplierModal();
+        openConnectModal();
         return;
       }
 
-      status.textContent = 'Submitting exact CJ supplier sourcing request...';
+      status.textContent = 'Checking CJ connection...';
       status.classList.add('qv-show');
 
       try {
-        const response = await fetch('/api/cj/create-sourcing', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            productName: product.title,
-            productImage: product.imageUrl,
-            productUrl: product.sourceUrl,
-            price: product.price,
-            quvirlProductId: product.id
-          })
-        });
+        const cjStatus = await getCJConnectionStatus();
 
-        const text = await response.text();
-
-        let result;
-        try {
-          result = JSON.parse(text);
-        } catch {
-          throw new Error('CJ sourcing API returned non-JSON response: ' + text.slice(0, 200));
+        if (!cjStatus.connected) {
+          status.textContent = 'Connect your CJdropshipping account first.';
+          renderCJConnectCard(product);
+          return;
         }
 
-        if (!response.ok || !result.ok) {
-          throw new Error(result.error ? JSON.stringify(result.error) : 'CJ sourcing request failed');
-        }
-
-        cjSourcingCache.set(cacheKey, result);
-
-        status.textContent = 'Exact CJ supplier sourcing request submitted.';
-        renderCJSourcingSubmitted(result, product);
+        await submitCJSourcingRequest(product);
       } catch (error) {
-        status.textContent = 'Failed to submit CJ sourcing request: ' + error.message;
+        status.textContent = 'Failed to check CJ connection: ' + error.message;
+        renderCJConnectCard(product);
       }
 
       return;
@@ -706,6 +684,41 @@
     }
   }
 
+  async function getCJConnectionStatus() {
+    const shop = getConnectedShop();
+    const installToken = getInstallToken();
+
+    const response = await fetch('/api/cj/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        action: 'status',
+        shop,
+        installToken
+      })
+    });
+
+    const text = await response.text();
+
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch {
+      throw new Error('CJ status API returned non-JSON response: ' + text.slice(0, 200));
+    }
+
+    if (!response.ok || !result.ok) {
+      return {
+        connected: false,
+        error: result.error || result
+      };
+    }
+
+    return result;
+  }
+
   function appendImage(parent, imageUrl, altText) {
     if (!imageUrl) return;
 
@@ -714,6 +727,177 @@
     img.alt = altText || 'Supplier product image';
     img.loading = 'lazy';
     parent.appendChild(img);
+  }
+
+  function renderCJConnectCard(product) {
+    const overlay = document.querySelector('.qv-supplier-overlay');
+    const grid = overlay.querySelector('.qv-supplier-grid');
+    const status = overlay.querySelector('.qv-status');
+
+    grid.innerHTML = '';
+
+    const card = document.createElement('div');
+    card.className = 'qv-supplier-card';
+
+    appendImage(card, product.imageUrl, product.title || 'CJ product');
+
+    const body = document.createElement('div');
+    body.className = 'qv-supplier-body';
+
+    body.innerHTML = `
+      <div class="qv-supplier-badge qv-cj">
+        Connect CJdropshipping
+      </div>
+
+      <p class="qv-supplier-title">Connect your CJ account</p>
+
+      <div class="qv-match">
+        <strong>Paste your CJ API Key once</strong><br>
+        Quvirl will use this seller CJ account for CJ sourcing and future CJ order creation.
+      </div>
+
+      <label class="qv-label" for="qv-cj-api-key">
+        CJ API Key
+      </label>
+
+      <input
+        id="qv-cj-api-key"
+        class="qv-input"
+        type="password"
+        placeholder="CJUserNum@api@..."
+        autocomplete="off"
+      />
+
+      <button type="button" class="qv-supplier-select" data-qv-connect-cj>
+        Connect CJ & submit sourcing
+      </button>
+    `;
+
+    card.appendChild(body);
+    grid.appendChild(card);
+
+    const button = body.querySelector('[data-qv-connect-cj]');
+
+    button.addEventListener('click', async function () {
+      const input = body.querySelector('#qv-cj-api-key');
+      const apiKey = String(input.value || '').trim();
+
+      if (!apiKey) {
+        status.textContent = 'Please paste your CJ API key first.';
+        status.classList.add('qv-show');
+        return;
+      }
+
+      button.disabled = true;
+      status.textContent = 'Connecting CJ account...';
+      status.classList.add('qv-show');
+
+      try {
+        await connectCJAccount(apiKey);
+
+        status.textContent = 'CJ connected. Submitting exact sourcing request...';
+
+        await submitCJSourcingRequest(product);
+      } catch (error) {
+        status.textContent = 'Failed to connect CJ: ' + error.message;
+        button.disabled = false;
+      }
+    });
+  }
+
+  async function connectCJAccount(apiKey) {
+    const shop = getConnectedShop();
+    const installToken = getInstallToken();
+
+    if (!shop || !installToken) {
+      throw new Error('Shopify must be connected first');
+    }
+
+    const response = await fetch('/api/cj/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        action: 'connect',
+        shop,
+        installToken,
+        apiKey
+      })
+    });
+
+    const text = await response.text();
+
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch {
+      throw new Error('CJ connect API returned non-JSON response: ' + text.slice(0, 200));
+    }
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error ? JSON.stringify(result.error) : 'CJ connection failed');
+    }
+
+    return result;
+  }
+
+  async function submitCJSourcingRequest(product) {
+    const overlay = document.querySelector('.qv-supplier-overlay');
+    const status = overlay.querySelector('.qv-status');
+
+    const shop = getConnectedShop();
+    const installToken = getInstallToken();
+
+    if (!shop || !installToken) {
+      throw new Error('Missing Shopify shop or install token');
+    }
+
+    const cacheKey = `${shop}|${product.id}|${product.title}|${product.imageUrl}`;
+
+    if (cjSourcingCache.has(cacheKey)) {
+      const cached = cjSourcingCache.get(cacheKey);
+      status.textContent = 'Exact CJ supplier sourcing request already submitted.';
+      renderCJSourcingSubmitted(cached, product);
+      return;
+    }
+
+    status.textContent = 'Submitting exact CJ supplier sourcing request...';
+    status.classList.add('qv-show');
+
+    const response = await fetch('/api/cj/create-sourcing', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        shop,
+        installToken,
+        productName: product.title,
+        productImage: product.imageUrl,
+        productUrl: product.sourceUrl,
+        price: product.price,
+        quvirlProductId: product.id
+      })
+    });
+
+    const text = await response.text();
+
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch {
+      throw new Error('CJ sourcing API returned non-JSON response: ' + text.slice(0, 200));
+    }
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error ? JSON.stringify(result.error) : 'CJ sourcing request failed');
+    }
+
+    cjSourcingCache.set(cacheKey, result);
+
+    status.textContent = 'Exact CJ supplier sourcing request submitted.';
+    renderCJSourcingSubmitted(result, product);
   }
 
   function renderCJSourcingSubmitted(result, product) {
@@ -793,6 +977,15 @@
       return;
     }
 
+    const shop = getConnectedShop();
+    const installToken = getInstallToken();
+
+    if (!shop || !installToken) {
+      status.textContent = 'Missing Shopify connection. Please reconnect Shopify.';
+      status.classList.add('qv-show');
+      return;
+    }
+
     status.textContent = 'Checking CJ sourcing result...';
     status.classList.add('qv-show');
 
@@ -803,6 +996,8 @@
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          shop,
+          installToken,
           cjSourcingId
         })
       });
@@ -831,6 +1026,7 @@
         status.textContent = 'CJ has not returned a sourced product yet. Please check again later.';
 
         const existingCard = grid.querySelector('.qv-match');
+
         if (existingCard) {
           existingCard.innerHTML = `
             <strong>CJ sourcing still pending</strong><br>
