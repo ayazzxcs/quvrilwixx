@@ -378,6 +378,21 @@
         border-color: rgba(250, 204, 21, 0.35);
       }
 
+      .qv-match {
+        margin: 0 0 10px;
+        padding: 8px 9px;
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        color: #dbeafe;
+        font-size: 11px;
+        line-height: 1.45;
+      }
+
+      .qv-match strong {
+        color: #a7f3d0;
+      }
+
       .qv-supplier-select {
         width: 100%;
         border: 1px solid rgba(52, 211, 153, 0.55);
@@ -603,6 +618,8 @@
         supplierSource === 'cjdropshipping'
           ? {
               keyword: product.title,
+              category: product.category,
+              imageUrl: product.imageUrl,
               countryCode: 'US'
             }
           : {
@@ -665,11 +682,32 @@
       const inventory = isCJ ? supplier.inventory : '';
       const category = isCJ ? supplier.categoryName : '';
 
+      const matchBlock = isCJ
+        ? `
+          <div class="qv-match">
+            <strong>${escapeHtml(supplier.matchLevel || 'Match')}</strong>
+            ${supplier.matchScore !== undefined ? `Score: ${escapeHtml(String(supplier.matchScore))}<br>` : ''}
+            ${supplier.imageMatchScore !== undefined ? `Image: ${escapeHtml(String(supplier.imageMatchScore))} (${escapeHtml(supplier.imageMatchLevel || '')})<br>` : ''}
+            ${supplier.titleMatchScore !== undefined ? `Title: ${escapeHtml(String(supplier.titleMatchScore))}<br>` : ''}
+            ${
+              supplier.matchedTerms && supplier.matchedTerms.length
+                ? `Terms: ${escapeHtml(supplier.matchedTerms.slice(0, 5).join(', '))}<br>`
+                : ''
+            }
+            ${
+              supplier.penaltyTerms && supplier.penaltyTerms.length
+                ? `Warnings: ${escapeHtml(supplier.penaltyTerms.slice(0, 3).join(', '))}`
+                : ''
+            }
+          </div>
+        `
+        : '';
+
       const card = document.createElement('div');
       card.className = 'qv-supplier-card';
 
       card.innerHTML = `
-        ${supplier.imageUrl ? `" alt="">` : ''}
+        ${supplier.imageUrl ? `${escapeHtml(supplier.imageUrl)}` : ''}
         <div class="qv-supplier-body">
           <div class="qv-supplier-badge ${isCJ ? 'qv-cj' : ''}">
             ${isCJ ? 'CJdropshipping' : 'AliExpress'}
@@ -677,12 +715,14 @@
 
           <p class="qv-supplier-title">${escapeHtml(title)}</p>
 
+          ${matchBlock}
+
           <div class="qv-supplier-meta">
             ${supplier.price ? `Price: ${escapeHtml(String(supplier.price))} ${escapeHtml(supplier.currency || 'USD')}<br>` : ''}
             ${itemId ? `${isCJ ? 'PID' : 'Item ID'}: ${escapeHtml(String(itemId))}<br>` : ''}
             ${sku ? `SKU: ${escapeHtml(String(sku))}<br>` : ''}
             ${inventory ? `Inventory: ${escapeHtml(String(inventory))}<br>` : ''}
-            ${category ? `Category: ${escapeHtml(String(category))}` : ''}
+            ${category ? `Category: ${escapeHtml(String(category))}<br>` : ''}
             ${supplier.orders ? `Orders: ${escapeHtml(String(supplier.orders))}<br>` : ''}
             ${supplier.rating ? `Rating: ${escapeHtml(String(supplier.rating))}<br>` : ''}
           </div>
