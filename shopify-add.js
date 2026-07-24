@@ -87,6 +87,7 @@
   function saveConnectionFromCallback() {
     const shop = getParam('shopify_connected');
     const token = getParam('qv_shopify_token');
+    const aliShop = getParam('aliexpress_connected');
 
     if (shop && token) {
       localStorage.setItem('quvirl_shopify_shop', shop);
@@ -95,6 +96,15 @@
       const url = new URL(window.location.href);
       url.searchParams.delete('shopify_connected');
       url.searchParams.delete('qv_shopify_token');
+
+      window.history.replaceState({}, document.title, url.toString());
+    }
+
+    if (aliShop) {
+      localStorage.setItem('quvirl_aliexpress_connected_shop', aliShop);
+
+      const url = new URL(window.location.href);
+      url.searchParams.delete('aliexpress_connected');
 
       window.history.replaceState({}, document.title, url.toString());
     }
@@ -199,6 +209,12 @@
         background: linear-gradient(135deg, #22c55e, #14b8a6);
         color: #001b0b;
         border-color: rgba(52, 211, 153, 0.8);
+      }
+
+      .qv-ali-connect {
+        background: linear-gradient(135deg, #ff7a18, #ff3d00);
+        color: #fff;
+        border-color: rgba(251, 146, 60, 0.75);
       }
 
       .qv-overlay {
@@ -477,6 +493,24 @@
     }
 
     return shop;
+  }
+
+  function connectAliExpress() {
+    const shop = getConnectedShop();
+    const installToken = getInstallToken();
+
+    if (!shop || !installToken) {
+      openConnectModal();
+      return;
+    }
+
+    const authUrl =
+      '/api/aliexpress/auth' +
+      '?shop=' + encodeURIComponent(shop) +
+      '&installToken=' + encodeURIComponent(installToken) +
+      '&returnUrl=' + encodeURIComponent(window.location.href);
+
+    window.location.href = authUrl;
   }
 
   function openConnectModal() {
@@ -1392,6 +1426,11 @@
     connection.type = 'button';
     connection.className = 'qv-shopify-btn';
 
+    const aliConnect = document.createElement('button');
+    aliConnect.type = 'button';
+    aliConnect.className = 'qv-shopify-btn qv-ali-connect';
+    aliConnect.textContent = 'Connect AliExpress';
+
     const add = document.createElement('button');
     add.type = 'button';
     add.className = 'qv-shopify-btn qv-shopify-add';
@@ -1421,6 +1460,7 @@
 
         localStorage.removeItem('quvirl_shopify_shop');
         localStorage.removeItem('quvirl_shopify_token');
+        localStorage.removeItem('quvirl_aliexpress_connected_shop');
 
         refreshConnectionButton();
         alert('Shopify disconnected from this browser.');
@@ -1429,6 +1469,8 @@
 
       openConnectModal();
     });
+
+    aliConnect.addEventListener('click', connectAliExpress);
 
     add.addEventListener('click', function () {
       if (!isConnected()) {
@@ -1442,6 +1484,7 @@
     refreshConnectionButton();
 
     wrap.appendChild(connection);
+    wrap.appendChild(aliConnect);
     wrap.appendChild(add);
     document.body.appendChild(wrap);
   }
