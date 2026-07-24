@@ -96,7 +96,6 @@
       const url = new URL(window.location.href);
       url.searchParams.delete('shopify_connected');
       url.searchParams.delete('qv_shopify_token');
-
       window.history.replaceState({}, document.title, url.toString());
     }
 
@@ -105,7 +104,6 @@
 
       const url = new URL(window.location.href);
       url.searchParams.delete('aliexpress_connected');
-
       window.history.replaceState({}, document.title, url.toString());
     }
   }
@@ -125,7 +123,6 @@
 
   function formatApiError(value) {
     if (!value) return 'Unknown error';
-
     if (typeof value === 'string') return value;
 
     try {
@@ -181,16 +178,6 @@
         font-weight: 900;
         cursor: pointer;
         box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
-        transition: transform 0.15s ease, opacity 0.15s ease;
-      }
-
-      .qv-shopify-btn:active {
-        transform: scale(0.98);
-      }
-
-      .qv-shopify-btn:disabled {
-        opacity: 0.65;
-        cursor: not-allowed;
       }
 
       .qv-shopify-connect {
@@ -249,8 +236,6 @@
 
       .qv-kicker {
         display: inline-flex;
-        align-items: center;
-        gap: 8px;
         margin-bottom: 12px;
         padding: 7px 11px;
         border-radius: 999px;
@@ -259,7 +244,6 @@
         color: #86efac;
         font-size: 12px;
         font-weight: 900;
-        letter-spacing: 0.04em;
         text-transform: uppercase;
       }
 
@@ -293,14 +277,10 @@
         border: 1px solid rgba(148, 163, 184, 0.22);
         background: rgba(15, 23, 42, 0.9);
         color: #ffffff;
-        padding: 14px 14px;
+        padding: 14px;
         outline: none;
         font-size: 15px;
-      }
-
-      .qv-input:focus {
-        border-color: rgba(34, 197, 94, 0.7);
-        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+        margin-bottom: 12px;
       }
 
       .qv-actions {
@@ -328,7 +308,6 @@
       .qv-primary {
         background: linear-gradient(135deg, #22c55e, #14b8a6);
         color: #001b0b;
-        border-color: rgba(52, 211, 153, 0.8);
       }
 
       .qv-status {
@@ -368,7 +347,6 @@
       .qv-supplier-tab.qv-active {
         background: linear-gradient(135deg, #22c55e, #14b8a6);
         color: #001b0b;
-        border-color: rgba(52, 211, 153, 0.8);
       }
 
       .qv-supplier-grid {
@@ -403,7 +381,6 @@
         font-size: 13px;
         line-height: 1.35;
         font-weight: 800;
-        min-height: 52px;
       }
 
       .qv-supplier-meta {
@@ -422,13 +399,11 @@
         font-weight: 950;
         background: rgba(59, 130, 246, 0.18);
         color: #bfdbfe;
-        border: 1px solid rgba(96, 165, 250, 0.35);
       }
 
       .qv-supplier-badge.qv-cj {
         background: rgba(250, 204, 21, 0.13);
         color: #fef08a;
-        border-color: rgba(250, 204, 21, 0.35);
       }
 
       .qv-match {
@@ -1027,6 +1002,25 @@
     }
   }
 
+  function pickRealCJProductId(sourced, cjSourcingId) {
+    const possibleIds = [
+      sourced.cjProductId,
+      sourced.cj_product_id,
+      sourced.productPid,
+      sourced.pid,
+      sourced.product_id,
+      sourced.productId,
+      sourced.cjPid,
+      sourced.cj_pid
+    ]
+      .map((value) => String(value || '').trim())
+      .filter(Boolean);
+
+    const sourceId = String(cjSourcingId || '').trim();
+
+    return possibleIds.find((id) => id && id !== sourceId) || '';
+  }
+
   async function checkCJSourcingResult(cjSourcingId) {
     const overlay = document.querySelector('.qv-supplier-overlay');
     const grid = overlay.querySelector('.qv-supplier-grid');
@@ -1077,13 +1071,37 @@
       }
 
       const sourced = result.result || {};
-      const cjProductId = sourced.cjProductId || sourced.productId || '';
-      const cjVariantId = sourced.variantId || '';
-      const cjVariantSku = sourced.cjVariantSku || '';
-      const sourceStatus = sourced.sourceStatus || '';
-      const sourceStatusText = sourced.sourceStatusStr || '';
+      const cjProductId = pickRealCJProductId(sourced, cjSourcingId);
 
-      if (!cjProductId && !cjVariantId) {
+      const cjVariantId =
+        sourced.variantId ||
+        sourced.variant_id ||
+        sourced.cjVariantId ||
+        sourced.cj_variant_id ||
+        '';
+
+      const cjVariantSku =
+        sourced.cjVariantSku ||
+        sourced.cj_variant_sku ||
+        sourced.variantSku ||
+        sourced.variant_sku ||
+        '';
+
+      const sourceStatus =
+        sourced.sourceStatus ||
+        sourced.source_status ||
+        sourced.status ||
+        '';
+
+      const sourceStatusText =
+        sourced.sourceStatusStr ||
+        sourced.source_status_text ||
+        sourced.statusText ||
+        sourced.status_text ||
+        sourced.message ||
+        '';
+
+      if (!cjProductId) {
         status.textContent =
           'CJ has not returned a sourced product yet. Please check again later.';
 
@@ -1092,13 +1110,14 @@
         if (existingCard) {
           existingCard.innerHTML = `
             <strong>CJ sourcing still pending</strong><br>
+            CJ sourcing ID: ${escapeHtml(String(cjSourcingId))}<br>
             Status: ${escapeHtml(sourceStatus || 'Pending')}<br>
             ${
               sourceStatusText
                 ? `Message: ${escapeHtml(sourceStatusText)}<br>`
                 : ''
             }
-            Please check again later.
+            No CJ product ID has been assigned yet. Please check again later.
           `;
         }
 
