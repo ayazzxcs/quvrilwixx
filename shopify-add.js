@@ -1,4 +1,4 @@
-content = r'''(function () {
+(function () {
   function getParam(name) {
     return new URLSearchParams(window.location.search).get(name);
   }
