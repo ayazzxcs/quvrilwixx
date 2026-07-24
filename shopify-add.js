@@ -113,6 +113,39 @@
     };
   }
 
+  function formatApiError(value) {
+    if (!value) return 'Unknown error';
+
+    if (typeof value === 'string') return value;
+
+    try {
+      if (value.message) return value.message;
+      if (value.error) return formatApiError(value.error);
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function appendImage(parent, imageUrl, altText) {
+    if (!imageUrl) return;
+
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.alt = altText || 'Supplier product image';
+    img.loading = 'lazy';
+    parent.appendChild(img);
+  }
+
   function createStyles() {
     if (document.getElementById('quvirl-shopify-styles')) return;
 
@@ -499,7 +532,8 @@
         const shop = normalizeShop(input.value);
 
         if (!shop || !/^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(shop)) {
-          status.textContent = 'Please enter a valid Shopify store domain, for example example-store.myshopify.com.';
+          status.textContent =
+            'Please enter a valid Shopify store domain, for example example-store.myshopify.com.';
           status.classList.add('qv-show');
           return;
         }
@@ -509,8 +543,10 @@
 
         const authUrl =
           '/api/shopify/auth' +
-          '?shop=' + encodeURIComponent(shop) +
-          '&returnUrl=' + encodeURIComponent(window.location.href);
+          '?shop=' +
+          encodeURIComponent(shop) +
+          '&returnUrl=' +
+          encodeURIComponent(window.location.href);
 
         window.location.href = authUrl;
       });
@@ -631,7 +667,7 @@
 
         await submitCJSourcingRequest(product);
       } catch (error) {
-        status.textContent = 'Failed to check CJ connection: ' + error.message;
+        status.textContent = 'Failed to check CJ connection: ' + formatApiError(error);
         renderCJConnectCard(product);
       }
 
@@ -664,11 +700,12 @@
       }
 
       if (!response.ok || !result.ok) {
-        throw new Error(result.error ? JSON.stringify(result.error) : 'AliExpress search failed');
+        throw new Error(formatApiError(result.error || result));
       }
 
       if (!result.options || !result.options.length) {
-        status.textContent = 'No AliExpress supplier options found. Try editing the product title or search keyword later.';
+        status.textContent =
+          'No AliExpress supplier options found. Try editing the product title or search keyword later.';
         return;
       }
 
@@ -680,7 +717,7 @@
       status.textContent = 'Select one AliExpress supplier option to continue.';
       renderSupplierOptions(normalized, 'aliexpress');
     } catch (error) {
-      status.textContent = 'Failed to load supplier options: ' + error.message;
+      status.textContent = 'Failed to load supplier options: ' + formatApiError(error);
     }
   }
 
@@ -717,16 +754,6 @@
     }
 
     return result;
-  }
-
-  function appendImage(parent, imageUrl, altText) {
-    if (!imageUrl) return;
-
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    img.alt = altText || 'Supplier product image';
-    img.loading = 'lazy';
-    parent.appendChild(img);
   }
 
   function renderCJConnectCard(product) {
@@ -799,7 +826,7 @@
 
         await submitCJSourcingRequest(product);
       } catch (error) {
-        status.textContent = 'Failed to connect CJ: ' + error.message;
+        status.textContent = 'Failed to connect CJ: ' + formatApiError(error);
         button.disabled = false;
       }
     });
@@ -836,7 +863,7 @@
     }
 
     if (!response.ok || !result.ok) {
-      throw new Error(result.error ? JSON.stringify(result.error) : 'CJ connection failed');
+      throw new Error(formatApiError(result.error || result));
     }
 
     return result;
@@ -891,7 +918,7 @@
     }
 
     if (!response.ok || !result.ok) {
-      throw new Error(result.error ? JSON.stringify(result.error) : 'CJ sourcing request failed');
+      throw new Error(formatApiError(result.error || result));
     }
 
     cjSourcingCache.set(cacheKey, result);
@@ -1012,7 +1039,7 @@
       }
 
       if (!response.ok || !result.ok) {
-        throw new Error(result.error ? JSON.stringify(result.error) : 'CJ sourcing query failed');
+        throw new Error(formatApiError(result.error || result));
       }
 
       const sourced = result.result || {};
@@ -1023,7 +1050,8 @@
       const sourceStatusText = sourced.sourceStatusStr || '';
 
       if (!cjProductId && !cjVariantId) {
-        status.textContent = 'CJ has not returned a sourced product yet. Please check again later.';
+        status.textContent =
+          'CJ has not returned a sourced product yet. Please check again later.';
 
         const existingCard = grid.querySelector('.qv-match');
 
@@ -1031,7 +1059,11 @@
           existingCard.innerHTML = `
             <strong>CJ sourcing still pending</strong><br>
             Status: ${escapeHtml(sourceStatus || 'Pending')}<br>
-            ${sourceStatusText ? `Message: ${escapeHtml(sourceStatusText)}<br>` : ''}
+            ${
+              sourceStatusText
+                ? `Message: ${escapeHtml(sourceStatusText)}<br>`
+                : ''
+            }
             Please check again later.
           `;
         }
@@ -1062,7 +1094,7 @@
       }
 
       if (!detailsResponse.ok || !details.ok || !details.selectedVariant) {
-        throw new Error(details.error || 'Could not fetch sourced CJ product details');
+        throw new Error(formatApiError(details.error || details));
       }
 
       const supplier = {
@@ -1078,7 +1110,10 @@
         variantId: cjVariantId || details.selectedVariant.vid,
         variantSku: cjVariantSku || details.selectedVariant.variantSku,
         variantKey: details.selectedVariant.variantKey || '',
-        selectedVariant: details.selectedVariant.variantKey || details.selectedVariant.variantName || '',
+        selectedVariant:
+          details.selectedVariant.variantKey ||
+          details.selectedVariant.variantName ||
+          '',
         variantStock: details.selectedVariant.stock || 0,
         fromCountryCode: 'CN',
         sourcingId: cjSourcingId
@@ -1087,7 +1122,7 @@
       status.textContent = 'CJ sourced supplier is ready. Review and select it.';
       renderSupplierOptions([supplier], 'cjdropshipping');
     } catch (error) {
-      status.textContent = 'Failed to check CJ sourcing result: ' + error.message;
+      status.textContent = 'Failed to check CJ sourcing result: ' + formatApiError(error);
     }
   }
 
@@ -1199,7 +1234,7 @@
     }
 
     if (!detailResponse.ok || !detailResult.ok || !detailResult.selectedSku) {
-      throw new Error(detailResult.error || 'Could not fetch AliExpress SKU details');
+      throw new Error(formatApiError(detailResult.error || detailResult));
     }
 
     supplier.platform = 'aliexpress';
@@ -1252,7 +1287,7 @@
     }
 
     if (!detailResponse.ok || !detailResult.ok || !detailResult.selectedVariant) {
-      throw new Error(detailResult.error || 'Could not fetch CJ variant details');
+      throw new Error(formatApiError(detailResult.error || detailResult));
     }
 
     const selected = detailResult.selectedVariant;
@@ -1332,7 +1367,7 @@
       const result = await response.json();
 
       if (!response.ok || !result.ok) {
-        throw new Error(result.error || JSON.stringify(result.errors || result));
+        throw new Error(formatApiError(result.error || result.errors || result));
       }
 
       if (result.status === 'exists') {
@@ -1343,7 +1378,7 @@
 
       setTimeout(closeSupplierModal, 1800);
     } catch (error) {
-      status.textContent = 'Failed to add product: ' + error.message;
+      status.textContent = 'Failed to add product: ' + formatApiError(error);
     }
   }
 
@@ -1409,15 +1444,6 @@
     wrap.appendChild(connection);
     wrap.appendChild(add);
     document.body.appendChild(wrap);
-  }
-
-  function escapeHtml(value) {
-    return String(value || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
   }
 
   function shouldShow() {
