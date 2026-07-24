@@ -642,8 +642,13 @@ jobs:
           const fs = require('fs');
           const path = require('path');
 
-          const SCRIPT_TAG = '<' + 'script src="/shopify-add.js"><' + '/script>';
-          const SCRIPT_REGEX = /\n?\s*<script\s+src=["']\/shopify-add\.js["']><\/script>\s*/gi;
+          const SCRIPT_TAG =
+            '<' + 'script src="/shopify-add.js?v=cj-pending-fix-5"><' + '/script>';
+
+          const SCRIPT_REGEX = new RegExp(
+            "\\n?\\s*<script\\s+src=[\"']/shopify-add\\.js(?:\\?[^\"']*)?[\"']></script>\\s*",
+            "gi"
+          );
 
           const SKIP_ROOT_FILES = new Set([
             'index.html',
@@ -655,62 +660,62 @@ jobs:
           ]);
 
           function walk(dir, files = []) {
-            if (!fs.existsSync(dir)) return files;
+          if (!fs.existsSync(dir)) return files;
 
-            for (const name of fs.readdirSync(dir)) {
-              const fullPath = path.join(dir, name);
-              const stat = fs.statSync(fullPath);
+          for (const name of fs.readdirSync(dir)) {
+          const fullPath = path.join(dir, name);
+          const stat = fs.statSync(fullPath);
+ 
+          if (stat.isDirectory()) 
+          if (
+            name === '.git' ||
+            name === 'node_modules' ||
+            name === '.vercel' ||
+            name === '.wrangler'
+          ) {
+            continue;
+          }
 
-              if (stat.isDirectory()) {
-                if (
-                  name === '.git' ||
-                  name === 'node_modules' ||
-                  name === '.vercel' ||
-                  name === '.wrangler'
-                ) {
-                  continue;
-                }
+          walk(fullPath, files);
+          } else if (name.endsWith('.html')) {
+          files.push(fullPath);
+          }
+          }
 
-                walk(fullPath, files);
-              } else if (name.endsWith('.html')) {
-                files.push(fullPath);
-              }
-            }
-
-            return files;
+          return files;
           }
 
           function patchHtml(filePath) {
-            const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-            const baseName = path.basename(filePath);
+          const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+          const baseName = path.basename(filePath);
 
-            if (SKIP_ROOT_FILES.has(relPath)) return false;
-            if (baseName.startsWith('google') && baseName.endsWith('.html')) return false;
+          if (SKIP_ROOT_FILES.has(relPath)) return false;
+          if (baseName.startsWith('google') && baseName.endsWith('.html')) return false;
 
-            let html = fs.readFileSync(filePath, 'utf8');
-            const original = html;
+          let html = fs.readFileSync(filePath, 'utf8');
+          const original = html;
 
-            html = html.replace(SCRIPT_REGEX, '\n');
+          html = html.replace(SCRIPT_REGEX, '\n');
 
-            if (!/<\/body>/i.test(html)) return false;
+          if (!/<\/body>/i.test(html)) return false;
 
-            html = html.replace(/<\/body>/i, `  ${SCRIPT_TAG}\n</body>`);
+          html = html.replace(/<\/body>/i, `  ${SCRIPT_TAG}\n</body>`);
 
-            if (html !== original) {
-              fs.writeFileSync(filePath, html, 'utf8');
-              return true;
-            }
+          if (html !== original) {
+           fs.writeFileSync(filePath, html, 'utf8');
+          return true;
+          }
 
-            return false;
+          return false;
           }
 
           let changed = 0;
 
           for (const filePath of walk(process.cwd())) {
             if (patchHtml(filePath)) {
-              changed++;
-              console.log('Added Shopify script:', path.relative(process.cwd(), filePath));
-            }
+            changed++;
+           console.log('Added Shopify script:', path.relative(process.cwd(), filePath));
+          }
           }
 
           console.log(`Shopify integration script patch complete. HTML files changed: ${changed}`);
