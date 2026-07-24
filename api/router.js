@@ -36,6 +36,12 @@ function getRoutePath(req) {
     .replace(/^\/+|\/+$/g, '');
 }
 
+function removeRouterOnlyQueryParams(req) {
+  if (!req.query) return;
+
+  delete req.query.path;
+}
+
 async function readRawBody(req) {
   const chunks = [];
 
@@ -57,7 +63,7 @@ async function parseBodyForRoute(req, routePath) {
   }
 
   const rawBodyBuffer = await readRawBody(req);
-  const rawBody = rawBodyBuffer.toString('utf8').trim();
+  const rawBody = rawBodyBuffer.toString('utf8');
 
   req.rawBody = rawBody;
 
@@ -68,11 +74,7 @@ async function parseBodyForRoute(req, routePath) {
 
   const contentType = String(req.headers['content-type'] || '').toLowerCase();
 
-  if (
-    contentType.includes('application/json') ||
-    rawBody.startsWith('{') ||
-    rawBody.startsWith('[')
-  ) {
+  if (contentType.includes('application/json')) {
     try {
       req.body = JSON.parse(rawBody);
     } catch {
@@ -102,6 +104,8 @@ module.exports = async function router(req, res) {
         route: routePath
       });
     }
+
+    removeRouterOnlyQueryParams(req);
 
     await parseBodyForRoute(req, routePath);
 
