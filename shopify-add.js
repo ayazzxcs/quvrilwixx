@@ -123,6 +123,7 @@
 
   function formatApiError(value) {
     if (!value) return 'Unknown error';
+
     if (typeof value === 'string') return value;
 
     try {
@@ -178,6 +179,15 @@
         font-weight: 900;
         cursor: pointer;
         box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+      }
+
+      .qv-shopify-btn:active {
+        transform: scale(0.98);
+      }
+
+      .qv-shopify-btn:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
       }
 
       .qv-shopify-connect {
@@ -1003,22 +1013,26 @@
   }
 
   function pickRealCJProductId(sourced, cjSourcingId) {
+    const sourceId = String(cjSourcingId || '').trim();
+
     const possibleIds = [
       sourced.cjProductId,
       sourced.cj_product_id,
       sourced.productPid,
+      sourced.product_pid,
       sourced.pid,
-      sourced.product_id,
-      sourced.productId,
       sourced.cjPid,
-      sourced.cj_pid
+      sourced.cj_pid,
+
+      // Only accept productId/product_id if it is not the same as sourcing ID.
+      sourced.productId,
+      sourced.product_id
     ]
       .map((value) => String(value || '').trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter((id) => id !== sourceId);
 
-    const sourceId = String(cjSourcingId || '').trim();
-
-    return possibleIds.find((id) => id && id !== sourceId) || '';
+    return possibleIds[0] || '';
   }
 
   async function checkCJSourcingResult(cjSourcingId) {
