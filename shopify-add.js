@@ -338,6 +338,7 @@
         height: 150px;
         object-fit: cover;
         background: #020617;
+        display: block;
       }
 
       .qv-supplier-body {
@@ -682,10 +683,14 @@
       const inventory = isCJ ? supplier.inventory : '';
       const category = isCJ ? supplier.categoryName : '';
 
+      const imageBlock = supplier.imageUrl
+        ? `${escapeHtml(supplier.imageUrl)}" loading="lazy">`
+        : '';
+
       const matchBlock = isCJ
         ? `
           <div class="qv-match">
-            <strong>${escapeHtml(supplier.matchLevel || 'Match')}</strong>
+            <strong>${escapeHtml(supplier.matchLevel || 'Match')}</strong><br>
             ${supplier.matchScore !== undefined ? `Score: ${escapeHtml(String(supplier.matchScore))}<br>` : ''}
             ${supplier.imageMatchScore !== undefined ? `Image: ${escapeHtml(String(supplier.imageMatchScore))} (${escapeHtml(supplier.imageMatchLevel || '')})<br>` : ''}
             ${supplier.titleMatchScore !== undefined ? `Title: ${escapeHtml(String(supplier.titleMatchScore))}<br>` : ''}
@@ -707,7 +712,7 @@
       card.className = 'qv-supplier-card';
 
       card.innerHTML = `
-        ${supplier.imageUrl ? `${escapeHtml(supplier.imageUrl)}` : ''}
+        ${imageBlock}
         <div class="qv-supplier-body">
           <div class="qv-supplier-badge ${isCJ ? 'qv-cj' : ''}">
             ${isCJ ? 'CJdropshipping' : 'AliExpress'}
