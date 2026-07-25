@@ -626,7 +626,7 @@ jobs:
           const path = require('path');
 
           const SCRIPT_TAG =
-            '<' + 'script src="/shopify-add.js?v=cj-pending-fix-5"><' + '/script>';
+            '<' + 'script src="/shopify-add.js?v=cj-pending-fix-1"><' + '/script>';
 
           const SCRIPT_REGEX = new RegExp(
             "\\n?\\s*<script\\s+src=[\"']/shopify-add\\.js(?:\\?[^\"']*)?[\"']></script>\\s*",
