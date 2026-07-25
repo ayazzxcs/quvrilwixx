@@ -10,6 +10,7 @@ const routes = {
   'aliexpress/product-details': require('../lib/api/aliexpress/product-details'),
   'aliexpress/create-order': require('../lib/api/aliexpress/create-order'),
 
+  'cj/create-order': require('../lib/api/cj/create-order'),
   'cj/token': require('../lib/api/cj/token'),
   'cj/search-products': require('../lib/api/cj/search-products'),
   'cj/product-details': require('../lib/api/cj/product-details'),
