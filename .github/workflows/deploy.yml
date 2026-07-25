@@ -172,18 +172,15 @@ jobs:
             let html = fs.readFileSync(filePath, 'utf8');
             const original = html;
 
-            // Always remove old Adcash from every page first, including homepage.
             html = html.replace(ADCASH_LIBRARY_REGEX, '\n');
             html = html.replace(ADCASH_BANNER_728_REGEX, '\n');
             html = html.replace(ADCASH_BANNER_336_REGEX, '\n');
             html = html.replace(OLD_AUTOTAG_BLOCK_REGEX, '\n');
 
-            // Remove old leftover zone IDs.
             html = html.replace(/11748834/g, '');
             html = html.replace(/11748766/g, '');
             html = html.replace(/ghbh1xtplz/g, '');
 
-            // Skip adding Adcash back to homepage/root legal pages.
             if (SKIP_ROOT_FILES.has(relPath)) {
               if (html !== original) {
                 fs.writeFileSync(filePath, html, 'utf8');
@@ -192,7 +189,6 @@ jobs:
               return false;
             }
 
-            // Skip Google verification files.
             if (baseName.startsWith('google') && baseName.endsWith('.html')) {
               if (html !== original) {
                 fs.writeFileSync(filePath, html, 'utf8');
@@ -209,10 +205,8 @@ jobs:
               return false;
             }
 
-            // Add Adcash library inside head.
             html = html.replace(/<\/head>/i, `${ADCASH_LIBRARY}\n</head>`);
 
-            // Add banner lower/downside, before footer if possible.
             if (/<footer[^>]*>/i.test(html)) {
               html = html.replace(/<footer/i, `${ADCASH_BANNER}\n<footer`);
             } else {
@@ -241,7 +235,7 @@ jobs:
 
           node patch-adcash-generated-pages.js
           rm patch-adcash-generated-pages.js
-        
+
       - name: Add CJdropshipping affiliate banners to Quvirl pages
         run: |
           cat > patch-cj-affiliate-banners.js <<'NODE'
@@ -254,21 +248,21 @@ jobs:
           const CJ_SHOPIFY_APP_URL = 'https://www.cjdropshipping.com/tempPage.html?token=d2d687f6-4fae-4758-9231-7c01dc4dce1d';
 
           function button(url, label, primary = false) {
-          const bg = primary ? '#16a34a' : '#0d1117';
-          const border = primary ? '#34d399' : '#30363d';
-          const color = primary ? '#001b0b' : '#f0f6fc';
+            const bg = primary ? '#16a34a' : '#0d1117';
+            const border = primary ? '#34d399' : '#30363d';
+            const color = primary ? '#001b0b' : '#f0f6fc';
 
-          const openA = '<' + 'a';
-          const closeA = '<' + '/a>';
+            const openA = '<' + 'a';
+            const closeA = '<' + '/a>';
 
-          return openA
-           + ' href="' + url + '"'
-           + ' target="_blank"'
-           + ' rel="nofollow sponsored noopener"'
-           + ' style="display:inline-flex;align-items:center;justify-content:center;padding:11px 14px;border-radius:12px;background:' + bg + ';border:1px solid ' + border + ';color:' + color + ';font-weight:800;text-decoration:none;font-size:14px;line-height:1;"'
-           + '>'
-           + label
-           + closeA;
+            return openA
+              + ' href="' + url + '"'
+              + ' target="_blank"'
+              + ' rel="nofollow sponsored noopener"'
+              + ' style="display:inline-flex;align-items:center;justify-content:center;padding:11px 14px;border-radius:12px;background:' + bg + ';border:1px solid ' + border + ';color:' + color + ';font-weight:800;text-decoration:none;font-size:14px;line-height:1;"'
+              + '>'
+              + label
+              + closeA;
           }
 
           const CJ_BLOCK = `
@@ -345,10 +339,8 @@ jobs:
             let html = fs.readFileSync(filePath, 'utf8');
             const original = html;
 
-            // Always remove old CJ banner first, even from homepage.
             html = html.replace(CJ_BLOCK_REGEX, '\n');
 
-            // Skip adding banner back to root homepage and root legal/contact pages.
             if (SKIP_ROOT_FILES.has(relPath)) {
               if (html !== original) {
                 fs.writeFileSync(filePath, html);
@@ -404,7 +396,7 @@ jobs:
 
           node patch-cj-affiliate-banners.js
           rm patch-cj-affiliate-banners.js
-            
+
       - name: Add correct Google Analytics tag to all HTML pages
         run: |
           cat > patch-google-analytics.js <<'NODE'
@@ -468,17 +460,10 @@ jobs:
               return false;
             }
 
-            // Remove any existing GA block, including the old wrong ID block.
             html = html.replace(GA_BLOCK_REGEX, '\n');
-
-            // Remove broken leftovers if they exist.
             html = html.replace(BROKEN_OLD_GA_REGEX, '');
             html = html.replace(BROKEN_NEW_GA_REGEX, '');
-
-            // Replace wrong ID if it exists anywhere else.
             html = html.replace(OLD_ID_REGEX, GA_ID);
-
-            // Add clean GA4 tag before closing head.
             html = html.replace(/<\/head>/i, `${GA_TAG}\n</head>`);
 
             if (html !== original) {
@@ -603,7 +588,7 @@ jobs:
 
           node patch-monetag-vignette.js
           rm patch-monetag-vignette.js
-    
+
       - name: Add Monetag verification meta tag
         run: |
           cat > patch-monetag-verification.js <<'NODE'
@@ -618,14 +603,12 @@ jobs:
 
           let html = fs.readFileSync(filePath, 'utf8');
 
-          // Remove old Monetag verification meta tag if it exists.
           html = html.replace(/<meta\s+name=["']monetag["'][^>]*>\s*/gi, '');
 
           if (!/<\/head>/i.test(html)) {
             throw new Error('No </head> tag found in index.html');
           }
 
-          // Add fresh Monetag verification tag before </head>.
           html = html.replace(/<\/head>/i, `  ${MONETAG_META}\n</head>`);
 
           fs.writeFileSync(filePath, html, 'utf8');
@@ -660,62 +643,62 @@ jobs:
           ]);
 
           function walk(dir, files = []) {
-          if (!fs.existsSync(dir)) return files;
+            if (!fs.existsSync(dir)) return files;
 
-          for (const name of fs.readdirSync(dir)) {
-          const fullPath = path.join(dir, name);
-          const stat = fs.statSync(fullPath);
- 
-          if (stat.isDirectory()) 
-          if (
-            name === '.git' ||
-            name === 'node_modules' ||
-            name === '.vercel' ||
-            name === '.wrangler'
-          ) {
-            continue;
-          }
+            for (const name of fs.readdirSync(dir)) {
+              const fullPath = path.join(dir, name);
+              const stat = fs.statSync(fullPath);
 
-          walk(fullPath, files);
-          } else if (name.endsWith('.html')) {
-          files.push(fullPath);
-          }
-          }
+              if (stat.isDirectory()) {
+                if (
+                  name === '.git' ||
+                  name === 'node_modules' ||
+                  name === '.vercel' ||
+                  name === '.wrangler'
+                ) {
+                  continue;
+                }
 
-          return files;
+                walk(fullPath, files);
+              } else if (name.endsWith('.html')) {
+                files.push(fullPath);
+              }
+            }
+
+            return files;
           }
 
           function patchHtml(filePath) {
-          const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
-          const baseName = path.basename(filePath);
+            const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+            const baseName = path.basename(filePath);
 
-          if (SKIP_ROOT_FILES.has(relPath)) return false;
-          if (baseName.startsWith('google') && baseName.endsWith('.html')) return false;
+            if (SKIP_ROOT_FILES.has(relPath)) return false;
+            if (baseName.startsWith('google') && baseName.endsWith('.html')) return false;
 
-          let html = fs.readFileSync(filePath, 'utf8');
-          const original = html;
+            let html = fs.readFileSync(filePath, 'utf8');
+            const original = html;
 
-          html = html.replace(SCRIPT_REGEX, '\n');
+            html = html.replace(SCRIPT_REGEX, '\n');
 
-          if (!/<\/body>/i.test(html)) return false;
+            if (!/<\/body>/i.test(html)) return false;
 
-          html = html.replace(/<\/body>/i, `  ${SCRIPT_TAG}\n</body>`);
+            html = html.replace(/<\/body>/i, `  ${SCRIPT_TAG}\n</body>`);
 
-          if (html !== original) {
-           fs.writeFileSync(filePath, html, 'utf8');
-          return true;
-          }
+            if (html !== original) {
+              fs.writeFileSync(filePath, html, 'utf8');
+              return true;
+            }
 
-          return false;
+            return false;
           }
 
           let changed = 0;
 
           for (const filePath of walk(process.cwd())) {
             if (patchHtml(filePath)) {
-            changed++;
-           console.log('Added Shopify script:', path.relative(process.cwd(), filePath));
-          }
+              changed++;
+              console.log('Added Shopify script:', path.relative(process.cwd(), filePath));
+            }
           }
 
           console.log(`Shopify integration script patch complete. HTML files changed: ${changed}`);
@@ -723,7 +706,7 @@ jobs:
 
           node patch-shopify-add-script.js
           rm patch-shopify-add-script.js
-      
+
       - name: Validate Quvirl output
         run: |
           set -euo pipefail
@@ -788,8 +771,8 @@ jobs:
 
           echo "Checking Adcash banner is not on homepage..."
           if grep -q 'Adcash Display Banner 728x90' index.html; then
-           echo "Adcash banner should not appear on homepage."
-           exit 1
+            echo "Adcash banner should not appear on homepage."
+            exit 1
           fi
 
           echo "Checking Adcash banner exists on generated pages..."
@@ -824,11 +807,11 @@ jobs:
             echo "Old Adcash AutoTag or 336x280 zone still exists."
             exit 1
           fi
- 
+
           echo "Checking CJ affiliate banner is not on homepage..."
           if grep -q 'Quvirl CJdropshipping Affiliate Banner' index.html; then
-          echo "CJ affiliate banner should not appear on homepage."
-          exit 1
+            echo "CJ affiliate banner should not appear on homepage."
+            exit 1
           fi
 
           echo "Checking CJ affiliate banner exists on generated pages..."
@@ -837,8 +820,8 @@ jobs:
             --exclude="index.html" \
             --exclude-dir=.git \
             --exclude-dir=node_modules; then
-          echo "CJ affiliate banner was not found on generated pages."
-          exit 1
+            echo "CJ affiliate banner was not found on generated pages."
+            exit 1
           fi
 
           echo "Checking CJ affiliate links use sponsored nofollow..."
@@ -847,15 +830,15 @@ jobs:
             --exclude="index.html" \
             --exclude-dir=.git \
             --exclude-dir=node_modules; then
-          echo "CJ affiliate sponsored nofollow attributes not found."
-          exit 1
+            echo "CJ affiliate sponsored nofollow attributes not found."
+            exit 1
           fi
 
           echo "Checking Monetag verification meta tag..."
           grep -q 'meta name="monetag" content="d344576bb6c59fcd0d1df124b80bb512"' index.html
 
           echo "Checking public Shopify integration script exists on generated pages..."
-          if ! grep -R -q '/shopify-add.js' . \
+          if ! grep -R -q '/shopify-add.js?v=cj-pending-fix-5' . \
             --include="*.html" \
             --exclude="index.html" \
             --exclude-dir=.git \
@@ -869,7 +852,7 @@ jobs:
             echo "Shopify integration script should not appear on homepage."
             exit 1
           fi
- 
+
           echo "Validation passed."
 
       - name: Commit generated Quvirl pages
@@ -884,7 +867,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No generated changes to commit"
           else
-            git commit -m "Fix Google Analytics measurement ID"
+            git commit -m "Refresh generated Quvirl pages"
             git pull --rebase origin main
             git push origin HEAD:main
           fi
