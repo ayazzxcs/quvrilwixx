@@ -941,7 +941,10 @@
 
     cjSourcingCache.set(cacheKey, result);
 
-    status.textContent = 'Exact CJ supplier sourcing request submitted.';
+    status.textContent = result.reused
+      ? 'Existing CJ supplier sourcing request found.'
+      : 'Exact CJ supplier sourcing request submitted.';
+
     renderCJSourcingSubmitted(result, product);
   }
 
@@ -950,6 +953,13 @@
     const grid = overlay.querySelector('.qv-supplier-grid');
 
     const cjSourcingId = result.cjSourcingId || '';
+    const cjSourceNumber =
+      result.cjSourceNumber ||
+      result.sourceNumber ||
+      result.cj_source_number ||
+      result.source_number ||
+      '';
+
     const sourcingRequestId = result.sourcingRequestId || '';
 
     grid.innerHTML = '';
@@ -970,11 +980,16 @@
       <p class="qv-supplier-title">${escapeHtml(product.title)}</p>
 
       <div class="qv-match">
-        <strong>Exact supplier request submitted</strong><br>
+        <strong>${result.reused ? 'Existing supplier request found' : 'Exact supplier request submitted'}</strong><br>
         CJ will source this product using the product image, title, and page URL.<br>
         ${
           cjSourcingId
             ? `CJ sourcing ID: ${escapeHtml(String(cjSourcingId))}<br>`
+            : ''
+        }
+        ${
+          cjSourceNumber
+            ? `CJ source number: ${escapeHtml(String(cjSourceNumber))}<br>`
             : ''
         }
         ${
@@ -991,8 +1006,12 @@
       </div>
 
       ${
-        cjSourcingId
-          ? `<button type="button" class="qv-supplier-select" data-cj-check="${escapeHtml(String(cjSourcingId))}">
+        cjSourcingId || cjSourceNumber
+          ? `<button
+              type="button"
+              class="qv-supplier-select"
+              data-cj-check="${escapeHtml(String(cjSourcingId))}"
+              data-cj-source-number="${escapeHtml(String(cjSourceNumber))}">
               Check CJ sourcing result
             </button>`
           : ''
@@ -1002,16 +1021,19 @@
     card.appendChild(body);
     grid.appendChild(card);
 
-    const checkButton = grid.querySelector('[data-cj-check]');
+    const checkButton = grid.querySelector('[data-cj-check], [data-cj-source-number]');
 
     if (checkButton) {
       checkButton.addEventListener('click', function () {
-        checkCJSourcingResult(cjSourcingId);
+        checkCJSourcingResult(
+          checkButton.getAttribute('data-cj-check') || '',
+          checkButton.getAttribute('data-cj-source-number') || ''
+        );
       });
     }
   }
 
-  async function checkCJSourcingResult(cjSourcingId) {
+  async function checkCJSourcingResult(cjSourcingId, cjSourceNumber = '') {
     const overlay = document.querySelector('.qv-supplier-overlay');
     const grid = overlay.querySelector('.qv-supplier-grid');
     const status = overlay.querySelector('.qv-status');
@@ -1025,7 +1047,16 @@
       if (existingCard) {
         existingCard.innerHTML = `
           <strong>CJ sourcing still pending</strong><br>
-          CJ sourcing ID: ${escapeHtml(String(cjSourcingId))}<br>
+          ${
+            cjSourcingId
+              ? `CJ sourcing ID: ${escapeHtml(String(cjSourcingId))}<br>`
+              : ''
+          }
+          ${
+            cjSourceNumber
+              ? `CJ source number: ${escapeHtml(String(cjSourceNumber))}<br>`
+              : ''
+          }
           Status: ${escapeHtml(sourceStatus || 'Pending')}<br>
           ${
             sourceStatusText
@@ -1037,8 +1068,8 @@
       }
     }
 
-    if (!cjSourcingId) {
-      status.textContent = 'Missing CJ sourcing ID.';
+    if (!cjSourcingId && !cjSourceNumber) {
+      status.textContent = 'Missing CJ sourcing ID or source number.';
       status.classList.add('qv-show');
       return;
     }
@@ -1064,7 +1095,8 @@
         body: JSON.stringify({
           shop,
           installToken,
-          cjSourcingId
+          cjSourcingId,
+          cjSourceNumber
         })
       });
 
@@ -1083,6 +1115,13 @@
 
       const sourced = result.result || {};
       const sourceId = String(cjSourcingId || '').trim();
+      const sourceNumber = String(
+        result.cjSourceNumber ||
+          sourced.cjSourceNumber ||
+          sourced.sourceNumber ||
+          cjSourceNumber ||
+          ''
+      ).trim();
 
       const sourceStatus =
         sourced.sourceStatus ||
@@ -1111,7 +1150,8 @@
       ]
         .map((value) => String(value || '').trim())
         .filter(Boolean)
-        .filter((id) => id !== sourceId);
+        .filter((id) => id !== sourceId)
+        .filter((id) => id !== sourceNumber);
 
       const cjProductId = possibleIds[0] || '';
 
@@ -1189,7 +1229,8 @@
           '',
         variantStock: details.selectedVariant.stock || 0,
         fromCountryCode: 'CN',
-        sourcingId: cjSourcingId
+        sourcingId: cjSourcingId,
+        cjSourceNumber: sourceNumber
       };
 
       status.textContent = 'CJ sourced supplier is ready. Review and select it.';
