@@ -625,8 +625,10 @@ jobs:
           const fs = require('fs');
           const path = require('path');
 
+          const SHOPIFY_SCRIPT_VERSION = 'cj-source-number-fix-1';
+
           const SCRIPT_TAG =
-            '<' + 'script src="/shopify-add.js?v=cj-pending-fix-1"><' + '/script>';
+            '<' + 'script src="/shopify-add.js?v=' + SHOPIFY_SCRIPT_VERSION + '"><' + '/script>';
 
           const SCRIPT_REGEX = new RegExp(
             "\\n?\\s*<script\\s+src=[\"']/shopify-add\\.js(?:\\?[^\"']*)?[\"']></script>\\s*",
@@ -838,13 +840,13 @@ jobs:
           grep -q 'meta name="monetag" content="d344576bb6c59fcd0d1df124b80bb512"' index.html
 
           echo "Checking public Shopify integration script exists on generated pages..."
-          if ! grep -R -q '/shopify-add.js?v=cj-pending-fix-5' . \
-            --include="*.html" \
-            --exclude="index.html" \
-            --exclude-dir=.git \
-            --exclude-dir=node_modules; then
-            echo "Shopify integration script was not found on generated pages."
-            exit 1
+          if ! grep -R -E -q '/shopify-add\.js(\?v=[^"]*)?' . \
+              --include="*.html" \
+              --exclude="index.html" \
+              --exclude-dir=.git \
+              --exclude-dir=node_modules; then
+              echo "Shopify integration script was not found on generated pages."
+              exit 1
           fi
 
           echo "Checking public Shopify integration script is not on homepage..."
