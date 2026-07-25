@@ -15,7 +15,9 @@ const routes = {
   'cj/search-products': require('../lib/api/cj/search-products'),
   'cj/product-details': require('../lib/api/cj/product-details'),
   'cj/create-sourcing': require('../lib/api/cj/create-sourcing'),
-  'cj/query-sourcing': require('../lib/api/cj/query-sourcing')
+  'cj/query-sourcing': require('../lib/api/cj/query-sourcing'),
+
+  'fulfillment/sync-status': require('../lib/api/fulfillment/sync-status')
 };
 
 function getRoutePath(req) {
