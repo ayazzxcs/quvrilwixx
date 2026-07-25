@@ -123,7 +123,6 @@
 
   function formatApiError(value) {
     if (!value) return 'Unknown error';
-
     if (typeof value === 'string') return value;
 
     try {
@@ -1012,33 +1011,31 @@
     }
   }
 
-  function pickRealCJProductId(sourced, cjSourcingId) {
-    const sourceId = String(cjSourcingId || '').trim();
-
-    const possibleIds = [
-      sourced.cjProductId,
-      sourced.cj_product_id,
-      sourced.productPid,
-      sourced.product_pid,
-      sourced.pid,
-      sourced.cjPid,
-      sourced.cj_pid,
-
-      // Only accept productId/product_id if it is not the same as sourcing ID.
-      sourced.productId,
-      sourced.product_id
-    ]
-      .map((value) => String(value || '').trim())
-      .filter(Boolean)
-      .filter((id) => id !== sourceId);
-
-    return possibleIds[0] || '';
-  }
-
   async function checkCJSourcingResult(cjSourcingId) {
     const overlay = document.querySelector('.qv-supplier-overlay');
     const grid = overlay.querySelector('.qv-supplier-grid');
     const status = overlay.querySelector('.qv-status');
+
+    function showCJPending(sourceStatus, sourceStatusText) {
+      status.textContent =
+        'CJ has not returned a sourced product yet. Please check again later.';
+
+      const existingCard = grid.querySelector('.qv-match');
+
+      if (existingCard) {
+        existingCard.innerHTML = `
+          <strong>CJ sourcing still pending</strong><br>
+          CJ sourcing ID: ${escapeHtml(String(cjSourcingId))}<br>
+          Status: ${escapeHtml(sourceStatus || 'Pending')}<br>
+          ${
+            sourceStatusText
+              ? `Message: ${escapeHtml(sourceStatusText)}<br>`
+              : ''
+          }
+          No real CJ product ID has been assigned yet. Please check again later.
+        `;
+      }
+    }
 
     if (!cjSourcingId) {
       status.textContent = 'Missing CJ sourcing ID.';
@@ -1085,21 +1082,7 @@
       }
 
       const sourced = result.result || {};
-      const cjProductId = pickRealCJProductId(sourced, cjSourcingId);
-
-      const cjVariantId =
-        sourced.variantId ||
-        sourced.variant_id ||
-        sourced.cjVariantId ||
-        sourced.cj_variant_id ||
-        '';
-
-      const cjVariantSku =
-        sourced.cjVariantSku ||
-        sourced.cj_variant_sku ||
-        sourced.variantSku ||
-        sourced.variant_sku ||
-        '';
+      const sourceId = String(cjSourcingId || '').trim();
 
       const sourceStatus =
         sourced.sourceStatus ||
@@ -1115,26 +1098,39 @@
         sourced.message ||
         '';
 
+      const possibleIds = [
+        sourced.cjProductId,
+        sourced.cj_product_id,
+        sourced.productPid,
+        sourced.product_pid,
+        sourced.pid,
+        sourced.cjPid,
+        sourced.cj_pid,
+        sourced.productId,
+        sourced.product_id
+      ]
+        .map((value) => String(value || '').trim())
+        .filter(Boolean)
+        .filter((id) => id !== sourceId);
+
+      const cjProductId = possibleIds[0] || '';
+
+      const cjVariantId =
+        sourced.variantId ||
+        sourced.variant_id ||
+        sourced.cjVariantId ||
+        sourced.cj_variant_id ||
+        '';
+
+      const cjVariantSku =
+        sourced.cjVariantSku ||
+        sourced.cj_variant_sku ||
+        sourced.variantSku ||
+        sourced.variant_sku ||
+        '';
+
       if (!cjProductId) {
-        status.textContent =
-          'CJ has not returned a sourced product yet. Please check again later.';
-
-        const existingCard = grid.querySelector('.qv-match');
-
-        if (existingCard) {
-          existingCard.innerHTML = `
-            <strong>CJ sourcing still pending</strong><br>
-            CJ sourcing ID: ${escapeHtml(String(cjSourcingId))}<br>
-            Status: ${escapeHtml(sourceStatus || 'Pending')}<br>
-            ${
-              sourceStatusText
-                ? `Message: ${escapeHtml(sourceStatusText)}<br>`
-                : ''
-            }
-            No CJ product ID has been assigned yet. Please check again later.
-          `;
-        }
-
+        showCJPending(sourceStatus, sourceStatusText);
         return;
       }
 
@@ -1161,7 +1157,17 @@
       }
 
       if (!detailsResponse.ok || !details.ok || !details.selectedVariant) {
-        throw new Error(formatApiError(details.error || details));
+        const errorText = formatApiError(details.error || details);
+
+        if (
+          errorText.toLowerCase().includes('product not found') ||
+          errorText.toLowerCase().includes('not found')
+        ) {
+          showCJPending(sourceStatus, sourceStatusText);
+          return;
+        }
+
+        throw new Error(errorText);
       }
 
       const supplier = {
