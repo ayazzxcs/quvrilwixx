@@ -28,11 +28,5 @@
       "source": "/api/:path+",
       "destination": "/api/router"
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/fulfillment/sync-status",
-      "schedule": "0 * * * *"
-    }
   ]
 }
