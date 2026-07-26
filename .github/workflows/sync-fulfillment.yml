@@ -1,0 +1,27 @@
+name: Sync Quvirl Fulfillment Status
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Runs every hour in UTC
+    - cron: "17 * * * *"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Call Quvirl fulfillment sync endpoint
+        env:
+          QUVIRL_INTERNAL_API_KEY: ${{ secrets.QUVIRL_INTERNAL_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${QUVIRL_INTERNAL_API_KEY:-}" ]; then
+            echo "Missing QUVIRL_INTERNAL_API_KEY secret in GitHub repository secrets."
+            exit 1
+          fi
+
+          curl -fS \
+            -H "X-Quvirl-Internal-Key: ${QUVIRL_INTERNAL_API_KEY}" \
+            "https://quvirl.com/api/fulfillment/sync-status"
