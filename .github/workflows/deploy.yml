@@ -2,11 +2,20 @@ name: Build Quvirl
 
 on:
   workflow_dispatch:
+    inputs:
+      slot_reservation:
+        description: "Enable slot reservation"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
+          - "keep"
   push:
     branches:
       - main
   schedule:
-    # Rebuild every 1 hour to pull latest backend products.json
     - cron: "0 * * * *"
 
 permissions:
@@ -25,6 +34,25 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Resolve slot reservation state
+        run: |
+          set -euo pipefail
+
+          INPUT_SLOT="${{ github.event.inputs.slot_reservation }}"
+
+          if [ "${INPUT_SLOT}" = "true" ] || [ "${INPUT_SLOT}" = "false" ]; then
+            echo "ENABLE_SLOT_RESERVATION=${INPUT_SLOT}" > .slot-feature
+            echo "ENABLE_SLOT_RESERVATION=${INPUT_SLOT}" >> "$GITHUB_ENV"
+            echo "Slot reservation set to: ${INPUT_SLOT}"
+          elif [ -f .slot-feature ]; then
+            cat .slot-feature >> "$GITHUB_ENV"
+            echo "Loaded existing slot reservation state from .slot-feature"
+          else
+            echo "ENABLE_SLOT_RESERVATION=false" > .slot-feature
+            echo "ENABLE_SLOT_RESERVATION=false" >> "$GITHUB_ENV"
+            echo "Slot reservation defaulted to false"
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -90,6 +118,8 @@ jobs:
           node patch-seo-vercel.js
 
       - name: Apply email verified slot access gate
+        env:
+          ENABLE_SLOT_RESERVATION: ${{ env.ENABLE_SLOT_RESERVATION }}
         run: |
           node patch-slot-access.js
 
@@ -742,11 +772,28 @@ jobs:
             exit 1
           fi
 
-          echo "Checking slot access script on homepage..."
-          grep -q 'slot-access.js' index.html
+          echo "Checking slot reservation state..."
+          echo "ENABLE_SLOT_RESERVATION=${ENABLE_SLOT_RESERVATION:-false}"
 
-          echo "Checking slot access script on product template..."
-          grep -q 'slot-access.js' product.html
+          if [ "${ENABLE_SLOT_RESERVATION:-false}" = "true" ]; then
+            echo "Checking slot access script on homepage..."
+            grep -q 'slot-access.js' index.html
+
+            echo "Checking slot access script on product template..."
+            grep -q 'slot-access.js' product.html
+          else
+            echo "Slot reservation disabled. Checking slot script is not injected..."
+
+            if grep -q 'slot-access.js' index.html; then
+              echo "slot-access.js found on homepage while slot reservation is disabled."
+              exit 1
+            fi
+
+            if grep -q 'slot-access.js' product.html; then
+              echo "slot-access.js found on product template while slot reservation is disabled."
+              exit 1
+            fi
+          fi
 
           echo "Checking verification page..."
           test -f slot-verify.html
