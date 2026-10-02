@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0C447C">
+<meta property="og:image" content="https://quvirl.com/logo.png">
+<meta name="twitter:image" content="https://quvirl.com/logo.png">
+<title>Introduction & How It Works | Quvirl</title>
+<link rel="canonical" href="https://quvirl.com/intro">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:url" content="https://quvirl.com/intro">
+<meta name="description" content="Discover how Quvirl works. Track real Google Trends search signals, Amazon market demand, and supplier data to spot breakout dropshipping products before anyone else.">
+<style>
+  :root{--bg:#0f172a;--card:#111827;--text:#e5e7eb;--muted:#9ca3af;--line:#263143;--brand:#58a6ff;--accent:#22c55e;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#0f172a,#111827);color:var(--text);line-height:1.65}
+  a{color:inherit}
+  .wrap{width:min(940px,92%);margin:auto}
+  .siteHeader{padding:20px 0;border-bottom:1px solid var(--line);background:rgba(15,23,42,.85);position:sticky;top:0;backdrop-filter:blur(10px);z-index:100}
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .logo{font-weight:900;font-size:24px;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .logo .brandQu{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;}
+  .logo .brandVirl{color:#58a6ff!important;-webkit-text-fill-color:#58a6ff!important;}
+  .links{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .links a{color:var(--muted);text-decoration:none;font-size:14px;transition:color .2s}
+  .links a:hover,.links a.active{color:#fff}
+  .hero{padding:42px 0 28px}
+  .card{background:rgba(17,24,39,.78);border:1px solid var(--line);border-radius:22px;padding:28px;margin:22px 0;box-shadow:0 18px 60px rgba(0,0,0,.22)}
+  h1{font-size:clamp(32px,6vw,48px);line-height:1.1;margin:0 0 14px;letter-spacing:-.8px}
+  h2{margin:0 0 12px;color:#f8fafc;font-size:24px}
+  h3{margin:0 0 6px;color:#fff;font-size:18px}
+  .muted,p,li{color:#cbd5e1}
+  .small{font-size:13px;color:var(--muted)}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.32);color:#58a6ff;font-size:13px;font-weight:800;margin-bottom:14px}
+  
+  /* How it works steps */
+  .stepsGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0 10px}
+  .stepCard{background:rgba(15,23,42,.65);border:1px solid var(--line);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:8px}
+  .stepIcon{font-size:26px;display:inline-block;margin-bottom:2px}
+  .stepCard h3{font-size:17px;font-weight:800;color:#fff}
+  .stepCard p{font-size:14px;margin:0;line-height:1.55;color:#94a3b8}
+
+  /* Signup Security Box */
+  .authBox{background:linear-gradient(180deg,rgba(17,24,39,.95),rgba(15,23,42,.98));border:1.5px solid rgba(88,166,255,.35);box-shadow:0 24px 70px rgba(0,0,0,.45);border-radius:22px;padding:32px;margin:32px 0;position:relative;overflow:hidden}
+  .authBox::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#58a6ff,#22c55e)}
+  .authBox h2{font-size:26px;font-weight:900;margin-bottom:6px}
+  .authSub{color:#94a3b8;font-size:14px;margin-bottom:20px}
+  .formGroup{margin-bottom:14px}
+  .formGroup label{display:block;font-size:12px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  .formGroup input,.formGroup select{width:100%;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:#0b1020;color:#fff;font-size:14px;transition:border-color .2s;outline:none}
+  .formGroup input:focus,.formGroup select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(88,166,255,.18)}
+  .authBtn{width:100%;padding:15px;border:0;border-radius:12px;background:linear-gradient(135deg,#22c55e,#14b8a6);color:#04110c;font-weight:900;font-size:16px;cursor:pointer;transition:transform .15s,opacity .15s;margin-top:8px}
+  .authBtn:hover{opacity:.95;transform:translateY(-1px)}
+  .authBtn:active{transform:translateY(0)}
+  .authBtn:disabled{opacity:.6;cursor:not-allowed}
+  .alertBox{display:none;padding:12px 14px;border-radius:12px;margin-top:14px;font-size:13px;line-height:1.45}
+  .alertBox.success{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.35);color:#4ade80}
+  .alertBox.error{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);color:#f87171}
+  .authFooter{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px;color:var(--muted);flex-wrap:wrap;gap:8px}
+  .authFooter a{color:var(--brand);text-decoration:none;font-weight:700}
+  .authFooter a:hover{text-decoration:underline}
+  .signedInNotice{display:none;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:14px;padding:16px;margin-bottom:20px;text-align:center}
+  .signedInNotice b{color:#4ade80;display:block;font-size:16px;margin-bottom:4px}
+
+  .siteFooter{margin-top:40px;padding:28px 0;border-top:1px solid var(--line);color:var(--muted)}
+  .footerLinks{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+  .footerLinks a{text-decoration:none;color:#cbd5e1}
+  @media(max-width:640px){
+    .nav{align-items:flex-start;flex-direction:column}
+    .card,.authBox{padding:20px}
+    .hero{padding-top:24px}
+    .stepsGrid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<header class="siteHeader">
+  <div class="wrap nav">
+    <a class="logo" href="/" aria-label="Quvirl Home">
+      <span class="brandQu">Qu</span><span class="brandVirl">virl</span>
+    </a>
+    <nav class="links">
+      <a href="/intro.html" class="active">How It Works</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/terms.html">Terms</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap hero">
+  <div id="signedInNotice" class="signedInNotice">
+    <b>✓ You are already a verified member</b>
+    <p style="margin:0 0 10px 0;font-size:13px;color:#cbd5e1">Your device has full access to the Quvirl Product Radar.</p>
+    <a href="/" style="display:inline-block;padding:10px 20px;background:#22c55e;color:#04110c;font-weight:800;border-radius:10px;text-decoration:none;font-size:14px">Open Product Radar →</a>
+  </div>
+
+  <section class="card">
+    <div class="badge">🛡️ Platform Overview & Security Access</div>
+    <h1>How Quvirl Works</h1>
+    <p style="font-size:17px;line-height:1.6;margin-bottom:20px;">
+      Quvirl is a real-time product demand intelligence radar built specifically for dropshippers, ecommerce entrepreneurs, and retail brands. We detect rising product demand from real search queries before markets become saturated.
+    </p>
+
+    <h2>The 4-Step Intelligence Workflow</h2>
+    <div class="stepsGrid">
+      <div class="stepCard">
+        <span class="stepIcon">📈</span>
+        <h3>1. Real Google Trends Signals</h3>
+        <p>We monitor live search queries across global markets to identify breakout volume spikes and sustained interest before competitors run ads on them.</p>
+      </div>
+      <div class="stepCard">
+        <span class="stepIcon">🛒</span>
+        <h3>2. Amazon Demand Validation</h3>
+        <p>Curiosity is validated with real marketplace buying intent. We cross-reference Amazon bestseller search volume, buyer reviews, and pricing data.</p>
+      </div>
+      <div class="stepCard">
+        <span class="stepIcon">🏭</span>
+        <h3>3. Direct Supplier Matching</h3>
+        <p>Every trending item is linked directly to vetted suppliers from CJdropshipping and AliExpress with accurate unit costs, real inventory, and shipping options.</p>
+      </div>
+      <div class="stepCard">
+        <span class="stepIcon">💰</span>
+        <h3>4. Live Profit & Margin Radar</h3>
+        <p>Calculate realistic margins (typically 50%–75%), check break-even advertising costs, and sync winning products straight to your Shopify store.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sign Up / Access Card -->
+  <section class="authBox" id="authSection">
+    <h2 id="authHeading">Create Your Free Account</h2>
+    <p class="authSub" id="authSubheading">
+      To protect product opportunities from automated web scrapers, complete this 10-second free signup to unlock instant, unrestricted access to the full Quvirl database.
+    </p>
+
+    <form id="authForm">
+      <div class="formGroup" id="nameGroup">
+        <label for="userName">Full Name or Store Name</label>
+        <input type="text" id="userName" placeholder="e.g. Alex Morgan or TrendyStore" required autocomplete="name">
+      </div>
+
+      <div class="formGroup">
+        <label for="userEmail">Work / Business Email</label>
+        <input type="email" id="userEmail" placeholder="e.g. name@company.com" required autocomplete="email">
+      </div>
+
+      <div class="formGroup">
+        <label for="userPassword">Password</label>
+        <input type="password" id="userPassword" placeholder="Create a secure password (min 6 characters)" minlength="6" required autocomplete="current-password">
+      </div>
+
+      <div class="formGroup" id="storeGroup">
+        <label for="storeType">Primary Ecommerce Channel</label>
+        <select id="storeType">
+          <option value="Shopify Dropshipping">Shopify Dropshipping</option>
+          <option value="TikTok Shop">TikTok Shop</option>
+          <option value="Amazon FBA / Retail">Amazon FBA / Retail</option>
+          <option value="WooCommerce">WooCommerce</option>
+          <option value="General Ecommerce">Other / Exploring</option>
+        </select>
+      </div>
+
+      <button type="submit" class="authBtn" id="submitBtn">Sign Up & Unlock Winning Products →</button>
+      <div class="alertBox" id="alertBox"></div>
+    </form>
+
+    <div class="authFooter">
+      <span id="togglePrompt">Already have an account? <a href="#" id="toggleMode">Sign In</a></span>
+      <span style="font-size:12px;color:#64748b">🔒 100% Free Access • No Credit Card Required</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Why Gated Access?</h2>
+    <p>
+      Winning dropshipping products lose their profitability when thousands of automated bots scrape suppliers simultaneously. By requiring a verified user account, Quvirl protects product trends for legitimate sellers and maintains fast, high-performance database access for our community.
+    </p>
+    <h2>Independent Platform</h2>
+    <p>
+      Quvirl is an independent product research radar and is not affiliated with, endorsed by, or sponsored by Google, Amazon, CJdropshipping, or AliExpress.
+    </p>
+  </section>
+</main>
+
+<footer class="siteFooter">
+  <div class="wrap">
+    <div class="footerLinks">
+      <a href="/intro.html">How It Works</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/terms.html">Terms</a>
+    </div>
+    <p class="small">Quvirl is an independent product research platform and is not affiliated with, endorsed by, or sponsored by Amazon, Google, CJdropshipping, AliExpress, or any other third-party platform.</p>
+  </div>
+</footer>
+
+<script>
+  (function() {
+    var isSignInMode = false;
+    var form = document.getElementById('authForm');
+    var toggleBtn = document.getElementById('toggleMode');
+    var heading = document.getElementById('authHeading');
+    var sub = document.getElementById('authSubheading');
+    var submitBtn = document.getElementById('submitBtn');
+    var nameGroup = document.getElementById('nameGroup');
+    var storeGroup = document.getElementById('storeGroup');
+    var alertBox = document.getElementById('alertBox');
+    var signedInNotice = document.getElementById('signedInNotice');
+    var nameInput = document.getElementById('userName');
+    var emailInput = document.getElementById('userEmail');
+    var passInput = document.getElementById('userPassword');
+    var storeSelect = document.getElementById('storeType');
+
+    // Check if already signed in
+    var isAuth = localStorage.getItem('quvirl_authenticated') === 'true' || !!localStorage.getItem('quvirl_user');
+    if (isAuth) {
+      signedInNotice.style.display = 'block';
+    }
+
+    // Toggle between Sign Up and Sign In
+    toggleBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      isSignInMode = !isSignInMode;
+      if (isSignInMode) {
+        heading.textContent = 'Sign In to Quvirl';
+        sub.textContent = 'Welcome back! Enter your email and password to access your Product Radar.';
+        submitBtn.textContent = 'Sign In & Open Radar →';
+        nameGroup.style.display = 'none';
+        storeGroup.style.display = 'none';
+        nameInput.removeAttribute('required');
+        toggleBtn.textContent = 'Create an account';
+        document.getElementById('togglePrompt').childNodes[0].textContent = "Don't have an account yet? ";
+      } else {
+        heading.textContent = 'Create Your Free Account';
+        sub.textContent = 'To protect product opportunities from automated web scrapers, complete this 10-second free signup to unlock instant, unrestricted access to the full Quvirl database.';
+        submitBtn.textContent = 'Sign Up & Unlock Winning Products →';
+        nameGroup.style.display = 'block';
+        storeGroup.style.display = 'block';
+        nameInput.setAttribute('required', 'required');
+        toggleBtn.textContent = 'Sign In';
+        document.getElementById('togglePrompt').childNodes[0].textContent = "Already have an account? ";
+      }
+      alertBox.style.display = 'none';
+    });
+
+    // Handle Submission
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = emailInput.value.trim().toLowerCase();
+      var pass = passInput.value;
+      var name = nameInput.value.trim() || email.split('@')[0];
+      var store = storeSelect ? storeSelect.value : 'Shopify';
+
+      if (!email || !email.includes('@')) {
+        showAlert('Please enter a valid email address.', true);
+        return;
+      }
+      if (pass.length < 6) {
+        showAlert('Password must be at least 6 characters.', true);
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = isSignInMode ? 'Authenticating...' : 'Creating Account...';
+
+      setTimeout(function() {
+        var userData = {
+          name: name,
+          email: email,
+          storeType: store,
+          signedUpAt: new Date().toISOString()
+        };
+
+        try {
+          localStorage.setItem('quvirl_user', JSON.stringify(userData));
+          localStorage.setItem('quvirl_authenticated', 'true');
+          localStorage.setItem('quvirl_slot_has_access', 'true');
+          localStorage.setItem('quvirl_slot_device_id', 'usr_' + Date.now().toString(36));
+        } catch (err) {
+          console.error(err);
+        }
+
+        showAlert(isSignInMode ? '✓ Welcome back! Opening Product Radar...' : '✓ Account verified! Redirecting to Quvirl Product Radar...', false);
+
+        setTimeout(function() {
+          window.location.replace('/');
+        }, 600);
+      }, 500);
+    });
+
+    function showAlert(msg, isError) {
+      alertBox.textContent = msg;
+      alertBox.className = 'alertBox ' + (isError ? 'error' : 'success');
+      alertBox.style.display = 'block';
+      if (isError) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = isSignInMode ? 'Sign In & Open Radar →' : 'Sign Up & Unlock Winning Products →';
+      }
+    }
+  })();
+</script>
+</body>
+</html>

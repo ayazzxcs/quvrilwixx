@@ -5,6 +5,16 @@
 <meta charset="utf-8"/>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta content="width=980" name="viewport"/>
+<script>
+  (function() {
+    try {
+      var isAuth = localStorage.getItem('quvirl_authenticated') === 'true' || !!localStorage.getItem('quvirl_user');
+      if (!isAuth) {
+        window.location.replace('/intro.html');
+      }
+    } catch (e) {}
+  })();
+</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7252235831334562"
      crossorigin="anonymous"></script>
 
@@ -1630,10 +1640,12 @@ html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!import
   <div class="menuSubTitle">Site Pages</div>
   <div class="menuGroup">
     <a class="menuItem" href="/"><div class="menuItemLeft"><div class="menuIcon">🏠</div><div><b>Home</b><span>Back to Quvirl homepage</span></div></div><div class="chev">›</div></a>
+    <a class="menuItem" href="/intro.html"><div class="menuItemLeft"><div class="menuIcon">✨</div><div><b>How It Works</b><span>Platform overview & workflow</span></div></div><div class="chev">›</div></a>
     <a class="menuItem" href="/about.html"><div class="menuItemLeft"><div class="menuIcon">ℹ️</div><div><b>About Us</b><span>Learn what Quvirl does</span></div></div><div class="chev">›</div></a>
     <a class="menuItem" href="/privacy.html"><div class="menuItemLeft"><div class="menuIcon">🔒</div><div><b>Privacy Policy</b><span>How data and cookies are used</span></div></div><div class="chev">›</div></a>
     <a class="menuItem" href="/contact.html"><div class="menuItemLeft"><div class="menuIcon">✉️</div><div><b>Contact Us</b><span>Support and business inquiries</span></div></div><div class="chev">›</div></a>
     <a class="menuItem" href="/terms.html"><div class="menuItemLeft"><div class="menuIcon">📄</div><div><b>Terms of Service</b><span>Website usage terms</span></div></div><div class="chev">›</div></a>
+    <a class="menuItem" href="javascript:void(0)" onclick="quvirlSignOut()"><div class="menuItemLeft"><div class="menuIcon">🚪</div><div><b>Sign Out</b><span>Log out on this device</span></div></div><div class="chev">›</div></a>
   </div>
 </aside>
 
@@ -1646,7 +1658,10 @@ html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!import
 <rect x="10" y="34" width="13" height="13" rx="3" fill="#B5D4F4"/>
 </svg></div><span><span class="brandQu">Qu</span><span class="brandVirl">virl</span></span></div>
   </div>
-  <div class="navPill">🔥 Winning product finder</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="navPill">🔥 Winning product finder</div>
+    <button type="button" class="navPill" onclick="quvirlSignOut()" title="Click to Sign Out" style="cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#cbd5e1" id="navUserBadge">👤 Account</button>
+  </div>
 </nav>
 
 <section class="hero">
@@ -3288,5 +3303,24 @@ initProductBackgroundSlideshow();
   </script>
   <!-- End Monetag Vignette Banner -->
   <script src="/shopify-add.js?v=cj-source-number-fix-1"></script>
+  <script>
+    window.quvirlSignOut = function() {
+      try {
+        localStorage.removeItem('quvirl_authenticated');
+        localStorage.removeItem('quvirl_user');
+        localStorage.removeItem('quvirl_slot_has_access');
+      } catch (e) {}
+      window.location.replace('/intro.html');
+    };
+    (function() {
+      try {
+        var u = JSON.parse(localStorage.getItem('quvirl_user') || '{}');
+        if (u.name) {
+          var el = document.getElementById('navUserBadge');
+          if (el) el.textContent = '👤 ' + u.name.split(' ')[0];
+        }
+      } catch (e) {}
+    })();
+  </script>
 </body>
 </html>
