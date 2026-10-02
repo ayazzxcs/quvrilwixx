@@ -45,21 +45,56 @@
       function setStatus(msg,type){$('status').textContent=msg;$('status').className='status '+(type||'')}
       async function run(){
         const p=params();
-        if(p.error||p.error_description){$('title').textContent='Verification failed';$('text').textContent='The verification link could not be used.';setStatus(decodeURIComponent(p.error_description||p.error),'err');return}
-        const accessToken=p.access_token;
-        if(!accessToken){$('title').textContent='Verification link missing token';$('text').textContent='Please request a fresh verification link from Quvirl.';setStatus('No verification token was found in this link.','err');return}
+        if(p.error||p.error_description){
+          $('title').textContent='Verification link expired or invalid';
+          $('text').textContent='The verification link could not be used. Please sign in or request a new verification email.';
+          setStatus(decodeURIComponent(p.error_description||p.error),'err');
+          return;
+        }
+        const accessToken=p.access_token||p.token||'';
+        const tokenHash=p.token_hash||'';
+        if(!accessToken && !tokenHash){
+          $('title').textContent='Verification link missing token';
+          $('text').textContent='Please request a fresh verification link from the sign-up page.';
+          setStatus('No verification token was found in this link.','err');
+          return;
+        }
         try{
-          const data=await postJson('/api/confirm-slot',{accessToken,deviceId:getDeviceId(),source:'slot-verify'});
+          const data=await postJson('/api/confirm-slot',{accessToken,tokenHash,deviceId:getDeviceId(),source:'slot-verify'});
           if(data.accessToken) store('access_token',data.accessToken);
           if(data.slot&&data.slot.month) store('slot_month',data.slot.month);
           if(data.slot&&data.slot.status) store('slot_status',data.slot.status);
           store('verified_at',String(Date.now()));
-          try{localStorage.removeItem(PREFIX+'pending_email');localStorage.removeItem(PREFIX+'pending_slot_month');}catch(_){}
-          $('title').textContent='Your Quvirl slot is verified';
-          $('text').textContent='Your verified monthly research access slot is saved on this device.';
-          setStatus(data.message||'Slot verified successfully.','ok');
+          store('has_access','true');
+
+          try{
+            localStorage.setItem('quvirl_authenticated','true');
+            localStorage.setItem('quvirl_slot_has_access','true');
+            const userObj={
+              email:(data.user&&data.user.email)||data.email||'member@quvirl.com',
+              name:(data.user&&data.user.name)||(data.email?data.email.split('@')[0]:'Operator'),
+              channel:(data.user&&data.user.channel)||'Shopify Dropshipping',
+              verified:true,
+              verifiedAt:new Date().toISOString()
+            };
+            localStorage.setItem('quvirl_user',JSON.stringify(userObj));
+            localStorage.removeItem(PREFIX+'pending_email');
+            localStorage.removeItem(PREFIX+'pending_slot_month');
+          }catch(_){}
+
+          $('title').textContent='Account Verified & Activated!';
+          $('text').textContent='Welcome to Quvirl. Your verified session has been activated on this device.';
+          setStatus('✓ Verification complete! Launching Product Radar in 2 seconds...','ok');
           if(history.replaceState) history.replaceState({},document.title,'/slot-verify.html');
-        }catch(err){$('title').textContent='Could not verify slot';$('text').textContent='Please request a new verification link and try again.';setStatus(err.message||'Verification failed.','err')}
+
+          setTimeout(function(){
+            window.location.replace('/');
+          },2200);
+        }catch(err){
+          $('title').textContent='Could not verify account';
+          $('text').textContent='The link may have expired or was already used. Please request a new verification link.';
+          setStatus(err.message||'Verification failed.','err');
+        }
       }
       run();
     })();

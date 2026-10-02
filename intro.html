@@ -452,6 +452,88 @@
     color: #f87171;
   }
 
+  /* Email Verification Sent State */
+  .emailSentBox {
+    display: none;
+    background: rgba(16, 24, 40, 0.95);
+    border: 1px solid rgba(88, 166, 255, 0.4);
+    border-radius: 16px;
+    padding: 24px 20px;
+    text-align: center;
+    margin-top: 10px;
+    animation: fadeIn 0.25s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .sentIconWrap {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(88, 166, 255, 0.15);
+    border: 1px solid rgba(88, 166, 255, 0.35);
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    margin: 0 auto 14px;
+  }
+  .emailSentBox h3 {
+    margin: 0 0 8px;
+    font-size: 19px;
+    font-weight: 900;
+    color: #ffffff;
+  }
+  .emailSentBox p {
+    margin: 0 0 12px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--text-sub);
+  }
+  .emailSentBox p b {
+    color: #58a6ff;
+    word-break: break-all;
+  }
+  .emailSentSub {
+    font-size: 12px !important;
+    color: var(--muted) !important;
+    line-height: 1.5 !important;
+    margin-bottom: 16px !important;
+  }
+  .resendActionRow {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .resendBtn {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    padding: 9px 15px;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+  .resendBtn:hover { background: #334155; }
+  .resendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .backToFormBtn {
+    background: transparent;
+    border: 0;
+    color: var(--muted);
+    font-size: 12.5px;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 6px;
+  }
+  .backToFormBtn:hover { color: #ffffff; }
+
   /* Card Trust Micro-copy */
   .trustRow {
     display: flex;
@@ -756,6 +838,21 @@
           <div class="feedbackAlert" id="feedbackAlert"></div>
         </form>
 
+        <!-- Email Verification Sent State -->
+        <div class="emailSentBox" id="emailSentBox">
+          <div class="sentIconWrap">✉️</div>
+          <h3>Verification Link Dispatched</h3>
+          <p>We've sent a secure access confirmation email to <b id="sentTargetEmail"></b>.</p>
+          <p class="emailSentSub">
+            Please check your inbox (and spam/promotions folder) and click the confirmation link to activate your Quvirl access.
+          </p>
+          <div class="resendActionRow">
+            <button type="button" class="resendBtn" id="resendVerificationBtn">Resend Verification Link</button>
+            <button type="button" class="backToFormBtn" id="editEmailBtn">← Back / Change Email</button>
+          </div>
+          <div class="feedbackAlert" id="resendAlert" style="margin-top:12px;"></div>
+        </div>
+
         <div class="trustRow">
           <span>⚡ Instant Activation</span>
           <span>•</span>
@@ -818,6 +915,12 @@
   (function () {
     var isSignIn = false;
     var form = document.getElementById('authForm');
+    var emailSentBox = document.getElementById('emailSentBox');
+    var sentTargetEmail = document.getElementById('sentTargetEmail');
+    var resendVerificationBtn = document.getElementById('resendVerificationBtn');
+    var editEmailBtn = document.getElementById('editEmailBtn');
+    var resendAlert = document.getElementById('resendAlert');
+
     var tabSignUp = document.getElementById('tabSignUp');
     var tabSignIn = document.getElementById('tabSignIn');
     var formHeader = document.getElementById('formHeader');
@@ -835,6 +938,7 @@
 
     var googleAuthBtn = document.getElementById('googleAuthBtn');
     var googleBtnLabel = document.getElementById('googleBtnLabel');
+    var currentPendingEmail = '';
 
     // Check existing authentication
     try {
@@ -842,8 +946,8 @@
       if (isAuth) {
         var user = JSON.parse(localStorage.getItem('quvirl_user') || '{}');
         memberBanner.style.display = 'flex';
-        if (user.name) {
-          memberGreeting.textContent = 'Welcome back, ' + user.name + '. Your session has full radar access.';
+        if (user.name || user.email) {
+          memberGreeting.textContent = 'Welcome back, ' + (user.name || user.email) + '. Your session has full radar access.';
         }
       }
     } catch (_) {}
@@ -859,6 +963,9 @@
     function setMode(signIn) {
       isSignIn = signIn;
       feedbackAlert.style.display = 'none';
+      if (emailSentBox) emailSentBox.style.display = 'none';
+      if (form) form.style.display = 'block';
+
       if (googleBtnLabel) {
         googleBtnLabel.textContent = isSignIn ? 'Sign in with Google' : 'Continue with Google';
       }
@@ -889,40 +996,54 @@
         googleAuthBtn.disabled = true;
         if (googleBtnLabel) googleBtnLabel.textContent = 'Connecting with Google...';
 
-        setTimeout(function () {
-          var email = prompt('Sign in with Google:\nEnter your Google Account email to authenticate:', 'seller@gmail.com');
-          if (!email || !email.includes('@')) {
-            googleAuthBtn.disabled = false;
-            if (googleBtnLabel) googleBtnLabel.textContent = isSignIn ? 'Sign in with Google' : 'Continue with Google';
-            return;
-          }
+        // Check if running on local dev static server without Vercel API backend
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          fetch('/api/auth/google', { method: 'HEAD' })
+            .then(function (r) {
+              if (r.status === 404) {
+                fallbackLocalGooglePrompt();
+              } else {
+                window.location.href = '/api/auth/google';
+              }
+            })
+            .catch(function () {
+              fallbackLocalGooglePrompt();
+            });
+          return;
+        }
 
-          var cleanEmail = email.trim().toLowerCase();
-          var name = cleanEmail.split('@')[0];
-          name = name.charAt(0).toUpperCase() + name.slice(1);
-
-          var userObj = {
-            name: name,
-            email: cleanEmail,
-            provider: 'google',
-            verified: true,
-            channel: 'Google Account',
-            activatedAt: new Date().toISOString()
-          };
-
-          try {
-            localStorage.setItem('quvirl_user', JSON.stringify(userObj));
-            localStorage.setItem('quvirl_authenticated', 'true');
-            localStorage.setItem('quvirl_slot_has_access', 'true');
-            localStorage.setItem('quvirl_slot_device_id', 'goog_' + Date.now().toString(36));
-          } catch (err) {}
-
-          showMsg('✓ Google account verified! Launching Product Radar...', false);
-          setTimeout(function () {
-            window.location.replace('/');
-          }, 500);
-        }, 200);
+        // Production / Vercel: redirect directly to Google OAuth handler
+        window.location.href = '/api/auth/google';
       });
+    }
+
+    function fallbackLocalGooglePrompt() {
+      setTimeout(function () {
+        var email = prompt('Sign in with Google (Local Dev Fallback):\nEnter test Google account email:', 'seller@gmail.com');
+        if (!email || !email.includes('@')) {
+          googleAuthBtn.disabled = false;
+          if (googleBtnLabel) googleBtnLabel.textContent = isSignIn ? 'Sign in with Google' : 'Continue with Google';
+          return;
+        }
+        var cleanEmail = email.trim().toLowerCase();
+        var name = cleanEmail.split('@')[0];
+        name = name.charAt(0).toUpperCase() + name.slice(1);
+        var userObj = {
+          name: name,
+          email: cleanEmail,
+          provider: 'google',
+          verified: true,
+          channel: 'Google Account',
+          activatedAt: new Date().toISOString()
+        };
+        try {
+          localStorage.setItem('quvirl_user', JSON.stringify(userObj));
+          localStorage.setItem('quvirl_authenticated', 'true');
+          localStorage.setItem('quvirl_slot_has_access', 'true');
+        } catch (_) {}
+        showMsg('✓ Google account verified! Launching Product Radar...', false);
+        setTimeout(function () { window.location.replace('/'); }, 500);
+      }, 150);
     }
 
     // Form submission
@@ -931,7 +1052,7 @@
       var email = emailInput.value.trim().toLowerCase();
       var pass = passInput.value;
       var name = nameInput.value.trim() || email.split('@')[0];
-      var channel = channelSelect ? channelSelect.value : 'Shopify';
+      var channel = channelSelect ? channelSelect.value : 'Shopify Dropshipping';
 
       if (!email || !email.includes('@') || !email.includes('.')) {
         showMsg('Please provide a valid business email address.', true);
@@ -944,33 +1065,186 @@
         return;
       }
 
+      currentPendingEmail = email;
       submitBtn.disabled = true;
-      submitBtn.textContent = isSignIn ? 'Authenticating...' : 'Sending Verification & Provisioning...';
 
-      setTimeout(function () {
-        var userObj = {
-          name: name,
-          email: email,
-          channel: channel,
-          activatedAt: new Date().toISOString()
-        };
+      if (!isSignIn) {
+        // --- SIGN UP ---
+        submitBtn.textContent = 'Dispatching Verification Email...';
 
-        try {
-          localStorage.setItem('quvirl_user', JSON.stringify(userObj));
-          localStorage.setItem('quvirl_authenticated', 'true');
-          localStorage.setItem('quvirl_slot_has_access', 'true');
-          localStorage.setItem('quvirl_slot_device_id', 'usr_' + Date.now().toString(36));
-        } catch (err) {
-          console.error(err);
-        }
+        fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: pass, name: name, channel: channel })
+        })
+          .then(function (res) {
+            return res.json().then(function (data) {
+              return { ok: res.ok, status: res.status, data: data };
+            }).catch(function () {
+              return { ok: res.ok, status: res.status, data: {} };
+            });
+          })
+          .then(function (result) {
+            if (!result.ok) {
+              var errMsg = (result.data && result.data.message) || 'Could not complete registration.';
+              if (result.data && result.data.code === 'user_already_exists') {
+                showMsg(errMsg, true);
+              } else {
+                showMsg(errMsg, true);
+              }
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Activate Free Radar Access →';
+              return;
+            }
 
-        showMsg(isSignIn ? '✓ Credentials verified. Opening Radar...' : '✓ Verification email dispatched. Instant access provisioned for this session. Launching Product Radar...', false);
+            if (result.data.verificationRequired) {
+              // Real verification email dispatched by Supabase
+              feedbackAlert.style.display = 'none';
+              form.style.display = 'none';
+              if (sentTargetEmail) sentTargetEmail.textContent = email;
+              if (emailSentBox) emailSentBox.style.display = 'block';
+            } else {
+              // Auto-confirmed session
+              try {
+                localStorage.setItem('quvirl_authenticated', 'true');
+                localStorage.setItem('quvirl_slot_has_access', 'true');
+                localStorage.setItem('quvirl_user', JSON.stringify(result.data.user || { email: email, name: name }));
+              } catch (_) {}
+              showMsg('✓ Account verified! Launching Product Radar...', false);
+              setTimeout(function () { window.location.replace('/'); }, 700);
+            }
+          })
+          .catch(function (err) {
+            if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+              handleLocalDevFallback(email, name, channel);
+            } else {
+              showMsg('Network connection error. Please try again.', true);
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Activate Free Radar Access →';
+            }
+          });
+      } else {
+        // --- SIGN IN ---
+        submitBtn.textContent = 'Authenticating...';
 
-        setTimeout(function () {
-          window.location.replace('/');
-        }, 600);
-      }, 450);
+        fetch('/api/auth/signin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: pass })
+        })
+          .then(function (res) {
+            return res.json().then(function (data) {
+              return { ok: res.ok, status: res.status, data: data };
+            }).catch(function () {
+              return { ok: res.ok, status: res.status, data: {} };
+            });
+          })
+          .then(function (result) {
+            if (!result.ok) {
+              var errMsg = (result.data && result.data.message) || 'Invalid email or password.';
+              if (result.data && result.data.code === 'email_not_confirmed') {
+                showMsg('⚠️ ' + errMsg, true);
+              } else {
+                showMsg(errMsg, true);
+              }
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Sign In & Launch Radar →';
+              return;
+            }
+
+            try {
+              localStorage.setItem('quvirl_authenticated', 'true');
+              localStorage.setItem('quvirl_slot_has_access', 'true');
+              localStorage.setItem('quvirl_user', JSON.stringify(result.data.user || { email: email }));
+            } catch (_) {}
+
+            showMsg('✓ Credentials confirmed! Opening Product Radar...', false);
+            setTimeout(function () { window.location.replace('/'); }, 600);
+          })
+          .catch(function (err) {
+            if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+              handleLocalDevFallback(email, 'Operator', 'Shopify');
+            } else {
+              showMsg('Network connection error. Please try again.', true);
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Sign In & Launch Radar →';
+            }
+          });
+      }
     });
+
+    // Handle Local Development when running pure static python server
+    function handleLocalDevFallback(email, name, channel) {
+      var userObj = {
+        name: name,
+        email: email,
+        channel: channel,
+        activatedAt: new Date().toISOString()
+      };
+      try {
+        localStorage.setItem('quvirl_user', JSON.stringify(userObj));
+        localStorage.setItem('quvirl_authenticated', 'true');
+        localStorage.setItem('quvirl_slot_has_access', 'true');
+      } catch (_) {}
+      showMsg('✓ [Local preview]: Simulated access granted. On live Vercel deployment, real Supabase verification email is dispatched.', false);
+      setTimeout(function () { window.location.replace('/'); }, 1200);
+    }
+
+    // Resend confirmation email
+    if (resendVerificationBtn) {
+      resendVerificationBtn.addEventListener('click', function () {
+        if (!currentPendingEmail) currentPendingEmail = emailInput.value.trim().toLowerCase();
+        if (!currentPendingEmail) return;
+
+        resendVerificationBtn.disabled = true;
+        resendVerificationBtn.textContent = 'Sending...';
+
+        fetch('/api/auth/resend', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: currentPendingEmail })
+        })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            if (resendAlert) {
+              resendAlert.textContent = data.message || '✓ Verification email resent! Please check your inbox.';
+              resendAlert.className = 'feedbackAlert success';
+              resendAlert.style.display = 'block';
+            }
+            var countdown = 30;
+            var timer = setInterval(function () {
+              countdown--;
+              if (countdown <= 0) {
+                clearInterval(timer);
+                resendVerificationBtn.disabled = false;
+                resendVerificationBtn.textContent = 'Resend Verification Link';
+              } else {
+                resendVerificationBtn.textContent = 'Resend in ' + countdown + 's';
+              }
+            }, 1000);
+          })
+          .catch(function () {
+            resendVerificationBtn.disabled = false;
+            resendVerificationBtn.textContent = 'Resend Verification Link';
+            if (resendAlert) {
+              resendAlert.textContent = 'Could not resend email right now. Please try again shortly.';
+              resendAlert.className = 'feedbackAlert error';
+              resendAlert.style.display = 'block';
+            }
+          });
+      });
+    }
+
+    // Return to form from email sent view
+    if (editEmailBtn) {
+      editEmailBtn.addEventListener('click', function () {
+        if (emailSentBox) emailSentBox.style.display = 'none';
+        if (form) form.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Activate Free Radar Access →';
+        emailInput.focus();
+      });
+    }
 
     function showMsg(text, isErr) {
       feedbackAlert.textContent = text;

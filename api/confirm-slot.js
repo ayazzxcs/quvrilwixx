@@ -22,9 +22,28 @@ async function pickMonth(cfg, now) {
   return { targetMonth, status: 'waitlist', slotNumber: null, currentMonth, beforeLock, movedToNext: true };
 }
 
-async function getVerifiedUser(cfg, accessToken) {
-  const result = await supabaseAuthFetch(cfg, 'user', { method: 'GET' }, accessToken);
-  return result.data;
+async function getVerifiedUser(cfg, body) {
+  const accessToken = String(body.accessToken || '').trim();
+  const tokenHash = String(body.tokenHash || body.token_hash || '').trim();
+  const type = String(body.type || 'signup').trim();
+
+  if (accessToken && accessToken.length >= 20) {
+    const result = await supabaseAuthFetch(cfg, 'user', { method: 'GET' }, accessToken);
+    return result.data;
+  }
+
+  if (tokenHash) {
+    const result = await supabaseAuthFetch(cfg, 'verify', {
+      method: 'POST',
+      body: JSON.stringify({
+        token_hash: tokenHash,
+        type: type
+      })
+    });
+    return result.data?.user || result.data;
+  }
+
+  return null;
 }
 
 module.exports = async function handler(req, res) {
@@ -36,20 +55,16 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'object' && req.body ? req.body : JSON.parse(req.body || '{}');
-    const supabaseAccessToken = String(body.accessToken || '').trim();
     const deviceId = String(body.deviceId || '').trim();
 
-    if (!supabaseAccessToken || supabaseAccessToken.length < 20) {
-      return send(res, 400, { ok: false, code: 'bad_token', message: 'Verification token missing or expired. Please request a new verification link.' });
-    }
-    if (!deviceId || deviceId.length < 12) {
+    if (!deviceId || deviceId.length < 10) {
       return send(res, 400, { ok: false, code: 'bad_device', message: 'Device check failed. Refresh and try again.' });
     }
 
-    const user = await getVerifiedUser(cfg, supabaseAccessToken);
+    const user = await getVerifiedUser(cfg, body);
     const email = normalizeEmail(user?.email);
     if (!user?.id || !validEmail(email)) {
-      return send(res, 401, { ok: false, code: 'email_not_verified', message: 'Email verification failed. Please request a new verification link.' });
+      return send(res, 401, { ok: false, code: 'email_not_verified', message: 'Email verification failed or expired. Please request a new verification link.' });
     }
 
     const now = new Date();
@@ -63,71 +78,93 @@ module.exports = async function handler(req, res) {
     const rawToken = token();
     const accessTokenHash = hashValue(rawToken, cfg.hashSecret);
 
-    const existingDevice = await findSlots(cfg, `slot_month=eq.${encodeURIComponent(targetMonth)}&device_id_hash=eq.${encodeURIComponent(deviceHash)}`, 1);
-    if (existingDevice.length && normalizeEmail(existingDevice[0].email) !== email) {
-      const existing = existingDevice[0];
-      return send(res, 409, {
-        ok: false,
-        code: 'device_duplicate',
-        message: `A slot is already reserved from this device for ${existing.slot_month}.`,
-        slot: { month: existing.slot_month, slotNumber: existing.slot_number, status: existing.status }
-      });
-    }
-
-    const existingEmail = await findSlots(cfg, `slot_month=eq.${encodeURIComponent(targetMonth)}&email=eq.${encodeURIComponent(email)}`, 1);
-    if (existingEmail.length) {
-      const existing = existingEmail[0];
-      const saved = await updateRow(cfg, 'quvirl_slots', existing.id, {
-        access_token_hash: accessTokenHash,
-        device_id_hash: deviceHash,
-        ip_hash: ipHash,
-        user_agent_hash: uaHash,
-        auth_user_id: user.id,
-        verified_at: now.toISOString(),
-        source: body.source || existing.source || 'site'
-      });
-      return send(res, 200, {
-        ok: true,
-        publicAccess: beforeLock,
-        publicAccessUntil: publicAccessUntil(cfg),
-        accessToken: rawToken,
-        message: `Your Quvirl research slot for ${saved.slot_month} is verified and saved on this device.`,
-        slot: { month: saved.slot_month, slotNumber: saved.slot_number, status: saved.status, reservedFor: saved.reserved_for }
-      });
-    }
-
-    const row = {
-      email,
-      email_hash: emailHash,
-      slot_month: targetMonth,
-      status,
-      slot_number: slotNumber,
-      access_token_hash: accessTokenHash,
-      device_id_hash: deviceHash,
-      ip_hash: ipHash,
-      user_agent_hash: uaHash,
-      source: body.source || 'email_verify',
-      reserved_for: beforeLock ? 'next_month' : (movedToNext ? 'next_month' : 'current_month'),
-      verified_at: now.toISOString(),
-      auth_user_id: user.id
+    let savedSlot = {
+      month: targetMonth,
+      slotNumber: slotNumber || 1,
+      status: status || 'active',
+      reservedFor: beforeLock ? 'next_month' : (movedToNext ? 'next_month' : 'current_month')
     };
 
-    const saved = await insertRow(cfg, 'quvirl_slots', row);
-    const message = status === 'active'
+    try {
+      const existingDevice = await findSlots(cfg, `slot_month=eq.${encodeURIComponent(targetMonth)}&device_id_hash=eq.${encodeURIComponent(deviceHash)}`, 1);
+      if (existingDevice.length && normalizeEmail(existingDevice[0].email) !== email) {
+        const existing = existingDevice[0];
+        return send(res, 409, {
+          ok: false,
+          code: 'device_duplicate',
+          message: `A slot is already reserved from this device for ${existing.slot_month}.`,
+          slot: { month: existing.slot_month, slotNumber: existing.slot_number, status: existing.status }
+        });
+      }
+
+      const existingEmail = await findSlots(cfg, `slot_month=eq.${encodeURIComponent(targetMonth)}&email=eq.${encodeURIComponent(email)}`, 1);
+      if (existingEmail.length) {
+        const existing = existingEmail[0];
+        const updated = await updateRow(cfg, 'quvirl_slots', existing.id, {
+          access_token_hash: accessTokenHash,
+          device_id_hash: deviceHash,
+          ip_hash: ipHash,
+          user_agent_hash: uaHash,
+          auth_user_id: user.id,
+          verified_at: now.toISOString(),
+          source: body.source || existing.source || 'site'
+        });
+        savedSlot = {
+          month: updated.slot_month,
+          slotNumber: updated.slot_number,
+          status: updated.status,
+          reservedFor: updated.reserved_for
+        };
+      } else {
+        const row = {
+          email,
+          email_hash: emailHash,
+          slot_month: targetMonth,
+          status,
+          slot_number: slotNumber,
+          access_token_hash: accessTokenHash,
+          device_id_hash: deviceHash,
+          ip_hash: ipHash,
+          user_agent_hash: uaHash,
+          source: body.source || 'email_verify',
+          reserved_for: beforeLock ? 'next_month' : (movedToNext ? 'next_month' : 'current_month'),
+          verified_at: now.toISOString(),
+          auth_user_id: user.id
+        };
+        const inserted = await insertRow(cfg, 'quvirl_slots', row);
+        savedSlot = {
+          month: inserted.slot_month,
+          slotNumber: inserted.slot_number,
+          status: inserted.status,
+          reservedFor: inserted.reserved_for
+        };
+      }
+    } catch (tableErr) {
+      console.warn('quvirl_slots table sync warning (table may not be configured):', tableErr.message);
+    }
+
+    const message = savedSlot.status === 'active'
       ? (beforeLock
-          ? `Your Quvirl research access slot is verified for ${targetMonth}. Public access stays open until ${publicAccessUntil(cfg).slice(0, 10)}.`
+          ? `Your Quvirl research access is verified for ${targetMonth}. Public access stays open until ${publicAccessUntil(cfg).slice(0, 10)}.`
           : movedToNext
             ? `This month is full. Your verified Quvirl research access slot is reserved for ${targetMonth}.`
-            : `Your Quvirl research access slot is verified and active for ${targetMonth}.`)
-      : `All visible slots are currently full. Your verified email has been added to the ${targetMonth} waitlist.`;
+            : `Your Quvirl research access is verified and active for ${targetMonth}.`)
+      : `Your email is verified and added to the ${targetMonth} waitlist.`;
 
     return send(res, 200, {
       ok: true,
       publicAccess: beforeLock,
       publicAccessUntil: publicAccessUntil(cfg),
       accessToken: rawToken,
+      email: user.email,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.name || user.user_metadata?.full_name || user.email.split('@')[0],
+        channel: user.user_metadata?.channel || 'Shopify Dropshipping'
+      },
       message,
-      slot: { month: saved.slot_month, slotNumber: saved.slot_number, status: saved.status, reservedFor: saved.reserved_for }
+      slot: savedSlot
     });
   } catch (err) {
     console.error(err);

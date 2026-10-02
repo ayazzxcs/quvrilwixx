@@ -17,7 +17,16 @@ const routes = {
   'cj/create-sourcing': require('../lib/api/cj/create-sourcing'),
   'cj/query-sourcing': require('../lib/api/cj/query-sourcing'),
 
-  'fulfillment/sync-status': require('../lib/api/fulfillment/sync-status')
+  'fulfillment/sync-status': require('../lib/api/fulfillment/sync-status'),
+
+  'auth/signup': require('../lib/api/auth').signup,
+  'auth/signin': require('../lib/api/auth').signin,
+  'auth/google': require('../lib/api/auth').google,
+  'auth/resend': require('../lib/api/auth').resend,
+
+  'reserve-slot': require('./reserve-slot'),
+  'confirm-slot': require('./confirm-slot'),
+  'access-status': require('./access-status')
 };
 
 function getRoutePath(req) {

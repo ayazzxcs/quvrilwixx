@@ -3315,9 +3315,9 @@ initProductBackgroundSlideshow();
     (function() {
       try {
         var u = JSON.parse(localStorage.getItem('quvirl_user') || '{}');
-        if (u.name) {
+        if (u.name || u.email) {
           var el = document.getElementById('navUserBadge');
-          if (el) el.textContent = '👤 ' + u.name.split(' ')[0];
+          if (el) el.textContent = '👤 ' + (u.name ? u.name.split(' ')[0] : u.email.split('@')[0]);
         }
       } catch (e) {}
     })();
