@@ -10,182 +10,733 @@
 <meta name="theme-color" content="#0C447C">
 <meta property="og:image" content="https://quvirl.com/logo.png">
 <meta name="twitter:image" content="https://quvirl.com/logo.png">
-<title>Introduction & How It Works | Quvirl</title>
+<title>Product Demand Radar & Verified Member Access | Quvirl</title>
 <link rel="canonical" href="https://quvirl.com/intro">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta property="og:url" content="https://quvirl.com/intro">
 <meta name="description" content="Discover how Quvirl works. Track real Google Trends search signals, Amazon market demand, and supplier data to spot breakout dropshipping products before anyone else.">
 <style>
-  :root{--bg:#0f172a;--card:#111827;--text:#e5e7eb;--muted:#9ca3af;--line:#263143;--brand:#58a6ff;--accent:#22c55e;}
-  *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#0f172a,#111827);color:var(--text);line-height:1.65}
-  a{color:inherit}
-  .wrap{width:min(940px,92%);margin:auto}
-  .siteHeader{padding:20px 0;border-bottom:1px solid var(--line);background:rgba(15,23,42,.85);position:sticky;top:0;backdrop-filter:blur(10px);z-index:100}
-  .nav{display:flex;align-items:center;justify-content:space-between;gap:18px}
-  .logo{font-weight:900;font-size:24px;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
-  .logo .brandQu{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;}
-  .logo .brandVirl{color:#58a6ff!important;-webkit-text-fill-color:#58a6ff!important;}
-  .links{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
-  .links a{color:var(--muted);text-decoration:none;font-size:14px;transition:color .2s}
-  .links a:hover,.links a.active{color:#fff}
-  .hero{padding:42px 0 28px}
-  .card{background:rgba(17,24,39,.78);border:1px solid var(--line);border-radius:22px;padding:28px;margin:22px 0;box-shadow:0 18px 60px rgba(0,0,0,.22)}
-  h1{font-size:clamp(32px,6vw,48px);line-height:1.1;margin:0 0 14px;letter-spacing:-.8px}
-  h2{margin:0 0 12px;color:#f8fafc;font-size:24px}
-  h3{margin:0 0 6px;color:#fff;font-size:18px}
-  .muted,p,li{color:#cbd5e1}
-  .small{font-size:13px;color:var(--muted)}
-  .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(88,166,255,.14);border:1px solid rgba(88,166,255,.32);color:#58a6ff;font-size:13px;font-weight:800;margin-bottom:14px}
+  :root {
+    --bg: #090d16;
+    --bg-surface: #0f172a;
+    --card: #111827;
+    --card-hover: #162032;
+    --text: #f1f5f9;
+    --text-sub: #cbd5e1;
+    --muted: #94a3b8;
+    --line: #1e293b;
+    --line-active: #334155;
+    --brand: #58a6ff;
+    --brand-glow: rgba(88, 166, 255, 0.25);
+    --accent: #22c55e;
+    --accent-glow: rgba(34, 197, 94, 0.25);
+    --warn: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+    background: radial-gradient(circle at 10% 0%, #172554, #090d16 48%, #030712);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  .wrap { width: min(1160px, 92%); margin: auto; }
+
+  /* Header */
+  .siteHeader {
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(9, 13, 22, 0.82);
+    position: sticky;
+    top: 0;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    z-index: 100;
+  }
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+  }
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+  }
+  .logoIcon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: #0C447C;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 16px rgba(88, 166, 255, 0.35);
+  }
+  .logoIcon svg { width: 20px; height: 20px; }
+  .logo .brandQu { color: #ffffff !important; }
+  .logo .brandVirl { color: #58a6ff !important; }
   
-  /* How it works steps */
-  .stepsGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0 10px}
-  .stepCard{background:rgba(15,23,42,.65);border:1px solid var(--line);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:8px}
-  .stepIcon{font-size:26px;display:inline-block;margin-bottom:2px}
-  .stepCard h3{font-size:17px;font-weight:800;color:#fff}
-  .stepCard p{font-size:14px;margin:0;line-height:1.55;color:#94a3b8}
+  .headerRight {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .sysStatus {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.28);
+    font-size: 11px;
+    font-weight: 700;
+    color: #4ade80;
+    letter-spacing: 0.2px;
+  }
+  .pulseDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+    animation: pulseGlow 2s infinite ease-in-out;
+  }
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+  .links { display: flex; gap: 18px; align-items: center; }
+  .links a {
+    color: var(--muted);
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: color 0.15s ease;
+  }
+  .links a:hover, .links a.active { color: #ffffff; }
 
-  /* Signup Security Box */
-  .authBox{background:linear-gradient(180deg,rgba(17,24,39,.95),rgba(15,23,42,.98));border:1.5px solid rgba(88,166,255,.35);box-shadow:0 24px 70px rgba(0,0,0,.45);border-radius:22px;padding:32px;margin:32px 0;position:relative;overflow:hidden}
-  .authBox::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#58a6ff,#22c55e)}
-  .authBox h2{font-size:26px;font-weight:900;margin-bottom:6px}
-  .authSub{color:#94a3b8;font-size:14px;margin-bottom:20px}
-  .formGroup{margin-bottom:14px}
-  .formGroup label{display:block;font-size:12px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-  .formGroup input,.formGroup select{width:100%;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:#0b1020;color:#fff;font-size:14px;transition:border-color .2s;outline:none}
-  .formGroup input:focus,.formGroup select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(88,166,255,.18)}
-  .authBtn{width:100%;padding:15px;border:0;border-radius:12px;background:linear-gradient(135deg,#22c55e,#14b8a6);color:#04110c;font-weight:900;font-size:16px;cursor:pointer;transition:transform .15s,opacity .15s;margin-top:8px}
-  .authBtn:hover{opacity:.95;transform:translateY(-1px)}
-  .authBtn:active{transform:translateY(0)}
-  .authBtn:disabled{opacity:.6;cursor:not-allowed}
-  .alertBox{display:none;padding:12px 14px;border-radius:12px;margin-top:14px;font-size:13px;line-height:1.45}
-  .alertBox.success{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.35);color:#4ade80}
-  .alertBox.error{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);color:#f87171}
-  .authFooter{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px;color:var(--muted);flex-wrap:wrap;gap:8px}
-  .authFooter a{color:var(--brand);text-decoration:none;font-weight:700}
-  .authFooter a:hover{text-decoration:underline}
-  .signedInNotice{display:none;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:14px;padding:16px;margin-bottom:20px;text-align:center}
-  .signedInNotice b{color:#4ade80;display:block;font-size:16px;margin-bottom:4px}
+  /* Hero Grid */
+  .heroSection {
+    padding: 50px 0 30px;
+  }
+  .splitGrid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 40px;
+    align-items: start;
+  }
 
-  .siteFooter{margin-top:40px;padding:28px 0;border-top:1px solid var(--line);color:var(--muted)}
-  .footerLinks{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}
-  .footerLinks a{text-decoration:none;color:#cbd5e1}
-  @media(max-width:640px){
-    .nav{align-items:flex-start;flex-direction:column}
-    .card,.authBox{padding:20px}
-    .hero{padding-top:24px}
-    .stepsGrid{grid-template-columns:1fr}
+  /* Left Column: Platform Intelligence */
+  .infoCol {
+    padding-top: 6px;
+  }
+  .badgeTag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(88, 166, 255, 0.12);
+    border: 1px solid rgba(88, 166, 255, 0.3);
+    color: #58a6ff;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 18px;
+  }
+  h1.heroTitle {
+    font-size: clamp(34px, 4.2vw, 50px);
+    line-height: 1.08;
+    margin: 0 0 16px;
+    letter-spacing: -1.2px;
+    font-weight: 900;
+    color: #ffffff;
+  }
+  h1.heroTitle span {
+    background: linear-gradient(135deg, #ffffff 40%, #58a6ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .heroLead {
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--text-sub);
+    margin: 0 0 28px;
+    max-width: 580px;
+  }
+
+  /* Intelligence Architecture Cards */
+  .pipelineList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .pipelineItem {
+    background: rgba(17, 24, 39, 0.75);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px 18px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    transition: transform 0.15s, border-color 0.15s, background-color 0.15s;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+  .pipelineItem:hover {
+    border-color: rgba(88, 166, 255, 0.35);
+    background: var(--card-hover);
+    transform: translateX(3px);
+  }
+  .pIcon {
+    font-size: 20px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .pContent h3 {
+    margin: 0 0 3px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pContent h3 .tag {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(88, 166, 255, 0.15);
+    color: #58a6ff;
+  }
+  .pContent p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  /* Live Radar Metrics Strip */
+  .metricsStrip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .metricBlock b {
+    display: block;
+    font-size: 20px;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1.1;
+  }
+  .metricBlock span {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  /* Right Column: Security Access Card */
+  .authCard {
+    background: linear-gradient(180deg, #111827, #0b1020);
+    border: 1.5px solid rgba(88, 166, 255, 0.35);
+    border-radius: 22px;
+    padding: 30px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    position: relative;
+    overflow: hidden;
+  }
+  .authCard::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #58a6ff, #22c55e, #58a6ff);
+  }
+  
+  .authBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #4ade80;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .authHeading {
+    font-size: 24px;
+    font-weight: 900;
+    margin: 0 0 6px;
+    color: #ffffff;
+    letter-spacing: -0.4px;
+  }
+  .authSub {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0 0 20px;
+    line-height: 1.5;
+  }
+
+  /* Segmented Toggle */
+  .tabSwitch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: #060913;
+    padding: 3px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    margin-bottom: 20px;
+  }
+  .tabBtn {
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .tabBtn.active {
+    background: #1e293b;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Form Inputs */
+  .field {
+    margin-bottom: 14px;
+    text-align: left;
+  }
+  .field label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 800;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .inputWrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .field input, .field select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #080d1a;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+  }
+  .field select {
+    cursor: pointer;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.22);
+  }
+
+  /* Primary Action Button */
+  .submitAction {
+    width: 100%;
+    padding: 14px;
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #22c55e, #14b8a6);
+    color: #03140a;
+    font-weight: 900;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    margin-top: 6px;
+    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35);
+  }
+  .submitAction:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(34, 197, 94, 0.45);
+  }
+  .submitAction:active { transform: translateY(0); }
+  .submitAction:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  /* Notification Box */
+  .feedbackAlert {
+    display: none;
+    padding: 12px 14px;
+    border-radius: 11px;
+    margin-top: 14px;
+    font-size: 13px;
+    line-height: 1.45;
+    text-align: center;
+  }
+  .feedbackAlert.success {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    color: #4ade80;
+  }
+  .feedbackAlert.error {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #f87171;
+  }
+
+  /* Card Trust Micro-copy */
+  .trustRow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-top: 16px;
+    font-size: 11.5px;
+    color: var(--muted);
+    font-weight: 600;
+    flex-wrap: wrap;
+  }
+  .trustRow span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Member Banner (if returning) */
+  .memberBanner {
+    display: none;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(88, 166, 255, 0.1));
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .memberBanner b { color: #4ade80; font-size: 15px; }
+  .memberBanner p { margin: 0; font-size: 13px; color: var(--text-sub); }
+  .openRadarBtn {
+    padding: 8px 16px;
+    background: #22c55e;
+    color: #03140a;
+    font-weight: 800;
+    border-radius: 9px;
+    font-size: 13px;
+    transition: opacity 0.15s;
+  }
+  .openRadarBtn:hover { opacity: 0.9; }
+
+  /* Deep Dive Section */
+  .deepSection {
+    margin-top: 50px;
+    padding-top: 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .sectionHeading {
+    text-align: center;
+    margin-bottom: 34px;
+  }
+  .sectionHeading h2 {
+    font-size: 28px;
+    font-weight: 900;
+    margin: 0 0 8px;
+    letter-spacing: -0.6px;
+  }
+  .sectionHeading p {
+    color: var(--muted);
+    margin: 0;
+    font-size: 15px;
+  }
+  .stepsRow {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .stepBox {
+    background: rgba(17, 24, 39, 0.65);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 22px 18px;
+    position: relative;
+  }
+  .stepNum {
+    font-size: 12px;
+    font-weight: 900;
+    color: #58a6ff;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .stepBox h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #ffffff;
+  }
+  .stepBox p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  /* Footer */
+  .siteFooter {
+    margin-top: 60px;
+    padding: 34px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--muted);
+  }
+  .footerLinks {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .footerLinks a {
+    text-decoration: none;
+    color: var(--text-sub);
+    font-size: 13.5px;
+    transition: color 0.15s;
+  }
+  .footerLinks a:hover { color: #ffffff; }
+  .footerLegal { font-size: 12px; line-height: 1.6; color: var(--muted); margin: 0; }
+
+  /* Responsive */
+  @media (max-width: 960px) {
+    .splitGrid {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+    .stepsRow {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .nav { flex-direction: column; align-items: flex-start; }
+    .headerRight { width: 100%; justify-content: space-between; }
+    .heroSection { padding: 30px 0 20px; }
+    .authCard { padding: 22px 18px; }
+    .stepsRow { grid-template-columns: 1fr; }
+    .metricsStrip { grid-template-columns: 1fr; gap: 8px; }
   }
 </style>
 </head>
 <body>
+
 <header class="siteHeader">
   <div class="wrap nav">
     <a class="logo" href="/" aria-label="Quvirl Home">
-      <span class="brandQu">Qu</span><span class="brandVirl">virl</span>
+      <div class="logoIcon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 44 L30 30 L40 38 L52 18" stroke="#378ADD" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="10" y="34" width="13" height="13" rx="3" fill="#B5D4F4"/>
+        </svg>
+      </div>
+      <div>
+        <span class="brandQu">Qu</span><span class="brandVirl">virl</span>
+      </div>
     </a>
-    <nav class="links">
-      <a href="/intro.html" class="active">How It Works</a>
-      <a href="/about.html">About</a>
-      <a href="/privacy.html">Privacy</a>
-      <a href="/contact.html">Contact</a>
-      <a href="/terms.html">Terms</a>
-    </nav>
+    <div class="headerRight">
+      <div class="sysStatus">
+        <span class="pulseDot"></span>
+        <span>RADAR ENGINE ACTIVE</span>
+      </div>
+      <nav class="links">
+        <a href="/intro.html" class="active">How It Works</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/contact.html">Contact</a>
+        <a href="/terms.html">Terms</a>
+      </nav>
+    </div>
   </div>
 </header>
 
-<main class="wrap hero">
-  <div id="signedInNotice" class="signedInNotice">
-    <b>✓ You are already a verified member</b>
-    <p style="margin:0 0 10px 0;font-size:13px;color:#cbd5e1">Your device has full access to the Quvirl Product Radar.</p>
-    <a href="/" style="display:inline-block;padding:10px 20px;background:#22c55e;color:#04110c;font-weight:800;border-radius:10px;text-decoration:none;font-size:14px">Open Product Radar →</a>
+<main class="wrap heroSection">
+  <!-- Returning Member Banner -->
+  <div id="memberBanner" class="memberBanner" style="display:none">
+    <div>
+      <b>✓ Verified Member Access Active</b>
+      <p id="memberGreeting">Your device is authenticated with full platform access.</p>
+    </div>
+    <a href="/" class="openRadarBtn">Launch Product Radar →</a>
   </div>
 
-  <section class="card">
-    <div class="badge">🛡️ Platform Overview & Security Access</div>
-    <h1>How Quvirl Works</h1>
-    <p style="font-size:17px;line-height:1.6;margin-bottom:20px;">
-      Quvirl is a real-time product demand intelligence radar built specifically for dropshippers, ecommerce entrepreneurs, and retail brands. We detect rising product demand from real search queries before markets become saturated.
-    </p>
+  <div class="splitGrid">
+    <!-- Left Column: The Engine & Architecture -->
+    <div class="infoCol">
+      <div class="badgeTag">🛡️ Market Intelligence Protocol</div>
+      <h1 class="heroTitle">Find Winning Products <span>Before Everyone Else.</span></h1>
+      <p class="heroLead">
+        Quvirl connects multi-channel search momentum directly with real marketplace consumer demand and factory supplier pricing—giving e-commerce operators an unfair advantage.
+      </p>
 
-    <h2>The 4-Step Intelligence Workflow</h2>
-    <div class="stepsGrid">
-      <div class="stepCard">
-        <span class="stepIcon">📈</span>
-        <h3>1. Real Google Trends Signals</h3>
-        <p>We monitor live search queries across global markets to identify breakout volume spikes and sustained interest before competitors run ads on them.</p>
+      <div class="pipelineList">
+        <div class="pipelineItem">
+          <div class="pIcon">📈</div>
+          <div class="pContent">
+            <h3>Google Trends Velocity <span class="tag">Early Signal</span></h3>
+            <p>Monitors breakout search spikes and rising query volume weeks before products become oversaturated on TikTok or Facebook Ads.</p>
+          </div>
+        </div>
+
+        <div class="pipelineItem">
+          <div class="pIcon">🛒</div>
+          <div class="pContent">
+            <h3>Amazon Demand Validation <span class="tag">Purchase Intent</span></h3>
+            <p>Validates search curiosity against actual credit card transactions, review momentum, and top-ranked product velocity.</p>
+          </div>
+        </div>
+
+        <div class="pipelineItem">
+          <div class="pIcon">🏭</div>
+          <div class="pContent">
+            <h3>Direct Factory Economics <span class="tag">Live Sourcing</span></h3>
+            <p>Every winner is mapped directly to live factory inventory from CJdropshipping and AliExpress with accurate unit costs and express shipping times.</p>
+          </div>
+        </div>
+
+        <div class="pipelineItem">
+          <div class="pIcon">💰</div>
+          <div class="pContent">
+            <h3>Net Margin Radar <span class="tag">50%–75% Target</span></h3>
+            <p>Automated profit engine factors in product costs, freight, and estimated ad spend so you only scale products with strong net returns.</p>
+          </div>
+        </div>
       </div>
-      <div class="stepCard">
-        <span class="stepIcon">🛒</span>
-        <h3>2. Amazon Demand Validation</h3>
-        <p>Curiosity is validated with real marketplace buying intent. We cross-reference Amazon bestseller search volume, buyer reviews, and pricing data.</p>
-      </div>
-      <div class="stepCard">
-        <span class="stepIcon">🏭</span>
-        <h3>3. Direct Supplier Matching</h3>
-        <p>Every trending item is linked directly to vetted suppliers from CJdropshipping and AliExpress with accurate unit costs, real inventory, and shipping options.</p>
-      </div>
-      <div class="stepCard">
-        <span class="stepIcon">💰</span>
-        <h3>4. Live Profit & Margin Radar</h3>
-        <p>Calculate realistic margins (typically 50%–75%), check break-even advertising costs, and sync winning products straight to your Shopify store.</p>
+
+      <div class="metricsStrip">
+        <div class="metricBlock">
+          <b>1,500+</b>
+          <span>Curated Products</span>
+        </div>
+        <div class="metricBlock">
+          <b>84/100</b>
+          <span>Rising Demand Score</span>
+        </div>
+        <div class="metricBlock">
+          <b>62%</b>
+          <span>Average Net Margin</span>
+        </div>
       </div>
     </div>
-  </section>
 
-  <!-- Sign Up / Access Card -->
-  <section class="authBox" id="authSection">
-    <h2 id="authHeading">Create Your Free Account</h2>
-    <p class="authSub" id="authSubheading">
-      To protect product opportunities from automated web scrapers, complete this 10-second free signup to unlock instant, unrestricted access to the full Quvirl database.
-    </p>
+    <!-- Right Column: Professional Security Sign-Up Card -->
+    <div class="authCol">
+      <div class="authCard">
+        <div class="authBadge">🔒 SECURE ACCESS GATE</div>
+        <h2 class="authHeading" id="formHeader">Unlock Full Radar Access</h2>
+        <p class="authSub" id="formSub">
+          To protect winning product margins and supplier inventory from automated scraper bots, access is reserved for verified members.
+        </p>
 
-    <form id="authForm">
-      <div class="formGroup" id="nameGroup">
-        <label for="userName">Full Name or Store Name</label>
-        <input type="text" id="userName" placeholder="e.g. Alex Morgan or TrendyStore" required autocomplete="name">
+        <!-- Segmented Tab Switcher -->
+        <div class="tabSwitch">
+          <button type="button" class="tabBtn active" id="tabSignUp">Create Free Account</button>
+          <button type="button" class="tabBtn" id="tabSignIn">Sign In</button>
+        </div>
+
+        <form id="authForm" novalidate>
+          <div class="field" id="nameField">
+            <label for="userName">Operator / Store Name</label>
+            <input type="text" id="userName" placeholder="e.g. Alex Morgan or Apex Retail" required autocomplete="name">
+          </div>
+
+          <div class="field">
+            <label for="userEmail">Work / Business Email</label>
+            <input type="email" id="userEmail" placeholder="name@yourstore.com" required autocomplete="email">
+          </div>
+
+          <div class="field">
+            <label for="userPassword">Secure Password</label>
+            <input type="password" id="userPassword" placeholder="Min. 6 characters" minlength="6" required autocomplete="current-password">
+          </div>
+
+          <div class="field" id="channelField">
+            <label for="storeChannel">Primary Sales Channel</label>
+            <select id="storeChannel">
+              <option value="Shopify Dropshipping">Shopify Store</option>
+              <option value="TikTok Shop">TikTok Shop</option>
+              <option value="Amazon FBA">Amazon FBA / Marketplace</option>
+              <option value="WooCommerce">WooCommerce</option>
+              <option value="Multi-Channel">Multi-Channel E-Commerce</option>
+            </select>
+          </div>
+
+          <button type="submit" class="submitAction" id="submitBtn">
+            Activate Free Radar Access →
+          </button>
+
+          <div class="feedbackAlert" id="feedbackAlert"></div>
+        </form>
+
+        <div class="trustRow">
+          <span>⚡ Instant Activation</span>
+          <span>•</span>
+          <span>🆓 100% Free Access</span>
+          <span>•</span>
+          <span>🔒 Private Session</span>
+        </div>
       </div>
-
-      <div class="formGroup">
-        <label for="userEmail">Work / Business Email</label>
-        <input type="email" id="userEmail" placeholder="e.g. name@company.com" required autocomplete="email">
-      </div>
-
-      <div class="formGroup">
-        <label for="userPassword">Password</label>
-        <input type="password" id="userPassword" placeholder="Create a secure password (min 6 characters)" minlength="6" required autocomplete="current-password">
-      </div>
-
-      <div class="formGroup" id="storeGroup">
-        <label for="storeType">Primary Ecommerce Channel</label>
-        <select id="storeType">
-          <option value="Shopify Dropshipping">Shopify Dropshipping</option>
-          <option value="TikTok Shop">TikTok Shop</option>
-          <option value="Amazon FBA / Retail">Amazon FBA / Retail</option>
-          <option value="WooCommerce">WooCommerce</option>
-          <option value="General Ecommerce">Other / Exploring</option>
-        </select>
-      </div>
-
-      <button type="submit" class="authBtn" id="submitBtn">Sign Up & Unlock Winning Products →</button>
-      <div class="alertBox" id="alertBox"></div>
-    </form>
-
-    <div class="authFooter">
-      <span id="togglePrompt">Already have an account? <a href="#" id="toggleMode">Sign In</a></span>
-      <span style="font-size:12px;color:#64748b">🔒 100% Free Access • No Credit Card Required</span>
     </div>
-  </section>
+  </div>
 
-  <section class="card">
-    <h2>Why Gated Access?</h2>
-    <p>
-      Winning dropshipping products lose their profitability when thousands of automated bots scrape suppliers simultaneously. By requiring a verified user account, Quvirl protects product trends for legitimate sellers and maintains fast, high-performance database access for our community.
-    </p>
-    <h2>Independent Platform</h2>
-    <p>
-      Quvirl is an independent product research radar and is not affiliated with, endorsed by, or sponsored by Google, Amazon, CJdropshipping, or AliExpress.
-    </p>
+  <!-- Deep Dive How-It-Works Steps -->
+  <section class="deepSection">
+    <div class="sectionHeading">
+      <h2>How the Quvirl Radar Works</h2>
+      <p>A closed-loop pipeline turning noisy market signals into actionable high-margin inventory.</p>
+    </div>
+
+    <div class="stepsRow">
+      <div class="stepBox">
+        <div class="stepNum">STEP 01</div>
+        <h3>Signal Ingestion</h3>
+        <p>Continuous algorithmic tracking of rising Google Trends keywords and consumer search spikes.</p>
+      </div>
+      <div class="stepBox">
+        <div class="stepNum">STEP 02</div>
+        <h3>Demand Verification</h3>
+        <p>Cross-referencing search spikes against verified Amazon sales volume and buyer rating density.</p>
+      </div>
+      <div class="stepBox">
+        <div class="stepNum">STEP 03</div>
+        <h3>Supplier Auditing</h3>
+        <p>Matching winners to CJ & AliExpress suppliers, inspecting stock depth, unit price, and shipping routes.</p>
+      </div>
+      <div class="stepBox">
+        <div class="stepNum">STEP 04</div>
+        <h3>Autofulfillment Sync</h3>
+        <p>Export products and launch automated Shopify fulfillment flows with 1-click supplier routing.</p>
+      </div>
+    </div>
   </section>
 </main>
 
@@ -193,94 +744,112 @@
   <div class="wrap">
     <div class="footerLinks">
       <a href="/intro.html">How It Works</a>
-      <a href="/about.html">About</a>
+      <a href="/about.html">About Quvirl</a>
       <a href="/privacy.html">Privacy Policy</a>
-      <a href="/contact.html">Contact</a>
-      <a href="/terms.html">Terms</a>
+      <a href="/contact.html">Contact Us</a>
+      <a href="/terms.html">Terms of Service</a>
     </div>
-    <p class="small">Quvirl is an independent product research platform and is not affiliated with, endorsed by, or sponsored by Amazon, Google, CJdropshipping, AliExpress, or any other third-party platform.</p>
+    <p class="footerLegal">
+      Quvirl is an independent market intelligence platform and is not affiliated with, endorsed by, or sponsored by Google, Amazon, CJdropshipping, AliExpress, or Shopify. All product trends are derived from public market signals.
+    </p>
   </div>
 </footer>
 
 <script>
-  (function() {
-    var isSignInMode = false;
+  (function () {
+    var isSignIn = false;
     var form = document.getElementById('authForm');
-    var toggleBtn = document.getElementById('toggleMode');
-    var heading = document.getElementById('authHeading');
-    var sub = document.getElementById('authSubheading');
+    var tabSignUp = document.getElementById('tabSignUp');
+    var tabSignIn = document.getElementById('tabSignIn');
+    var formHeader = document.getElementById('formHeader');
+    var formSub = document.getElementById('formSub');
     var submitBtn = document.getElementById('submitBtn');
-    var nameGroup = document.getElementById('nameGroup');
-    var storeGroup = document.getElementById('storeGroup');
-    var alertBox = document.getElementById('alertBox');
-    var signedInNotice = document.getElementById('signedInNotice');
+    var nameField = document.getElementById('nameField');
+    var channelField = document.getElementById('channelField');
     var nameInput = document.getElementById('userName');
     var emailInput = document.getElementById('userEmail');
     var passInput = document.getElementById('userPassword');
-    var storeSelect = document.getElementById('storeType');
+    var channelSelect = document.getElementById('storeChannel');
+    var feedbackAlert = document.getElementById('feedbackAlert');
+    var memberBanner = document.getElementById('memberBanner');
+    var memberGreeting = document.getElementById('memberGreeting');
 
-    // Check if already signed in
-    var isAuth = localStorage.getItem('quvirl_authenticated') === 'true' || !!localStorage.getItem('quvirl_user');
-    if (isAuth) {
-      signedInNotice.style.display = 'block';
-    }
-
-    // Toggle between Sign Up and Sign In
-    toggleBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      isSignInMode = !isSignInMode;
-      if (isSignInMode) {
-        heading.textContent = 'Sign In to Quvirl';
-        sub.textContent = 'Welcome back! Enter your email and password to access your Product Radar.';
-        submitBtn.textContent = 'Sign In & Open Radar →';
-        nameGroup.style.display = 'none';
-        storeGroup.style.display = 'none';
-        nameInput.removeAttribute('required');
-        toggleBtn.textContent = 'Create an account';
-        document.getElementById('togglePrompt').childNodes[0].textContent = "Don't have an account yet? ";
-      } else {
-        heading.textContent = 'Create Your Free Account';
-        sub.textContent = 'To protect product opportunities from automated web scrapers, complete this 10-second free signup to unlock instant, unrestricted access to the full Quvirl database.';
-        submitBtn.textContent = 'Sign Up & Unlock Winning Products →';
-        nameGroup.style.display = 'block';
-        storeGroup.style.display = 'block';
-        nameInput.setAttribute('required', 'required');
-        toggleBtn.textContent = 'Sign In';
-        document.getElementById('togglePrompt').childNodes[0].textContent = "Already have an account? ";
+    // Check existing authentication
+    try {
+      var isAuth = localStorage.getItem('quvirl_authenticated') === 'true' || !!localStorage.getItem('quvirl_user');
+      if (isAuth) {
+        var user = JSON.parse(localStorage.getItem('quvirl_user') || '{}');
+        memberBanner.style.display = 'flex';
+        if (user.name) {
+          memberGreeting.textContent = 'Welcome back, ' + user.name + '. Your session has full radar access.';
+        }
       }
-      alertBox.style.display = 'none';
+    } catch (_) {}
+
+    // Segmented tab switching
+    tabSignUp.addEventListener('click', function () {
+      setMode(false);
+    });
+    tabSignIn.addEventListener('click', function () {
+      setMode(true);
     });
 
-    // Handle Submission
-    form.addEventListener('submit', function(e) {
+    function setMode(signIn) {
+      isSignIn = signIn;
+      feedbackAlert.style.display = 'none';
+      if (isSignIn) {
+        tabSignIn.classList.add('active');
+        tabSignUp.classList.remove('active');
+        formHeader.textContent = 'Sign In to Radar';
+        formSub.textContent = 'Enter your registered email and password to resume your research session.';
+        submitBtn.textContent = 'Sign In & Launch Radar →';
+        nameField.style.display = 'none';
+        channelField.style.display = 'none';
+        nameInput.removeAttribute('required');
+      } else {
+        tabSignUp.classList.add('active');
+        tabSignIn.classList.remove('active');
+        formHeader.textContent = 'Unlock Full Radar Access';
+        formSub.textContent = 'To protect winning product margins and supplier inventory from automated scraper bots, access is reserved for verified members.';
+        submitBtn.textContent = 'Activate Free Radar Access →';
+        nameField.style.display = 'block';
+        channelField.style.display = 'block';
+        nameInput.setAttribute('required', 'required');
+      }
+    }
+
+    // Form submission
+    form.addEventListener('submit', function (e) {
       e.preventDefault();
       var email = emailInput.value.trim().toLowerCase();
       var pass = passInput.value;
       var name = nameInput.value.trim() || email.split('@')[0];
-      var store = storeSelect ? storeSelect.value : 'Shopify';
+      var channel = channelSelect ? channelSelect.value : 'Shopify';
 
-      if (!email || !email.includes('@')) {
-        showAlert('Please enter a valid email address.', true);
+      if (!email || !email.includes('@') || !email.includes('.')) {
+        showMsg('Please provide a valid business email address.', true);
+        emailInput.focus();
         return;
       }
       if (pass.length < 6) {
-        showAlert('Password must be at least 6 characters.', true);
+        showMsg('Password must contain at least 6 characters.', true);
+        passInput.focus();
         return;
       }
 
       submitBtn.disabled = true;
-      submitBtn.textContent = isSignInMode ? 'Authenticating...' : 'Creating Account...';
+      submitBtn.textContent = isSignIn ? 'Authenticating...' : 'Provisioning Access...';
 
-      setTimeout(function() {
-        var userData = {
+      setTimeout(function () {
+        var userObj = {
           name: name,
           email: email,
-          storeType: store,
-          signedUpAt: new Date().toISOString()
+          channel: channel,
+          activatedAt: new Date().toISOString()
         };
 
         try {
-          localStorage.setItem('quvirl_user', JSON.stringify(userData));
+          localStorage.setItem('quvirl_user', JSON.stringify(userObj));
           localStorage.setItem('quvirl_authenticated', 'true');
           localStorage.setItem('quvirl_slot_has_access', 'true');
           localStorage.setItem('quvirl_slot_device_id', 'usr_' + Date.now().toString(36));
@@ -288,24 +857,25 @@
           console.error(err);
         }
 
-        showAlert(isSignInMode ? '✓ Welcome back! Opening Product Radar...' : '✓ Account verified! Redirecting to Quvirl Product Radar...', false);
+        showMsg(isSignIn ? '✓ Credentials verified. Opening Radar...' : '✓ Access provisioned! Directing to Product Radar...', false);
 
-        setTimeout(function() {
+        setTimeout(function () {
           window.location.replace('/');
-        }, 600);
-      }, 500);
+        }, 550);
+      }, 450);
     });
 
-    function showAlert(msg, isError) {
-      alertBox.textContent = msg;
-      alertBox.className = 'alertBox ' + (isError ? 'error' : 'success');
-      alertBox.style.display = 'block';
-      if (isError) {
+    function showMsg(text, isErr) {
+      feedbackAlert.textContent = text;
+      feedbackAlert.className = 'feedbackAlert ' + (isErr ? 'error' : 'success');
+      feedbackAlert.style.display = 'block';
+      if (isErr) {
         submitBtn.disabled = false;
-        submitBtn.textContent = isSignInMode ? 'Sign In & Open Radar →' : 'Sign Up & Unlock Winning Products →';
+        submitBtn.textContent = isSignIn ? 'Sign In & Launch Radar →' : 'Activate Free Radar Access →';
       }
     }
   })();
 </script>
+
 </body>
 </html>
