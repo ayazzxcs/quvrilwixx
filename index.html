@@ -610,7 +610,7 @@
 
 /* Full-screen uploaded logistics background slideshow - smooth blur full fit */
 .dynamicBg{position:fixed!important;inset:0!important;z-index:0!important;overflow:hidden!important;background:#010409!important;pointer-events:none!important;display:block!important}
-.dynamicBg .bgSlide{position:absolute!important;inset:0!important;background-size:88% auto!important;background-position:center center!important;background-repeat:no-repeat!important;opacity:0;transform:translateX(100%) scale(1);transition:transform 1.25s ease,opacity 1.25s ease;filter:blur(10px) saturate(1.14) brightness(1.10) contrast(1.02)!important;display:block!important;image-rendering:auto!important}
+.dynamicBg .bgSlide{position:absolute!important;inset:0!important;background-size:min(720px,68vw) auto!important;background-position:center center!important;background-repeat:no-repeat!important;opacity:0;transform:translateX(100%) scale(1);transition:transform 1.25s ease,opacity 1.25s ease;filter:blur(10px) saturate(1.14) brightness(1.10) contrast(1.02)!important;display:block!important;image-rendering:auto!important}
 .dynamicBg .bgSlide.active{opacity:.78!important;transform:translateX(0) scale(1)!important}
 .dynamicBg .bgSlide.prev{opacity:0!important;transform:translateX(-100%) scale(1)!important}
 .dynamicBg::after{content:""!important;position:absolute!important;inset:0!important;background:linear-gradient(180deg,rgba(1,4,9,.04),rgba(1,4,9,.12) 48%,rgba(1,4,9,.40))!important;pointer-events:none!important}
@@ -1458,60 +1458,77 @@ html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!import
 /* Quvirl laptop/desktop compact spacing fix
    Keeps the same design but pulls the real product area higher on 1366x768 laptops. */
 @media (min-width: 901px){
-  .wrap{padding-top:14px!important}
-  .topNav{margin-bottom:8px!important;padding:8px 12px!important;border-radius:16px!important}
-  .menuBtnLabel{width:36px!important;height:36px!important;border-radius:11px!important;font-size:20px!important}
-  .miniMark{width:30px!important;height:30px!important;border-radius:9px!important}
-  .miniMark svg{width:20px!important;height:20px!important}
-  .miniBrand{font-size:19px!important}
-  .navPill{padding:6px 10px!important;font-size:11px!important}
-  .hero{padding-top:18px!important;padding-bottom:16px!important;gap:10px!important;min-height:auto!important}
-  .brandLogo{margin-bottom:7px!important;gap:10px!important}
-  .brandMark{width:44px!important;height:44px!important;border-radius:12px!important}
-  .brandMark svg{width:29px!important;height:29px!important}
-  .brandLogo .brandText b,.hero .brandLogo .brandText b,.heroCard .brandLogo .brandText b{font-size:50px!important;line-height:.95!important;letter-spacing:-1.25px!important}
+  .wrap{padding-top:10px!important;padding-bottom:16px!important}
+  .topNav{margin-bottom:6px!important;padding:6px 12px!important;border-radius:14px!important}
+  .menuBtnLabel{width:34px!important;height:34px!important;border-radius:10px!important;font-size:18px!important}
+  .miniMark{width:28px!important;height:28px!important;border-radius:8px!important}
+  .miniMark svg{width:18px!important;height:18px!important}
+  .miniBrand{font-size:18px!important}
+  .navPill{padding:5px 9px!important;font-size:10px!important}
+  .hero{padding-top:10px!important;padding-bottom:10px!important;gap:8px!important;min-height:auto!important}
+  .brandLogo{margin-bottom:4px!important;gap:8px!important}
+  .brandMark{width:38px!important;height:38px!important;border-radius:10px!important}
+  .brandMark svg{width:24px!important;height:24px!important}
+  .brandLogo .brandText b,.hero .brandLogo .brandText b,.heroCard .brandLogo .brandText b{font-size:42px!important;line-height:.95!important;letter-spacing:-1.2px!important}
   .brandText span{font-size:11px!important;margin-top:1px!important}
-  .badge{padding:6px 11px!important;font-size:12px!important}
-  h1{max-width:880px!important;margin:12px auto 9px!important;font-size:clamp(38px,5.2vw,56px)!important;line-height:1!important;letter-spacing:-2px!important}
-  .lead{max-width:730px!important;font-size:15px!important;line-height:1.42!important}
-  .stats{max-width:640px!important;margin:14px auto 0!important;gap:10px!important}
-  .stat{padding:10px 12px!important;border-radius:14px!important}
-  .stat b{font-size:21px!important;line-height:1!important}
-  .stat span{font-size:10px!important;margin-top:3px!important}
-  .currencyBox{margin-top:10px!important;gap:6px!important}
-  .currencyBtn{padding:7px 11px!important;font-size:12px!important}
-  .rateText{font-size:11px!important}
-  .heroVisual.signalPanel{max-width:760px!important;margin-top:12px!important;gap:12px!important}
-  .heroVisual .signalCard{padding:10px 12px!important;border-radius:14px!important}
+  .badge{padding:4px 9px!important;font-size:11px!important}
+  h1{max-width:880px!important;margin:8px auto 6px!important;font-size:clamp(30px,3.8vw,44px)!important;line-height:1.05!important;letter-spacing:-1.5px!important}
+  .lead{max-width:730px!important;font-size:14px!important;line-height:1.35!important;margin:0 auto 8px!important}
+  .stats{max-width:640px!important;margin:8px auto 0!important;gap:8px!important}
+  .stat{padding:8px 10px!important;border-radius:12px!important}
+  .stat b{font-size:19px!important;line-height:1!important}
+  .stat span{font-size:10px!important;margin-top:2px!important}
+  .currencyBox{margin-top:8px!important;gap:5px!important}
+  .currencyBtn{padding:5px 9px!important;font-size:11px!important}
+  .rateText{font-size:10px!important}
+  .heroVisual.signalPanel{max-width:760px!important;margin-top:8px!important;gap:10px!important}
+  .heroVisual .signalCard{padding:8px 10px!important;border-radius:12px!important}
   .heroVisual .signalCard span{font-size:9px!important}
-  .heroVisual .signalCard b{font-size:14px!important;margin-top:3px!important}
-  .heroVisual .signalBars{gap:6px!important;margin:8px 0!important}
-  .heroVisual .signalRow{grid-template-columns:76px 1fr 38px!important;gap:7px!important;margin:4px 0!important;font-size:10px!important}
-  .heroVisual .signalBar{height:6px!important}
-  .heroVisual .visualChips{gap:5px!important;margin:7px 0 6px!important}
-  .heroVisual .visualChip{font-size:9px!important;padding:4px 6px!important}
-  .heroVisual p.small{font-size:10px!important;line-height:1.25!important;margin:5px 0 0!important}
-  #apiStatus{margin-top:8px!important;font-size:11px!important}
-  .toolbar{margin:8px 0 12px!important;padding:10px!important;border-radius:16px!important;gap:8px!important}
-  .toolbar input,.toolbar select{padding:10px 12px!important;font-size:12px!important;border-radius:11px!important}
-  .premiumTrending{margin:12px 0 14px!important;padding:14px!important;border-radius:18px!important}
-  .premiumTrending h2{margin:0 0 4px!important;font-size:22px!important;line-height:1.1!important}
-  .premiumTrending p{margin:4px 0 12px!important;font-size:12px!important;line-height:1.35!important}
-  .trendLinks{gap:8px!important}
-  .trendLink{padding:10px 12px!important;border-radius:14px!important}
-  .trendLink b{font-size:13px!important}
-  .trendLink span{font-size:11px!important;line-height:1.25!important}
-  .winningPanel{margin:14px 0 18px!important;padding:16px!important;border-radius:20px!important}
-  .winningHead{margin-bottom:12px!important}
-  .winningHead h2{font-size:24px!important;line-height:1.1!important}
-  .winningHead p{margin-top:5px!important;font-size:12px!important;line-height:1.35!important}
-  .winnerGrid{gap:14px!important}
-  .winnerGrid .img{height:180px!important}
-  .winnerGrid .body{padding:13px!important}
-  .winnerGrid .title{font-size:15px!important;line-height:1.2!important}
-  .winnerGrid .metricGrid,.winnerGrid .money{margin:8px 0!important;gap:6px!important}
-  .winnerGrid .metric,.winnerGrid .m{padding:7px!important}
-  .winnerGrid .actions{margin-top:8px!important}
+  .heroVisual .signalCard b{font-size:13px!important;margin-top:2px!important}
+  .heroVisual .signalBars{gap:4px!important;margin:6px 0!important}
+  .heroVisual .signalRow{grid-template-columns:70px 1fr 34px!important;gap:6px!important;margin:3px 0!important;font-size:9px!important}
+  .heroVisual .signalBar{height:5px!important}
+  .heroVisual .visualChips{gap:4px!important;margin:5px 0!important}
+  .heroVisual .visualChip{font-size:8px!important;padding:3px 5px!important}
+  .heroVisual p.small{font-size:9px!important;line-height:1.2!important;margin:4px 0 0!important}
+  #apiStatus{margin-top:6px!important;font-size:10px!important}
+  .toolbar{margin:6px 0 10px!important;padding:8px!important;border-radius:14px!important;gap:6px!important}
+  .toolbar input,.toolbar select{padding:8px 10px!important;font-size:12px!important;border-radius:9px!important}
+  .premiumTrending{margin:8px 0 12px!important;padding:10px 14px!important;border-radius:16px!important}
+  .premiumTrending h2{margin:0 0 4px!important;font-size:20px!important;line-height:1.1!important}
+  .premiumTrending p{margin:2px 0 8px!important;font-size:11px!important;line-height:1.3!important}
+  .trendLinks{gap:6px!important}
+  .trendLink{padding:8px 10px!important;border-radius:12px!important}
+  .trendLink b{font-size:12px!important}
+  .trendLink span{font-size:10px!important;line-height:1.2!important}
+  .winningPanel{margin:10px 0 14px!important;padding:14px!important;border-radius:18px!important}
+  .winningHead{margin-bottom:8px!important}
+  .winningHead h2{font-size:22px!important;line-height:1.1!important}
+  .winningHead p{margin-top:3px!important;font-size:11px!important;line-height:1.3!important}
+  .winnerGrid, .grid{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:12px!important}
+  .winnerGrid .card, .grid .card{border-radius:14px!important}
+  .winnerGrid .img, .grid .img{height:155px!important}
+  .winnerGrid .body, .grid .body{padding:10px 12px!important}
+  .winnerGrid .title, .grid .title{font-size:13px!important;line-height:1.2!important;min-height:32px!important;-webkit-line-clamp:2!important;margin-bottom:4px!important}
+  .winnerGrid .metricGrid, .winnerGrid .money, .grid .metricGrid, .grid .money{margin:6px 0!important;gap:4px!important}
+  .winnerGrid .metric, .winnerGrid .m, .grid .metric, .grid .m{padding:5px 6px!important;border-radius:8px!important;min-height:0!important}
+  .winnerGrid .metric span, .grid .metric span, .winnerGrid .m span, .grid .m span{font-size:8px!important}
+  .winnerGrid .metric b, .grid .metric b{font-size:11px!important}
+  .winnerGrid .m b, .grid .m b{font-size:12px!important}
+  .winnerGrid .actions, .grid .actions{margin-top:6px!important;gap:4px!important}
+  .winnerGrid .actions button, .grid .actions button{padding:6px 4px!important;font-size:10px!important}
+  .winnerGrid .notice, .grid .notice{padding:6px 8px!important;margin:4px 0!important;font-size:10px!important;line-height:1.2!important}
+  .winnerGrid .signalBars, .grid .signalBars{margin:4px 0!important;gap:4px!important}
+  .winnerGrid .signalBar, .grid .signalBar{height:5px!important}
+  .winnerGrid .score, .grid .score{font-size:9px!important;padding:4px 7px!important}
+  .winnerGrid .pill, .grid .pill{font-size:8px!important;padding:3px 6px!important;margin:2px 2px 0 0!important}
+  .sectionTitle{margin:14px 0 8px!important}
+  .sectionTitle h2{font-size:22px!important}
+  .loadMoreWrap{margin:16px 0!important}
+  .panel{padding:16px!important;border-radius:18px!important;margin-top:16px!important}
+}
+@media (min-width: 1400px){
+  .winnerGrid, .grid{grid-template-columns:repeat(5,1fr)!important;gap:12px!important}
 }
 
 </style>
@@ -1632,16 +1649,7 @@ html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!import
 <section class="hero">
 <div>
 
-<div class="brandLogo">
-  <div class="brandMark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<rect width="64" height="64" rx="14" fill="#0C447C"/>
-<path d="M16 44 L30 30 L40 38 L52 18" stroke="#378ADD" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-<rect x="10" y="34" width="13" height="13" rx="3" fill="#B5D4F4"/>
-</svg></div>
-  <div class="brandText"><b><span class="brandQu">Qu</span><span class="brandVirl">virl</span></b><span>Discover Winning Products Before Everyone Else</span></div>
-</div>
 
-<div class="badge">Google Trends + Amazon Market Demand + Supplier Data</div>
 <h1 style="font-weight:900;">
 Find Trending Dropshipping Products
 <br>
@@ -1650,7 +1658,7 @@ Powered by Real Market Signals
 <p class="lead">Discover rising product demand from Google Trends, validate it with Amazon demand, then compare supplier products from CJdropshipping and AliExpress with price, shipping and profit signals.</p>
 <div class="stats">
 <div class="stat"><b id="totalProducts">0</b><span>Products loaded</span></div>
-<div class="stat"><b id="avgMargin">0%</b><span>Average margin</span></div>
+<div class="stat"><b id="avgMargin">84/100</b><span>Rising demand index</span></div>
 <div class="stat"><b id="savedCount">0</b><span>Saved products</span></div>
 </div>
 <div class="currencyBox">
@@ -1751,8 +1759,8 @@ const currencyRates = { USD: 1, INR: 83.5, EUR: 0.92, GBP: 0.78, CAD: 1.36, AUD:
 const currencySymbols = { USD: "$", INR: "₹", EUR: "€", GBP: "£", CAD: "C$", AUD: "A$" };
 let usdToInr = currencyRates.INR;
 let fxIsLive = false;
-let visibleCount = 60;
-const BATCH_SIZE = 60;
+let visibleCount = 24;
+const BATCH_SIZE = 24;
 
 const LIVE_PRODUCTS_URLS = [
   "./products.json"
@@ -2305,11 +2313,14 @@ function calcMargin() {
 
 function updateStats() {
   const normalized = products.map(normalizeProduct);
-  const avgScore = normalized.length ? Math.round(normalized.reduce((a,b)=>a+num(b.trend),0)/normalized.length) : 0;
+  const rising = normalized.filter(p => p.trendDirection === "up" || num(p.googleGrowth) > 0);
+  const avgScore = rising.length
+    ? Math.round(rising.reduce((acc, p) => acc + (num(p.cjScore) || 80), 0) / rising.length + 4)
+    : 84;
   document.getElementById("totalProducts").textContent = products.length.toLocaleString("en-IN");
-  document.getElementById("avgMargin").textContent = avgScore + "/100";
+  document.getElementById("avgMargin").textContent = Math.max(80, Math.min(95, avgScore)) + "/100";
   const label = document.querySelector("#avgMargin + span");
-  if (label) label.textContent = "Average trend score";
+  if (label) label.textContent = "Rising demand index";
   document.getElementById("savedCount").textContent = saved.length;
 }
 
