@@ -534,6 +534,83 @@
   }
   .backToFormBtn:hover { color: #ffffff; }
 
+  /* Google Account Modal */
+  .googleModal {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(4, 8, 20, 0.85);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease-out;
+  }
+  .googleModalCard {
+    width: min(500px, 100%);
+    background: #0f172a;
+    border: 1px solid rgba(88, 166, 255, 0.35);
+    border-radius: 20px;
+    padding: 28px 24px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
+    color: #ffffff;
+    text-align: left;
+    position: relative;
+  }
+  .googleModalHead {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .googleModalHead h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 900;
+  }
+  .googleModalClose {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 0;
+    color: #94a3b8;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: grid;
+    place-items: center;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .googleModalClose:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+  }
+  .googleModal p {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--text-sub);
+    margin: 0 0 16px;
+  }
+  .googleNoticeBox {
+    background: rgba(251, 191, 36, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-top: 18px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #fde68a;
+  }
+  .googleNoticeBox b {
+    color: #fbbf24;
+    display: block;
+    margin-bottom: 4px;
+  }
+
   /* Card Trust Micro-copy */
   .trustRow {
     display: flex;
@@ -864,6 +941,39 @@
     </div>
   </div>
 
+  <!-- Google Account Modal -->
+  <div class="googleModal" id="googleModal">
+    <div class="googleModalCard">
+      <button type="button" class="googleModalClose" id="closeGoogleModal" aria-label="Close">✕</button>
+      <div class="googleModalHead">
+        <svg class="googleIcon" style="width:24px;height:24px" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <h3>Continue with Google Account</h3>
+      </div>
+      <p>Enter your Google email below. We'll verify your access and send a confirmation link to activate your research session:</p>
+      
+      <form id="googleQuickForm">
+        <div class="field" style="margin-bottom:14px">
+          <label for="googleQuickEmail">Your Google / Gmail Address</label>
+          <input type="email" id="googleQuickEmail" placeholder="yourname@gmail.com" required autocomplete="email">
+        </div>
+        <button type="submit" class="submitAction" id="googleQuickSubmitBtn">
+          Confirm Google Email & Activate →
+        </button>
+        <div class="feedbackAlert" id="googleQuickAlert"></div>
+      </form>
+
+      <div class="googleNoticeBox">
+        <b>🛠️ Platform Note: Direct 1-Click Google OAuth</b>
+        To enable automatic 1-click Google popup, enable the Google Provider in your <u>Supabase Dashboard → Authentication → Providers → Google</u> with your Google Cloud Client ID.
+      </div>
+    </div>
+  </div>
+
   <!-- Deep Dive How-It-Works Steps -->
   <section class="deepSection">
     <div class="sectionHeading">
@@ -990,60 +1100,146 @@
       }
     }
 
+    var googleModal = document.getElementById('googleModal');
+    var closeGoogleModal = document.getElementById('closeGoogleModal');
+    var googleQuickForm = document.getElementById('googleQuickForm');
+    var googleQuickEmail = document.getElementById('googleQuickEmail');
+    var googleQuickSubmitBtn = document.getElementById('googleQuickSubmitBtn');
+    var googleQuickAlert = document.getElementById('googleQuickAlert');
+
+    // Check URL parameters for redirect errors
+    try {
+      var urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('auth_error') === 'google_provider_disabled') {
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        showMsg('ℹ️ Direct 1-Click Google OAuth is pending activation in your Supabase dashboard. You can sign up or sign in below with your Google email address.', true);
+      }
+    } catch (_) {}
+
     // Google Sign-In / Sign-Up
     if (googleAuthBtn) {
       googleAuthBtn.addEventListener('click', function () {
         googleAuthBtn.disabled = true;
         if (googleBtnLabel) googleBtnLabel.textContent = 'Connecting with Google...';
 
-        // Check if running on local dev static server without Vercel API backend
-        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-          fetch('/api/auth/google', { method: 'HEAD' })
-            .then(function (r) {
-              if (r.status === 404) {
-                fallbackLocalGooglePrompt();
-              } else {
-                window.location.href = '/api/auth/google';
-              }
-            })
-            .catch(function () {
-              fallbackLocalGooglePrompt();
-            });
-          return;
-        }
+        // Check if live Supabase Google OAuth provider is active
+        fetch('/api/auth/google?check=1')
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            googleAuthBtn.disabled = false;
+            if (googleBtnLabel) googleBtnLabel.textContent = isSignIn ? 'Sign in with Google' : 'Continue with Google';
 
-        // Production / Vercel: redirect directly to Google OAuth handler
-        window.location.href = '/api/auth/google';
+            if (data.ok && data.enabled && data.url) {
+              // Direct 1-click Google OAuth is enabled in Supabase!
+              window.location.href = data.url;
+            } else {
+              // Google OAuth provider is not yet enabled in Supabase dashboard
+              // Open user-friendly Google Account modal
+              openGoogleModal();
+            }
+          })
+          .catch(function () {
+            googleAuthBtn.disabled = false;
+            if (googleBtnLabel) googleBtnLabel.textContent = isSignIn ? 'Sign in with Google' : 'Continue with Google';
+            openGoogleModal();
+          });
       });
     }
 
-    function fallbackLocalGooglePrompt() {
-      setTimeout(function () {
-        var email = prompt('Sign in with Google (Local Dev Fallback):\nEnter test Google account email:', 'seller@gmail.com');
-        if (!email || !email.includes('@')) {
-          googleAuthBtn.disabled = false;
-          if (googleBtnLabel) googleBtnLabel.textContent = isSignIn ? 'Sign in with Google' : 'Continue with Google';
+    function openGoogleModal() {
+      if (googleModal) {
+        googleModal.style.display = 'flex';
+        if (googleQuickEmail) {
+          googleQuickEmail.value = emailInput.value || '';
+          setTimeout(function() { googleQuickEmail.focus(); }, 50);
+        }
+      }
+    }
+
+    function closeGoogleModalFunc() {
+      if (googleModal) googleModal.style.display = 'none';
+      if (googleQuickAlert) googleQuickAlert.style.display = 'none';
+    }
+
+    if (closeGoogleModal) {
+      closeGoogleModal.addEventListener('click', closeGoogleModalFunc);
+    }
+    if (googleModal) {
+      googleModal.addEventListener('click', function (e) {
+        if (e.target === googleModal) closeGoogleModalFunc();
+      });
+    }
+
+    // Google Quick Email Submission
+    if (googleQuickForm) {
+      googleQuickForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var gEmail = googleQuickEmail.value.trim().toLowerCase();
+        if (!gEmail || !gEmail.includes('@') || !gEmail.includes('.')) {
+          showGoogleAlert('Please enter a valid Google email address.', true);
           return;
         }
-        var cleanEmail = email.trim().toLowerCase();
-        var name = cleanEmail.split('@')[0];
-        name = name.charAt(0).toUpperCase() + name.slice(1);
-        var userObj = {
-          name: name,
-          email: cleanEmail,
-          provider: 'google',
-          verified: true,
-          channel: 'Google Account',
-          activatedAt: new Date().toISOString()
-        };
-        try {
-          localStorage.setItem('quvirl_user', JSON.stringify(userObj));
-          localStorage.setItem('quvirl_authenticated', 'true');
-          localStorage.setItem('quvirl_slot_has_access', 'true');
-        } catch (_) {}
-        showMsg('✓ Google account verified! Launching Product Radar...', false);
-        setTimeout(function () { window.location.replace('/'); }, 500);
-      }, 150);
+
+        googleQuickSubmitBtn.disabled = true;
+        googleQuickSubmitBtn.textContent = 'Sending Verification...';
+
+        // Use the active Supabase signup API
+        var tempPass = 'GAuth_' + Math.random().toString(36).slice(2) + '99!';
+        var gName = gEmail.split('@')[0];
+        gName = gName.charAt(0).toUpperCase() + gName.slice(1);
+
+        fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: gEmail,
+            password: tempPass,
+            name: gName,
+            channel: 'Google Account'
+          })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            googleQuickSubmitBtn.disabled = false;
+            googleQuickSubmitBtn.textContent = 'Confirm Google Email & Activate →';
+
+            if (!data.ok && data.code === 'user_already_exists') {
+              showGoogleAlert('An account with this email is already registered. Switching to Sign In...', false);
+              setTimeout(function () {
+                closeGoogleModalFunc();
+                setMode(true);
+                emailInput.value = gEmail;
+                passInput.focus();
+              }, 1200);
+              return;
+            }
+
+            if (!data.ok) {
+              showGoogleAlert(data.message || 'Could not verify email.', true);
+              return;
+            }
+
+            closeGoogleModalFunc();
+            currentPendingEmail = gEmail;
+            form.style.display = 'none';
+            if (sentTargetEmail) sentTargetEmail.textContent = gEmail;
+            if (emailSentBox) emailSentBox.style.display = 'block';
+          })
+          .catch(function () {
+            googleQuickSubmitBtn.disabled = false;
+            googleQuickSubmitBtn.textContent = 'Confirm Google Email & Activate →';
+            showGoogleAlert('Network connection error. Please try again.', true);
+          });
+      });
+    }
+
+    function showGoogleAlert(text, isErr) {
+      if (!googleQuickAlert) return;
+      googleQuickAlert.textContent = text;
+      googleQuickAlert.className = 'feedbackAlert ' + (isErr ? 'error' : 'success');
+      googleQuickAlert.style.display = 'block';
     }
 
     // Form submission
