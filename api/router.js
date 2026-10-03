@@ -22,6 +22,7 @@ const routes = {
   'auth/signup': require('../lib/api/auth').signup,
   'auth/signin': require('../lib/api/auth').signin,
   'auth/google': require('../lib/api/auth').google,
+  'auth/callback': require('../lib/api/auth').callback,
   'auth/resend': require('../lib/api/auth').resend,
 
   'reserve-slot': require('./reserve-slot'),
