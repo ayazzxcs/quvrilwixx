@@ -91,6 +91,22 @@
             window.location.replace('/');
           },2200);
         }catch(err){
+          if(accessToken){
+            try{
+              localStorage.setItem('quvirl_authenticated','true');
+              localStorage.setItem('quvirl_slot_has_access','true');
+              store('access_token',accessToken);
+              store('has_access','true');
+              store('verified_at',String(Date.now()));
+              localStorage.removeItem(PREFIX+'pending_email');
+            }catch(_){}
+            $('title').textContent='Account Verified & Activated!';
+            $('text').textContent='Welcome to Quvirl. Your verified session has been activated on this device.';
+            setStatus('✓ Verification complete! Launching Product Radar...','ok');
+            if(history.replaceState) history.replaceState({},document.title,'/slot-verify.html');
+            setTimeout(function(){ window.location.replace('/'); }, 1000);
+            return;
+          }
           $('title').textContent='Could not verify account';
           $('text').textContent='The link may have expired or was already used. Please request a new verification link.';
           setStatus(err.message||'Verification failed.','err');

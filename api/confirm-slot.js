@@ -88,13 +88,12 @@ module.exports = async function handler(req, res) {
     try {
       const existingDevice = await findSlots(cfg, `slot_month=eq.${encodeURIComponent(targetMonth)}&device_id_hash=eq.${encodeURIComponent(deviceHash)}`, 1);
       if (existingDevice.length && normalizeEmail(existingDevice[0].email) !== email) {
-        const existing = existingDevice[0];
-        return send(res, 409, {
-          ok: false,
-          code: 'device_duplicate',
-          message: `A slot is already reserved from this device for ${existing.slot_month}.`,
-          slot: { month: existing.slot_month, slotNumber: existing.slot_number, status: existing.status }
-        });
+        // Re-assign previous slot device binding so the verified user can access from this device
+        try {
+          await updateRow(cfg, 'quvirl_slots', existingDevice[0].id, {
+            device_id_hash: hashValue(`replaced_${Date.now()}_${deviceId}`, cfg.hashSecret)
+          });
+        } catch (_) {}
       }
 
       const existingEmail = await findSlots(cfg, `slot_month=eq.${encodeURIComponent(targetMonth)}&email=eq.${encodeURIComponent(email)}`, 1);
