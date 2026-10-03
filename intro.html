@@ -1112,11 +1112,23 @@
     // Check URL parameters for redirect errors
     try {
       var urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('auth_error') === 'google_provider_disabled') {
+      var authErr = urlParams.get('auth_error');
+      if (authErr) {
         if (window.history && window.history.replaceState) {
           window.history.replaceState({}, document.title, window.location.pathname);
         }
-        showMsg('ℹ️ Direct 1-Click Google OAuth is pending activation in your Supabase dashboard. You can sign up or sign in below with your Google email address.', true);
+        var authDesc = urlParams.get('auth_desc') || '';
+        if (authErr === 'google_provider_disabled') {
+          showMsg('ℹ️ Direct 1-Click Google OAuth is pending activation in your Supabase dashboard. You can sign up or sign in below with your Google email address.', true);
+        } else if (authErr === 'google_exchange_failed') {
+          showMsg('Google sign-in notice: ' + (authDesc || 'Google authorization token exchange failed. Please check your credentials in Vercel.'), true);
+        } else if (authErr === 'missing_google_client_secret') {
+          showMsg('Google Sign-In is missing GOOGLE_CLIENT_SECRET in Vercel environment variables.', true);
+        } else if (authErr === 'supabase_exchange_failed') {
+          showMsg('Could not link Google account to Supabase. Please try again or sign up with email below.', true);
+        } else {
+          showMsg('Google sign-in notice: ' + (authDesc || authErr), true);
+        }
       }
     } catch (_) {}
 
